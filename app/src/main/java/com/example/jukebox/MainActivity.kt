@@ -17,7 +17,7 @@ import com.example.jukebox.ui.theme.JukeboxTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val intent = Intent(getApplicationContext(), WelcomeActivity::class.java)
+        val intent = Intent(applicationContext, WelcomeActivity::class.java)
         startActivity(intent)
         setContent {
             JukeboxTheme {
