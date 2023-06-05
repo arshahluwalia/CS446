@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -53,19 +54,25 @@ override fun onCreate(savedInstanceState: Bundle?) {
 @Composable
 fun Background() {
     var text by remember { mutableStateOf("") }
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-//            .scale(maxOf(aspectRatio, 1f), maxOf(1 / aspectRatio, 1f))
-            .background(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        PurpleNeon,
-                        Black
-                    ),
-                )
-            )
+            //.scale(maxOf(aspectRatio, 1f), maxOf(1 / aspectRatio, 1f))
     ) {
+        val aspectRatio = maxWidth/maxHeight
+        Box(
+            Modifier
+                .fillMaxSize()
+                .scale(maxOf(aspectRatio, 1f), maxOf(1/aspectRatio, 1f))
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            PurpleNeon,
+                            Black
+                        ),
+                    )
+                )
+        )
         Column(
             modifier = Modifier.align(Alignment.Center),
             verticalArrangement = Arrangement.Center,
