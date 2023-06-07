@@ -194,7 +194,8 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
             colors = TextFieldDefaults.textFieldColors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
             )
         )
     }
