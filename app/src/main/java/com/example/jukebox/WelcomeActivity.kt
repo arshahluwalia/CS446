@@ -32,13 +32,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jukebox.ui.theme.Black
-import com.example.jukebox.ui.theme.MichromaFont
+import com.example.jukebox.ui.theme.JukeboxTheme
+import com.example.jukebox.ui.theme.LightPurple
 import com.example.jukebox.ui.theme.PurpleNeon
 
 class WelcomeActivity : ComponentActivity() {
@@ -46,10 +45,12 @@ class WelcomeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                ScreenContent()
+            JukeboxTheme() {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ScreenContent()
+                }
             }
         }
     }
@@ -97,18 +98,13 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
         Text(
             text = "JukeBox",
             color = Color.White,
-            style = TextStyle(
-                fontFamily = MichromaFont,
-                fontWeight = FontWeight.Normal,
-                fontSize = 50.sp,
-                lineHeight = 24.sp,
-                letterSpacing = 0.5.sp
-            )
+            style = MaterialTheme.typography.titleLarge
         )
         Text(
             text = "Stop looking for the party aux",
             fontSize = 20.sp,
-            color = Color.White
+            color = Color.White,
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }
@@ -134,7 +130,12 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                     error = true
             },
             isError = error,
-            label = { Text("Enter your room code") },
+            label = {
+                Text(
+                    text = "Enter your room code",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
             shape = RoundedCornerShape(20),
             singleLine = true,
             trailingIcon = { QRCode() }
@@ -175,14 +176,24 @@ fun BoxWithConstraintsScope.StartARoomButton() {
         onClick = {
             val intent = Intent(context, SongQueueActivity::class.java)
             context.startActivity(intent)
-        }
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
     ) {
-        Text(text = AnnotatedString("Start a Room"))
+        Text(
+            text = AnnotatedString("Start a Room"),
+            style = MaterialTheme.typography.headlineSmall
+        )
     }
 }
 
 @Composable
 @Preview
 fun PreviewScreenContent() {
-    ScreenContent()
+    JukeboxTheme() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            ScreenContent()
+        }
+    }
 }

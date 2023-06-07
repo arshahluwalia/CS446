@@ -19,15 +19,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val intent = Intent(applicationContext, WelcomeActivity::class.java)
         startActivity(intent)
-        setContent {
-            JukeboxTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Greeting("Android")
-
-                }
-            }
-        }
     }
 }
 

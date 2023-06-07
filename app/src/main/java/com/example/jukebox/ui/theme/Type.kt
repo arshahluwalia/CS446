@@ -12,6 +12,10 @@ val MichromaFont = FontFamily(
     Font(R.font.michroma)
 )
 
+val NunitoFont = FontFamily(
+    Font(R.font.nunito_regular, weight = FontWeight.Normal)
+)
+
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
@@ -24,7 +28,15 @@ val Typography = Typography(
         fontFamily = MichromaFont,
         fontWeight = FontWeight.Normal,
         fontSize = 60.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = NunitoFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = NunitoFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
     ),
 )
