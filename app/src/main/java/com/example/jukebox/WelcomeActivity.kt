@@ -1,7 +1,9 @@
 package com.example.jukebox
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -14,37 +16,48 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jukebox.ui.theme.Black
+import com.example.jukebox.ui.theme.JukeboxTheme
+import com.example.jukebox.ui.theme.LightPurple
 import com.example.jukebox.ui.theme.PurpleNeon
+
 
 class WelcomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                ScreenContent()
+            JukeboxTheme() {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ScreenContent()
+                }
             }
         }
     }
@@ -91,13 +104,14 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
     ) {
         Text(
             text = "JukeBox",
-            fontSize = 60.sp,
-            color = Color.White
+            color = Color.White,
+            style = MaterialTheme.typography.titleLarge
         )
         Text(
             text = "Stop looking for the party aux",
             fontSize = 20.sp,
-            color = Color.White
+            color = Color.White,
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }
@@ -106,7 +120,13 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
 @Composable
 fun BoxWithConstraintsScope.RoomCodeTextField() {
     var roomCode by remember { mutableStateOf("") }
-    var error = false
+    var isError by remember { mutableStateOf(false) }
+    val charLimit = 5
+
+    fun validate(text: String) {
+        isError = text.length < charLimit
+    }
+
     Row(
         modifier = Modifier
             .padding(bottom = maxHeight / 6)
@@ -114,28 +134,82 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        val context = LocalContext.current
         TextField(
             value = roomCode,
             onValueChange = {
-                if (it.length <= 20)
+                if (it.length <= 5) {
                     roomCode = it // TODO: need to handle input
-                else
-                    error = true
+                }
             },
-            isError = error,
-            label = { Text("Enter your room code") },
+            isError = isError,
+            supportingText = {
+                if (isError) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Room code must be $charLimit characters",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            label = {
+                Text(
+                    text = "Enter your room code",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
             shape = RoundedCornerShape(20),
             singleLine = true,
-            trailingIcon = { QRCode() }
+            trailingIcon = { QRCode() },
+            modifier = Modifier.onKeyEvent {
+                if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+                    if (roomCode.length == 5) {
+                        val intent = Intent(context, SongQueueActivity::class.java)
+                        context.startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(context)
+                            .setTitle("Invalid Room Code")
+                            .setMessage("The Room Code Must be 5 Characters")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+                false
+            },
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    validate(roomCode)
+                    if (roomCode.length == charLimit) {
+                        val intent = Intent(context, SongQueueActivity::class.java)
+                        context.startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(context)
+                            .setTitle("Invalid Room Code")
+                            .setMessage("The Room Code Must be 5 Characters")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+            )
         )
     }
 }
 
 @Composable
 fun QRCode() {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
-            .clickable { /* Handle box click action */ }
+            .clickable {
+                val intent = Intent(context, QRActivity::class.java)
+                context.startActivity(intent)
+            }
             .size(30.dp)
     ) {
         Image(
@@ -162,10 +236,26 @@ fun BoxWithConstraintsScope.StartARoomButton() {
         ),
         shape = RoundedCornerShape(20),
         onClick = {
-            val intent = Intent(context, SongQueueActivity::class.java)
+            val intent = Intent(context, HostViewActivity::class.java)
             context.startActivity(intent)
-        }
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
     ) {
-        Text(text = AnnotatedString("Start a Room"))
+        Text(
+            text = AnnotatedString("Start a Room"),
+            style = MaterialTheme.typography.headlineSmall
+        )
+    }
+}
+
+@Composable
+@Preview
+fun PreviewScreenContent() {
+    JukeboxTheme() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            ScreenContent()
+        }
     }
 }
