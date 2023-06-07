@@ -117,6 +117,7 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
 @Composable
 fun BoxWithConstraintsScope.RoomCodeTextField() {
     var roomCode by remember { mutableStateOf("") }
+    var error = false
     Row(
         modifier = Modifier
             .padding(bottom = maxHeight / 6)
@@ -127,10 +128,13 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
         TextField(
             value = roomCode,
             onValueChange = {
-                roomCode = it // TODO: need to handle input
+                if (it.length <= 20)
+                    roomCode = it // TODO: need to handle input
+                else
+                    error = true
             },
+            isError = error,
             label = { Text("Enter your room code") },
-            maxLines = 2,
             shape = RoundedCornerShape(20),
             singleLine = true,
             trailingIcon = { QRCode() }
