@@ -119,13 +119,12 @@ fun Background() {
             TextField(
                 value = roomCode,
                 onValueChange = {
-                    roomCode = it
+                    roomCode = it // TODO: need to handle input
                 },
                 label = { Text("Enter your room code") },
                 maxLines = 2,
                 //            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
                 shape = RoundedCornerShape(20)
-                // TODO: need to add QR code (trailing icon), need to handle input, need round stroke cap
             )
 
             Box(
@@ -151,7 +150,7 @@ fun Background() {
                 disabledElevation = 0.dp
             ),
             shape = RoundedCornerShape(20),
-            onClick = {}
+            onClick = {} // TODO: need to implement
         ) {
             Text(text = AnnotatedString("Start a Room"))
         }
