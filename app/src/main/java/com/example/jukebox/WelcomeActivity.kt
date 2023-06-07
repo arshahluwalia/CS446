@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,8 @@ import com.example.jukebox.ui.theme.Black
 import com.example.jukebox.ui.theme.PurpleNeon
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 
 class WelcomeActivity  : ComponentActivity(){
 override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,12 +77,14 @@ fun Background() {
                 )
         )
         Column(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .padding(top = maxHeight/4)
+                .align(Alignment.TopCenter),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             ){
             Text(
-                text = "Jukebox",
+                text = "JukeBox",
                 fontSize = 60.sp,
                 color = Color.White
             )
@@ -97,10 +102,19 @@ fun Background() {
             },
             label = { Text("Enter your room code") },
             maxLines = 2,
-//            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
+            //            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
             modifier = Modifier
-                .padding(20.dp)
-                .align(Alignment.BottomCenter)
+                .padding(bottom = maxHeight/8)
+                .align(Alignment.BottomCenter),
+            // TODO: need to add QR code (trailing icon), need to handle input, need round stroke cap
+        )
+        ClickableText(
+            modifier = Modifier
+                .padding(bottom = maxHeight/12)
+                .align(Alignment.BottomCenter),
+            text = AnnotatedString("Start a Room"),
+            onClick = {}, // TODO: need to implement
+            style = TextStyle(fontSize = 20.sp, color = Color.White)
         )
     }
 }
