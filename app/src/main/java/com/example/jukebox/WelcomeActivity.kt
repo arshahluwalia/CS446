@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,7 +120,13 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
 @Composable
 fun BoxWithConstraintsScope.RoomCodeTextField() {
     var roomCode by remember { mutableStateOf("") }
-    var error = false
+    var isError by remember { mutableStateOf(false) }
+    val charLimit = 5
+
+    fun validate(text: String) {
+        isError = text.length < charLimit
+    }
+
     Row(
         modifier = Modifier
             .padding(bottom = maxHeight / 6)
@@ -134,7 +142,16 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                     roomCode = it // TODO: need to handle input
                 }
             },
-            isError = error,
+            isError = isError,
+            supportingText = {
+                if (isError) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Room code must be $charLimit characters",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
             label = {
                 Text(
                     text = "Enter your room code",
@@ -161,7 +178,8 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
             },
             keyboardActions = KeyboardActions(
                 onDone = {
-                    if (roomCode.length == 5) {
+                    validate(roomCode)
+                    if (roomCode.length == charLimit) {
                         val intent = Intent(context, SongQueueActivity::class.java)
                         context.startActivity(intent)
                     } else {
@@ -171,7 +189,13 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                             .setPositiveButton("OK", null)
                             .show()
                     }
-                })
+                }
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            )
         )
     }
 }
