@@ -1,7 +1,9 @@
 package com.example.jukebox
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,13 +32,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jukebox.ui.theme.Black
 import com.example.jukebox.ui.theme.PurpleNeon
+
 
 class WelcomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,19 +121,47 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        val context = LocalContext.current
         TextField(
             value = roomCode,
             onValueChange = {
-                if (it.length <= 20)
+                if (it.length <= 5) {
                     roomCode = it // TODO: need to handle input
-                else
-                    error = true
+                }
             },
             isError = error,
             label = { Text("Enter your room code") },
             shape = RoundedCornerShape(20),
             singleLine = true,
-            trailingIcon = { QRCode() }
+            trailingIcon = { QRCode() },
+            modifier = Modifier.onKeyEvent {
+                if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+                    if (roomCode.length == 5) {
+                        val intent = Intent(context, SongQueueActivity::class.java)
+                        context.startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(context)
+                            .setTitle("Invalid Room Code")
+                            .setMessage("The Room Code Must be 5 Characters")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+                false
+            },
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (roomCode.length == 5) {
+                        val intent = Intent(context, SongQueueActivity::class.java)
+                        context.startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(context)
+                            .setTitle("Invalid Room Code")
+                            .setMessage("The Room Code Must be 5 Characters")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                })
         )
     }
 }
@@ -162,7 +197,7 @@ fun BoxWithConstraintsScope.StartARoomButton() {
         ),
         shape = RoundedCornerShape(20),
         onClick = {
-            val intent = Intent(context, SongQueueActivity::class.java)
+            val intent = Intent(context, HostViewActivity::class.java)
             context.startActivity(intent)
         }
     ) {
