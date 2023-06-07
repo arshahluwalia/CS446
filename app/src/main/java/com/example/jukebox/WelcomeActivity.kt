@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.media.Image
 import android.os.Bundle
 import android.util.Size
 import androidx.activity.ComponentActivity
@@ -11,14 +12,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +44,8 @@ import com.example.jukebox.ui.theme.Black
 import com.example.jukebox.ui.theme.PurpleNeon
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 
@@ -56,7 +69,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Background() {
-    var text by remember { mutableStateOf("") }
+    var roomCode by remember { mutableStateOf("") }
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -66,7 +79,7 @@ fun Background() {
         Box(
             Modifier
                 .fillMaxSize()
-                .scale(maxOf(aspectRatio, 1f), maxOf(1/aspectRatio, 1f))
+                .scale(maxOf(aspectRatio, 1f), maxOf(1 / aspectRatio, 1f))
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
@@ -76,13 +89,14 @@ fun Background() {
                     )
                 )
         )
+
         Column(
             modifier = Modifier
-                .padding(top = maxHeight/4)
+                .padding(top = maxHeight / 4)
                 .align(Alignment.TopCenter),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            ){
+            ) {
             Text(
                 text = "JukeBox",
                 fontSize = 60.sp,
@@ -94,27 +108,52 @@ fun Background() {
                 color = Color.White
             )
         }
-        TextField(
-            value = text,
-            onValueChange = {
-                val it = ""
-                text = it
-            },
-            label = { Text("Enter your room code") },
-            maxLines = 2,
-            //            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
+
+        Row(
             modifier = Modifier
-                .padding(bottom = maxHeight/8)
+                .padding(bottom = maxHeight / 6)
                 .align(Alignment.BottomCenter),
-            // TODO: need to add QR code (trailing icon), need to handle input, need round stroke cap
-        )
-        ClickableText(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextField(
+                value = roomCode,
+                onValueChange = {
+                    roomCode = it
+                },
+                label = { Text("Enter your room code") },
+                maxLines = 2,
+                //            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
+                shape = RoundedCornerShape(20)
+                // TODO: need to add QR code (trailing icon), need to handle input, need round stroke cap
+            )
+
+            Box(
+                modifier = Modifier
+                    .clickable { /* Handle box click action */ }
+                    .size(50.dp)
+            ) {
+                Image(
+                    painterResource(id = R.drawable.qr_icon),
+                    contentDescription = "QR Icon",
+                    modifier = Modifier.fillMaxSize().background(color = Color.White)
+                )
+            }
+        }
+
+        Button(
             modifier = Modifier
-                .padding(bottom = maxHeight/12)
+                .padding(bottom = maxHeight / 12)
                 .align(Alignment.BottomCenter),
-            text = AnnotatedString("Start a Room"),
-            onClick = {}, // TODO: need to implement
-            style = TextStyle(fontSize = 20.sp, color = Color.White)
-        )
+            elevation =  ButtonDefaults.buttonElevation(
+                defaultElevation = 10.dp,
+                pressedElevation = 15.dp,
+                disabledElevation = 0.dp
+            ),
+            shape = RoundedCornerShape(20),
+            onClick = {}
+        ) {
+            Text(text = AnnotatedString("Start a Room"))
+        }
     }
 }
