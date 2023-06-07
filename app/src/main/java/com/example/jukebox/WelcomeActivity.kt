@@ -120,23 +120,27 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
             },
             label = { Text("Enter your room code") },
             maxLines = 2,
-            //            textStyle = TextStyle(color = Color.Blue, fontWeight = FontWeight.Bold),
-            shape = RoundedCornerShape(20)
+            shape = RoundedCornerShape(20),
+            singleLine = true,
+            trailingIcon = { QRCode() }
         )
+    }
+}
 
-        Box(
+@Composable
+fun QRCode() {
+    Box(
+        modifier = Modifier
+            .clickable { /* Handle box click action */ }
+            .size(30.dp)
+    ) {
+        Image(
+            painterResource(id = R.drawable.qr_icon),
+            contentDescription = "QR Icon",
             modifier = Modifier
-                .clickable { /* Handle box click action */ }
-                .size(50.dp)
-        ) {
-            Image(
-                painterResource(id = R.drawable.qr_icon),
-                contentDescription = "QR Icon",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = Color.White)
-            )
-        }
+                .fillMaxSize()
+                .background(color = Color.White)
+        )
     }
 }
 
