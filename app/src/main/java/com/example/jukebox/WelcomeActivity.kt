@@ -58,7 +58,6 @@ fun Background() {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            //.scale(maxOf(aspectRatio, 1f), maxOf(1 / aspectRatio, 1f))
     ) {
         val aspectRatio = maxWidth/maxHeight
         Box(

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">jukebox</string>
+    <string name="title_activity_reusable_background">ReusableBackground</string>
 </resources>
