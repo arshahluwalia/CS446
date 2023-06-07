@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
@@ -31,9 +32,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jukebox.ui.theme.Black
+import com.example.jukebox.ui.theme.MichromaFont
 import com.example.jukebox.ui.theme.PurpleNeon
 
 class WelcomeActivity : ComponentActivity() {
@@ -91,8 +96,14 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
     ) {
         Text(
             text = "JukeBox",
-            fontSize = 60.sp,
-            color = Color.White
+            color = Color.White,
+            style = TextStyle(
+                fontFamily = MichromaFont,
+                fontWeight = FontWeight.Normal,
+                fontSize = 50.sp,
+                lineHeight = 24.sp,
+                letterSpacing = 0.5.sp
+            )
         )
         Text(
             text = "Stop looking for the party aux",
@@ -164,4 +175,10 @@ fun BoxWithConstraintsScope.StartARoomButton() {
     ) {
         Text(text = AnnotatedString("Start a Room"))
     }
+}
+
+@Composable
+@Preview
+fun PreviewScreenContent() {
+    ScreenContent()
 }
