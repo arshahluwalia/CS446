@@ -202,9 +202,13 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
 
 @Composable
 fun QRCode() {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
-            .clickable { /* Handle box click action */ }
+            .clickable {
+                val intent = Intent(context, QRActivity::class.java)
+                context.startActivity(intent)
+            }
             .size(30.dp)
     ) {
         Image(
