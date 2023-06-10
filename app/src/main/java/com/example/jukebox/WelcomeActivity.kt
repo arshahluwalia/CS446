@@ -64,7 +64,7 @@ class WelcomeActivity : ComponentActivity() {
 }
 
 @Composable
-fun ScreenContent() {
+private fun ScreenContent() {
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -109,7 +109,6 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
         )
         Text(
             text = "Stop looking for the party aux",
-            fontSize = 20.sp,
             color = Color.White,
             style = MaterialTheme.typography.headlineMedium
         )
@@ -250,7 +249,7 @@ fun BoxWithConstraintsScope.StartARoomButton() {
 
 @Composable
 @Preview
-fun PreviewScreenContent() {
+private fun PreviewScreenContent() {
     JukeboxTheme() {
         Column(
             modifier = Modifier.fillMaxSize(),

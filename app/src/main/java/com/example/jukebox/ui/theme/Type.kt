@@ -29,6 +29,16 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 60.sp,
     ),
+    titleMedium = TextStyle(
+        fontFamily = MichromaFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 40.sp,
+    ),
+    titleSmall = TextStyle(
+        fontFamily = MichromaFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 30.sp,
+    ),
     headlineMedium = TextStyle(
         fontFamily = NunitoFont,
         fontWeight = FontWeight.Normal,

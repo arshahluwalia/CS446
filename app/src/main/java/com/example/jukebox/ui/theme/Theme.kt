@@ -16,23 +16,23 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-        primary = PurpleNeon,
-        secondary = Black,
-        tertiary = LightPurple
+    primary = PurpleNeon,
+    secondary = Black,
+    tertiary = LightPurple
 )
 
 private val LightColorScheme = lightColorScheme(
-        primary = PurpleNeon,
-        secondary = Black,
-        tertiary = Black
+    primary = PurpleNeon,
+    secondary = Black,
+    tertiary = Black
 )
 
 @Composable
 fun JukeboxTheme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
-        // Dynamic color is available on Android 12+
-        dynamicColor: Boolean = true,
-        content: @Composable () -> Unit
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
 ) {
     val colorScheme = when {
 //        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -53,8 +53,8 @@ fun JukeboxTheme(
     }
 
     MaterialTheme(
-            colorScheme = colorScheme,
-            typography = Typography,
-            content = content
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
     )
 }
