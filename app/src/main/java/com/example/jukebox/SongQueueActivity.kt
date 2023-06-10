@@ -48,6 +48,7 @@ class SongQueueActivity  : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // TODO: need to retrieve song list, current song, and host name instead of hardcoding
             JukeboxTheme() {
                 ScreenContent(
                     hostName = "Lucas",
@@ -115,7 +116,7 @@ private fun ScreenContent(
 private fun SongQueueTitle(
     hostName: String,
 ) {
-    // TODO: get host name, change "tonight" wording to reflect time of day or just use "today"
+    // TODO: change "tonight" wording to reflect time of day or just use "today"
     Text(
         modifier = Modifier.padding(top = 70.dp, start = 20.dp, end = 20.dp, bottom = 30.dp),
         text = buildAnnotatedString {
@@ -195,7 +196,9 @@ fun SongItem(song: Song) {
     ) {
         if (song.isApproved) {
             Image(
-                modifier = Modifier.size(30.dp),
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable { /* TODO: Add tooltip explaining that host needs to approve*/ },
                 painter = painterResource(id = R.drawable.approved_check),
                 contentDescription = null
             )
