@@ -203,7 +203,7 @@ fun SongItem(song: Song) {
             Column(modifier = Modifier.padding(start = 30.dp)) {}
         }
         Column(modifier = Modifier
-            .padding(20.dp)
+            .padding(15.dp)
             .clickable { /* TODO: Redirects to spotify */ },
         ) {
             Text(text = song.songTitle, color = Color.White)
