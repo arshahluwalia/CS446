@@ -40,7 +40,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.jukebox.ui.theme.Black
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
@@ -137,7 +136,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
         TextField(
             value = roomCode,
             onValueChange = {
-                if (it.length <= 5) {
+                if (it.length <= charLimit) {
                     roomCode = it // TODO: need to handle input
                 }
             },
@@ -162,8 +161,8 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
             trailingIcon = { QRCode() },
             modifier = Modifier.onKeyEvent {
                 if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-                    if (roomCode.length == 5) {
-                        val intent = Intent(context, SongQueueActivity::class.java)
+                    if (roomCode.length == charLimit) {
+                        val intent = Intent(context, GuestSongQueueActivity::class.java)
                         context.startActivity(intent)
                     } else {
                         AlertDialog.Builder(context)
@@ -179,7 +178,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                 onDone = {
                     validate(roomCode)
                     if (roomCode.length == charLimit) {
-                        val intent = Intent(context, SongQueueActivity::class.java)
+                        val intent = Intent(context, GuestSongQueueActivity::class.java)
                         context.startActivity(intent)
                     } else {
                         AlertDialog.Builder(context)
@@ -235,7 +234,7 @@ fun BoxWithConstraintsScope.StartARoomButton() {
         ),
         shape = RoundedCornerShape(20),
         onClick = {
-            val intent = Intent(context, HostViewActivity::class.java)
+            val intent = Intent(context, HostSongQueueActivity::class.java)
             context.startActivity(intent)
         },
         colors = ButtonDefaults.buttonColors(containerColor = LightPurple)

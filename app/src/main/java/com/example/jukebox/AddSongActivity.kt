@@ -86,8 +86,7 @@ class AddSongActivity : ComponentActivity() {
             ),
             shape = RoundedCornerShape(20),
             onClick = {
-                val intent = Intent(context, SongQueueActivity::class.java)
-                context.startActivity(intent)
+                onBackPressedDispatcher.onBackPressed()
             }
         ) {
             Text(text = AnnotatedString("Back to Queue"))

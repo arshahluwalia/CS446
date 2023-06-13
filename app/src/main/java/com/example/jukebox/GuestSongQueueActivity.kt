@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,16 +42,18 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 
-class SongQueueActivity  : ComponentActivity(){
+class GuestSongQueueActivity  : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             // TODO: need to retrieve song list, current song, and host name instead of hardcoding
             JukeboxTheme() {
-                ScreenContent(
+                // TODO: move composables to own file
+                SongQueueScreenContent(
                     hostName = "Lucas",
                     isHost = false,
                     playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
@@ -74,7 +77,7 @@ class SongQueueActivity  : ComponentActivity(){
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScreenContent(
+fun SongQueueScreenContent(
     hostName: String,
     isHost: Boolean,
     playingSong: Song,
@@ -141,7 +144,7 @@ fun SongQueue(
         modifier = Modifier.padding(start = 50.dp, end = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        PlayingSong(playingSong = playingSong)
+        PlayingSong(playingSong = playingSong, isHost = isHost)
         if (isHost) {
             QueuedSongs(queuedSongList = queuedSongList)
         } else {
@@ -152,24 +155,64 @@ fun SongQueue(
 
 @Composable
 fun PlayingSong(
-    playingSong: Song
+    playingSong: Song,
+    isHost: Boolean,
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(10.dp))
             .background(color = PurpleNeon),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
+                Text(text = playingSong.songTitle, color = Color.White)
+                Text(text = playingSong.songArtist, color = Color.White)
+            }
+            SongProgressBar()
+        }
+        if (isHost) {
+            SongControl()
+        }
+    }
+}
+
+@Composable
+fun SongControl() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
-            Text(text = playingSong.songTitle, color = Color.White)
-            Text(text = playingSong.songArtist, color = Color.White)
-        }
-        Image(
+        Image(painter = painterResource(id = R.drawable.previous_track), contentDescription = null)
+        Image(painter = painterResource(id = R.drawable.pause_track), contentDescription = null)
+        Image(painter = painterResource(id = R.drawable.next_track), contentDescription = null)
+    }
+}
+
+@Composable
+private fun SongProgressBar(){
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(end = 20.dp, top = 10.dp)
+    ) {
+        LinearProgressIndicator(
             modifier = Modifier
-                .padding(end = 20.dp, top = 10.dp, bottom = 10.dp)
-                .clickable { /* TODO: Redirects to spotify */ },
-            painter = painterResource(id = R.drawable.currently_playing), contentDescription = null
+                .fillMaxWidth(),
+            trackColor = Color.LightGray,
+            color = DarkPurple,
+            progress = 0.3f
         )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "0:00", style = MaterialTheme.typography.bodySmall)
+            Text(text = "3:00", style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 
@@ -190,6 +233,7 @@ fun QueuedSongs(
 
 @Composable
 fun SongItem(song: Song) {
+    // TODO: add isHost implementation, change icons if hose
     Row(
         modifier = Modifier.padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -231,7 +275,7 @@ private fun PreviewScreenContent() {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ScreenContent(
+            SongQueueScreenContent(
                 hostName = "Lucas",
                 isHost = false,
                 playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),

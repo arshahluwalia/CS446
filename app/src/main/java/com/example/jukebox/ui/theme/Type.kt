@@ -49,4 +49,9 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
     ),
+    bodySmall = TextStyle(
+        fontFamily = NunitoFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+    ),
 )
