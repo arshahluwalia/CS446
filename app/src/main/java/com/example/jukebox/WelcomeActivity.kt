@@ -40,7 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.ui.theme.Black
+import com.example.jukebox.ui.theme.OffBlack
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
 import com.example.jukebox.ui.theme.PurpleNeon
@@ -85,7 +85,7 @@ fun BoxWithConstraintsScope.WelcomeScreenBackground() {
                 brush = Brush.radialGradient(
                     colors = listOf(
                         PurpleNeon,
-                        Black
+                        OffBlack
                     )
                 )
             )

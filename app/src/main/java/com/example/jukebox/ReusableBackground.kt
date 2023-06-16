@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.ui.theme.Black
+import com.example.jukebox.ui.theme.OffBlack
 import com.example.jukebox.ui.theme.PurpleNeon
 
 fun Modifier.reusableBackground() = composed {
@@ -25,7 +25,7 @@ fun Modifier.reusableBackground() = composed {
                 center = Offset(x = 0F, y = 2*boxHeight / 3),
                 colors = listOf(
                     PurpleNeon,
-                    Black
+                    OffBlack
                 ),
             )
         )
