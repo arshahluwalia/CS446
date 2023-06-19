@@ -1,0 +1,34 @@
+package com.example.jukebox
+
+class SongQueue (private val queue: MutableList<Song> = mutableListOf()) {
+    constructor(songs: Collection<Song>) : this(songs.toMutableList())
+
+    fun addSong(song: Song) {
+        queue.add(song)
+    }
+
+    fun addSongByContextUri(contextUri: String) {
+        val song = Song(contextUri)
+        queue.add(song)
+    }
+
+    fun removeSong(song: Song) {
+        queue.remove(song)
+    }
+
+    fun upvoteSong(song: Song) {
+        song.upvote()
+    }
+
+    fun getNextSong(): Song? {
+        return queue.firstOrNull()
+    }
+
+    fun isEmpty(): Boolean {
+        return queue.isEmpty()
+    }
+
+    fun clearQueue() {
+        queue.clear()
+    }
+}

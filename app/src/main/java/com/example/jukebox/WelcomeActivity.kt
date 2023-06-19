@@ -259,3 +259,22 @@ private fun PreviewScreenContent() {
         }
     }
 }
+
+private fun testRoomManager() {
+    val roomManager = RoomManager()
+    val room = Room("hostToken123")
+    roomManager.createRoom("testHostToken", room)
+    roomManager.addUserTokenToRoom("testHostToken", "newUserToken")
+    roomManager.addUserTokenToRoom("testHostToken", "newUserToken1")
+    roomManager.addUserTokenToRoom("testHostToken", "newUserToken2")
+    roomManager.addUserTokenToRoom("testHostToken", "newUserToken23")
+    roomManager.removeUserFromRoom("testHostToken", "newUserToken2")
+    roomManager.addSongToQueue("testHostToken", Song("testSong"))
+    roomManager.addSongToQueue("testHostToken", Song("testSong2"))
+    roomManager.addSongToQueue("testHostToken", Song("testSong3"))
+    roomManager.removeSongFromQueue("testHostToken", "testSong2")
+    roomManager.removeSongFromQueue("testHostToken", "testSong2")
+    roomManager.upvoteSong("testHostToken", "testSong3")
+    roomManager.upvoteSong("testHostToken", "testSong3")
+    roomManager.upvoteSong("testHostToken", "testSong3")
+}
