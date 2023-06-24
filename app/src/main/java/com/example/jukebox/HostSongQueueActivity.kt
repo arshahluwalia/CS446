@@ -13,17 +13,17 @@ class HostSongQueueActivity : ComponentActivity(){
                 SongQueueScreenContent(
                     hostName = "Lucas",
                     isHost = true,
-                    playingSong = Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                    playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
                     queuedSongList = listOf(
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                        Song(context_uri = "", songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                        Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     )
                 )
             }
