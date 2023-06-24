@@ -1,10 +1,8 @@
 package com.example.jukebox
 
-class Room (val userTokens: MutableList<String>,
-            val hostToken: String,
-            val queue: SongQueue) {
-
-    constructor(hostToken: String) : this(mutableListOf<String>(), hostToken, SongQueue())
+class Room (val hostToken: String,
+            val userTokens: MutableList<String> = mutableListOf<String>(),
+            val queue: SongQueue = SongQueue()) {
 
     fun addUser(userToken: String) {
         userTokens.add(userToken)

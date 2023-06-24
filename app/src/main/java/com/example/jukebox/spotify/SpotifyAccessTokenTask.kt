@@ -7,12 +7,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
 private const val clientID = BuildConfig.SPOTIFY_CLIENT_ID
 private const val clientSECRET = BuildConfig.SPOTIFY_CLIENT_SECRET
 
 object SpotifyAccessTokenTask : CoroutineScope by MainScope() {
 
+	@OptIn(ExperimentalTime::class)
 	fun requestAccessToken() {
 		if (!SpotifyAccessToken.isTokenValid()) {
 			val api = RetrofitHelper.getAccountUrlInstance().create(SpotifyApi::class.java)
@@ -28,7 +32,7 @@ object SpotifyAccessTokenTask : CoroutineScope by MainScope() {
 				if (result.body() != null) {
 					Log.d("spotify logging: ", result.body().toString())
 					val token = result.body()
-					SpotifyAccessToken.setToken(newToken = token!!.access_token, newExpiryTimestamp = Clock.System.now())
+					SpotifyAccessToken.setToken(newToken = token!!.access_token, newExpiryTimestamp = Clock.System.now() + token!!.expires_in.seconds)
 				} else {
 					Log.d("spotify logging: ", "null response")
 				}
