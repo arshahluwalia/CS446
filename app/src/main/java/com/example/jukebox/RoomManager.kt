@@ -12,25 +12,25 @@ import com.google.firebase.ktx.Firebase
 class RoomManager {
     val database = Firebase.database.reference
 
-    fun createRoom(hostToken: String) {
-        val newRoom = Room(hostToken)
-        database.child(hostToken).setValue(newRoom)
+    fun createRoom(roomCode: String) {
+        val newRoom = Room(roomCode)
+        database.child(roomCode).setValue(newRoom)
     }
 
-    fun createRoom(hostToken: String, room: Room) {
-        database.child(hostToken).setValue(room)
+    fun createRoom(roomCode: String, room: Room) {
+        database.child(roomCode).setValue(room)
     }
 
-    fun deleteRoom(hostToken: String) {
-        database.child(hostToken).removeValue()
+    fun deleteRoom(roomCode: String) {
+        database.child(roomCode).removeValue()
     }
 
-    fun updateRoom(hostToken: String, room: Room) {
-        createRoom(hostToken, room)
+    fun updateRoom(roomCode: String, room: Room) {
+        createRoom(roomCode, room)
     }
 
-    fun getRoom(hostToken: String, callback: (Room?) -> Unit) {
-        database.child(hostToken).addListenerForSingleValueEvent(object : ValueEventListener {
+    fun getRoom(roomCode: String, callback: (Room?) -> Unit) {
+        database.child(roomCode).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val room = dataSnapshot.getValue<Room>()
                 callback(room)
@@ -42,28 +42,28 @@ class RoomManager {
         })
     }
 
-    fun addUserTokenToRoom(hostToken: String, userToken: String) {
-        val userTokensRef = database.child("$hostToken/userTokens")
+    fun addUserTokenToRoom(roomCode: String, userToken: String) {
+        val userTokensRef = database.child("$roomCode/userTokens")
         userTokensRef.child(userToken).setValue(userToken)
     }
 
-    fun removeUserFromRoom(hostToken: String, userToken: String) {
-        val userTokensRef = database.child("$hostToken/userTokens")
+    fun removeUserFromRoom(roomCode: String, userToken: String) {
+        val userTokensRef = database.child("$roomCode/userTokens")
         userTokensRef.child(userToken).removeValue()
     }
 
-    fun addSongToQueue(hostToken: String, song: Song) {
-        val queueRef = database.child("$hostToken/queue")
+    fun addSongToQueue(roomCode: String, song: Song) {
+        val queueRef = database.child("$roomCode/queue")
         queueRef.child(song.context_uri).setValue(song)
     }
 
-    fun removeSongFromQueue(hostToken: String, songId: String) {
-        val queueRef = database.child("$hostToken/queue")
+    fun removeSongFromQueue(roomCode: String, songId: String) {
+        val queueRef = database.child("$roomCode/queue")
         queueRef.child(songId).removeValue()
     }
 
-    fun upvoteSong(hostToken: String, songId: String) {
-        val voteRef = database.child("$hostToken/queue/$songId/votes")
+    fun upvoteSong(roomCode: String, songId: String) {
+        val voteRef = database.child("$roomCode/queue/$songId/votes")
 
         // Transaction code based on: https://stackoverflow.com/a/76369990
         voteRef.runTransaction(object : Transaction.Handler {
@@ -91,6 +91,28 @@ class RoomManager {
                 println("currentCount: $currentCount")
             }
         })
+    }
+
+    fun roomExists(roomCode: String): Boolean {
+        var roomExists = false
+        database.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (snapshot in dataSnapshot.children) {
+                    val key = snapshot.key
+                    roomExists = true
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+            }
+        })
+        return roomExists
+    }
+
+    fun setHostToken(roomCode: String, hostToken: String) {
+        val hostTokenRef = database.child("$roomCode/hostToken")
+        hostTokenRef.setValue(hostToken)
     }
 
     // Not working, need to fix
