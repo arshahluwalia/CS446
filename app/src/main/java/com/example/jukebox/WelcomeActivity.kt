@@ -236,7 +236,7 @@ fun BoxWithConstraintsScope.StartARoomButton() {
         shape = RoundedCornerShape(20),
         onClick = {
             requestAccessToken()
-            val intent = Intent(context, HostSongQueueActivity::class.java)
+            val intent = Intent(context, AuthorizeActivity::class.java)
             context.startActivity(intent)
         },
         colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
