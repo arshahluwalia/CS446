@@ -106,11 +106,17 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
 fun BoxWithConstraintsScope.RoomCodeTextField() {
     var roomCode by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    var errorText by remember { mutableStateOf("") }
     val charLimit = 5
 
     fun validate(text: String) {
         roomManager.checkRoomExists(text) { exists ->
             isError = !((roomCode.length == charLimit) && exists)
+            if (roomCode.length != charLimit) {
+                errorText = "Room code must be $charLimit characters"
+            } else {
+                errorText = "Please enter a valid room code"
+            }
         }
     }
 
@@ -134,7 +140,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                 if (isError) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Room code must be $charLimit characters",
+                        text = errorText,
                         color = MaterialTheme.colorScheme.error
                     )
                 }

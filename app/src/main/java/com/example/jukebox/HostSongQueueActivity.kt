@@ -66,11 +66,7 @@ private fun EnterName(navController: NavController) {
     var hostName by remember { mutableStateOf("") }
     JukeboxTheme() {
         Box(modifier = Modifier) {
-            Image(
-                modifier = Modifier.scale(2.0f).background(color = Color.Black).fillMaxSize(),
-                painter = painterResource(id = R.drawable.secondary_background),
-                contentDescription = null
-            )
+            SecondaryBackground()
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,7 +114,9 @@ private fun EnterName(navController: NavController) {
 @Composable
 private fun SongQueue(hostName: String?) {
     JukeboxTheme() {
-        Box(modifier = Modifier.fillMaxSize().background(color = Color.Black)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.Black)) {
             Image(painter = painterResource(id = R.drawable.secondary_background), contentDescription = null)
             SongQueueScreenContent(
                 hostName = hostName ?: "You",

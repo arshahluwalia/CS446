@@ -39,3 +39,63 @@ object SpotifyApiTask : CoroutineScope by MainScope() {
 
     }
 
+class Track {
+    var artists: List<ArtistSimple>? = null
+
+    @SerializedName("available_markets")
+    var availableMarkets: List<String>? = null
+
+    @SerializedName("disc_number")
+    var discNumber = 0
+
+    @SerializedName("duration_ms")
+    var durationMillis: Long = 0
+    var explicit = false
+
+    @SerializedName("external_urls")
+    var externalUrls: Map<String, String>? = null
+    var href: String? = null
+    var id: String? = null
+    var name: String? = null
+
+    @SerializedName("preview_url")
+    var previewUrl: String? = null
+
+    @SerializedName("track_number")
+    var trackNumber = 0
+    var type: String? = null
+    var uri: String? = null
+    var album: AlbumSimple? = null
+
+    @SerializedName("external_ids")
+    var externalIds: Map<String, String>? = null
+    var popularity = 0
+}
+
+class ArtistSimple {
+    @SerializedName("external_urls")
+    var externalUrls: Map<String, String>? = null
+    var href: String? = null
+    var id: String? = null
+    var name: String? = null
+    var type: String? = null
+    var uri: String? = null
+}
+
+class AlbumSimple {
+    var id: String? = null
+    var href: String? = null
+    var name: String? = null
+    var uri: String? = null
+    var type: String? = null
+    var images: List<Image>? = null
+
+    @SerializedName("album_type")
+    var albumType: String? = null
+
+    @SerializedName("available_markets")
+    var availableMarkets: List<String>? = null
+
+    @SerializedName("external_urls")
+    var externalUrls: Map<String, String>? = null
+}
