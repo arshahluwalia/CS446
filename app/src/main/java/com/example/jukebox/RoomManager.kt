@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -92,18 +93,6 @@ class RoomManager {
             }
         })
     }
-    fun checkRoomExists(roomCode: String) {
-        database.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.hasChild(roomCode)) {
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-        })
-    }
-
 
     fun setHostToken(roomCode: String, hostToken: String) {
         val hostTokenRef = database.child("$roomCode/hostToken")
@@ -114,20 +103,34 @@ class RoomManager {
         val hostNameRef = database.child("$roomCode/hostName")
         hostNameRef.setValue(name)
     }
+    fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
+        var roomCodeExists = false
+        val roomCodesRef = database
 
-    // Not working, need to fix
-//    fun getQueue(hostToken: String) : SongQueue {
-//        val queueRef = database.child("$hostToken/queue")
-//        var queue: SongQueue
-//        queueRef.addListenerForSingleValueEvent(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//               queue = dataSnapshot.getValue(SongQueue::class.java)!!
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                // Handle any errors
-//            }
-//        })
-//        return queue
-//    }
+        roomCodesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val roomCodes = mutableListOf<String>()
+                for (snapshot in dataSnapshot.children) {
+                    val roomCode = snapshot.key
+                    if (inputRoom == roomCode) {
+                        roomCodeExists = true
+                    }
+                }
+                callback(roomCodeExists)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(roomCodeExists)
+            }
+        })
+    }
+
+    fun getQueue(roomCode: String) {
+
+    }
+
+    fun getUserTokens(roomCode: String) {
+
+    }
 }
