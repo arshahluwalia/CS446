@@ -15,8 +15,10 @@ object SpotifyApiTask : CoroutineScope by MainScope() {
         fun requestTrackID(songName: String) {
             if (!SpotifyAccessToken.isTokenValid()) {
                 val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
+                //TODO: fix encoding
                 var encodedSongName = URLEncoder.encode(songName, "UTF-8")
                 val accessToken = SpotifyUserToken.getToken()
+                Log.d("token is:",accessToken)
                 launch {
                     val result = api.searchSong(
                         accessToken,
