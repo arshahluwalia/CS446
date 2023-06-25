@@ -1,6 +1,6 @@
 package com.example.jukebox
 
-class SongQueue (private val queue: MutableList<Song> = mutableListOf()) {
+class SongQueue (public val queue: MutableList<Song> = mutableListOf()) {
     constructor(songs: Collection<Song>) : this(songs.toMutableList())
 
     fun addSong(song: Song) {
@@ -24,7 +24,7 @@ class SongQueue (private val queue: MutableList<Song> = mutableListOf()) {
         return queue.firstOrNull()
     }
 
-    fun isEmpty(): Boolean {
+    fun checkEmpty(): Boolean {
         return queue.isEmpty()
     }
 

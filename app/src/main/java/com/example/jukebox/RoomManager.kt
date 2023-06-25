@@ -126,11 +126,44 @@ class RoomManager {
         })
     }
 
-    fun getQueue(roomCode: String) {
+    fun getQueue(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/queue")
 
+        queueRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val songs = mutableListOf<Song>()
+                for (snapshot in dataSnapshot.children) {
+                    val song = snapshot.getValue(Song::class.java)
+                    song?.let { songs.add(it) }
+                }
+                val songQueue = SongQueue(songs)
+                callback(songQueue)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(SongQueue()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
     }
 
-    fun getUserTokens(roomCode: String) {
+    fun getUserTokens(roomCode: String, callback: (List<String>) -> Unit) {
+        val userTokensRef = database.child("$roomCode/userTokens")
 
+        userTokensRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val userTokensList = mutableListOf<String>()
+                for (snapshot in dataSnapshot.children) {
+                    val userToken = snapshot.getValue(String::class.java)
+                    userToken?.let { userTokensList.add(it) }
+                }
+                callback(userTokensList)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(emptyList()) // Invoke the callback with an empty list to indicate an error or cancellation
+            }
+        })
     }
 }

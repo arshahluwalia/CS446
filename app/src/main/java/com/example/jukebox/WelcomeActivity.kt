@@ -308,4 +308,20 @@ private fun testRoomManager() {
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
+    roomManager.getUserTokens(roomCode) {userTokens ->
+          if (!userTokens.isEmpty()) {
+                for (token in userTokens) {
+                    Log.d("Room Manager", "Fetched user token: $token")
+                }
+          }
+    }
+    roomManager.getQueue(roomCode) {queue ->
+        if (!queue.checkEmpty()) {
+            for (song in queue.queue) {
+                Log.d("Room Manager", "Fetched song: context_uri: ${song.context_uri}, " +
+                        "Title: ${song.songTitle}, Artist: ${song.songArtist}, " +
+                        "approved: ${song.isApproved}, votes: ${song.votes}")
+            }
+        }
+    }
 }
