@@ -45,6 +45,7 @@ import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
 import com.example.jukebox.ui.theme.OffBlack
 import com.example.jukebox.ui.theme.PurpleNeon
+import kotlin.random.Random
 
 
 class WelcomeActivity : ComponentActivity() {
@@ -62,6 +63,8 @@ class WelcomeActivity : ComponentActivity() {
         }
     }
 }
+
+val roomManager = RoomManager()
 
 @Composable
 private fun ScreenContent() {
@@ -235,8 +238,11 @@ fun BoxWithConstraintsScope.StartARoomButton() {
         ),
         shape = RoundedCornerShape(20),
         onClick = {
+            val roomCode = generateRoomCode()
+            roomManager.createRoom(roomCode)
             requestAccessToken()
             val intent = Intent(context, AuthorizeActivity::class.java)
+            intent.putExtra("roomCode", roomCode)
             context.startActivity(intent)
         },
         colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
@@ -260,21 +266,35 @@ private fun PreviewScreenContent() {
     }
 }
 
+private fun generateRoomCode(): String {
+    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // Define the allowed characters
+    var newRoomCode = (1..5)
+        .map { allowedChars[Random.nextInt(allowedChars.size)] }
+        .joinToString("")
+    // Prevent collision here (rare)
+    while (roomManager.roomExists(newRoomCode)) {
+        newRoomCode = (1..5)
+            .map { allowedChars[Random.nextInt(allowedChars.size)] }
+            .joinToString("")
+    }
+    return newRoomCode
+}
+
 private fun testRoomManager() {
-    val roomManager = RoomManager()
-    val room = Room("hostToken123")
-    roomManager.createRoom("testHostToken", room)
-    roomManager.addUserTokenToRoom("testHostToken", "newUserToken")
-    roomManager.addUserTokenToRoom("testHostToken", "newUserToken1")
-    roomManager.addUserTokenToRoom("testHostToken", "newUserToken2")
-    roomManager.addUserTokenToRoom("testHostToken", "newUserToken23")
-    roomManager.removeUserFromRoom("testHostToken", "newUserToken2")
-    roomManager.addSongToQueue("testHostToken", Song("testSong"))
-    roomManager.addSongToQueue("testHostToken", Song("testSong2"))
-    roomManager.addSongToQueue("testHostToken", Song("testSong3"))
-    roomManager.removeSongFromQueue("testHostToken", "testSong2")
-    roomManager.removeSongFromQueue("testHostToken", "testSong2")
-    roomManager.upvoteSong("testHostToken", "testSong3")
-    roomManager.upvoteSong("testHostToken", "testSong3")
-    roomManager.upvoteSong("testHostToken", "testSong3")
+    val roomCode = generateRoomCode()
+    val room = Room(roomCode)
+    roomManager.createRoom(roomCode, room)
+    roomManager.addUserTokenToRoom(roomCode, "newUserToken")
+    roomManager.addUserTokenToRoom(roomCode, "newUserToken1")
+    roomManager.addUserTokenToRoom(roomCode, "newUserToken2")
+    roomManager.addUserTokenToRoom(roomCode, "newUserToken23")
+    roomManager.removeUserFromRoom(roomCode, "newUserToken2")
+    roomManager.addSongToQueue(roomCode, Song("testSong"))
+    roomManager.addSongToQueue(roomCode, Song("testSong2"))
+    roomManager.addSongToQueue(roomCode, Song("testSong3"))
+    roomManager.removeSongFromQueue(roomCode, "testSong2")
+    roomManager.removeSongFromQueue(roomCode, "testSong2")
+    roomManager.upvoteSong(roomCode, "testSong3")
+    roomManager.upvoteSong(roomCode, "testSong3")
+    roomManager.upvoteSong(roomCode, "testSong3")
 }

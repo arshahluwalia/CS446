@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.spotify.SpotifyAccessTokenTask
-import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.spotify.sdk.android.auth.AuthorizationClient
@@ -46,6 +45,8 @@ class AuthorizeActivity : ComponentActivity() {
     private var userAccessToken = ""
 
     private var showSpotifyButton by mutableStateOf(true)
+    private lateinit var roomCode : String
+    private val roomManager = RoomManager()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +55,8 @@ class AuthorizeActivity : ComponentActivity() {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                    roomCode = intent.getStringExtra("roomCode").toString()
+                    Log.d("Authorization", "roomCode: $roomCode")
                     ScreenContent()
                 }
             }
@@ -158,7 +161,7 @@ class AuthorizeActivity : ComponentActivity() {
                     Log.d("Authorization", "token: ${response.accessToken}")
                     showSpotifyButton = false
                     userAccessToken = response.accessToken
-                    SpotifyUserToken.setToken(response.accessToken)
+                    roomManager.setHostToken(roomCode, userAccessToken)
                 }
                 AuthorizationResponse.Type.ERROR -> { onRequestTokenClicked() }
                 else -> {}
