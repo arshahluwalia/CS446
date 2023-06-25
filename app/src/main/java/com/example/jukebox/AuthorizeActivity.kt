@@ -3,10 +3,9 @@ package com.example.jukebox//package com.example.jukebox
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -19,6 +18,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,14 +33,18 @@ import com.example.jukebox.ui.theme.PurpleNeon
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import com.spotify.sdk.android.auth.LoginActivity.REQUEST_CODE
 
 
 class AuthorizeActivity : ComponentActivity() {
-    // Request code will be used to verify if result comes from the login activity. Can be set to any integer.
 
     private val clientID = BuildConfig.SPOTIFY_CLIENT_ID;
+    // Request code will be used to verify if result comes from the login activity. Can be set to any integer.
     private val requestCode = 1335; // Could be any we choose
     private val redirectUri = "jukebox://callback"; //the one we registered with Spotify
+    private var userAccessToken = ""
+
+    private var showSpotifyButton by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +66,9 @@ class AuthorizeActivity : ComponentActivity() {
         ) {
             ScreenBackground()
             MoveOnButton()
-            AuthorizeSpotifyButton()
+            if (showSpotifyButton) {
+                AuthorizeSpotifyButton()
+            }
         }
     }
 
@@ -72,31 +80,29 @@ class AuthorizeActivity : ComponentActivity() {
     }
     @Composable
     fun BoxWithConstraintsScope.AuthorizeSpotifyButton(){
-            Button(
-                modifier = Modifier
-                    .padding(bottom = maxHeight / 12)
-                    .align(Alignment.BottomCenter),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 10.dp,
-                    pressedElevation = 15.dp,
-                    disabledElevation = 0.dp
-                ),
-                shape = RoundedCornerShape(20),
-                onClick = {
-                    onRequestTokenClicked()
+        Button(
+            modifier = Modifier
+                .padding(bottom = maxHeight / 12)
+                .align(Alignment.BottomCenter),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 10.dp,
+                pressedElevation = 15.dp,
+                disabledElevation = 0.dp
+            ),
+            shape = RoundedCornerShape(20),
+            onClick = {
+                onRequestTokenClicked()
 //                val intent = Intent(context, HostSongQueueActivity::class.java)
 //                context.startActivity(intent)
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
-            ) {
-                Text(
-                    text = AnnotatedString("Login to Spotify"),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+        ) {
+            Text(
+                text = AnnotatedString("Login to Spotify"),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        }
     }
-
-    // TODO: Remove when authorization is done
     @Composable
     fun BoxWithConstraintsScope.MoveOnButton() {
         val context = LocalContext.current
@@ -139,18 +145,23 @@ class AuthorizeActivity : ComponentActivity() {
         return Uri.parse(redirectUri)
     }
 
-//    AuthorizationClient.openLoginActivity(this, REQUEST_CODE, request);
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+        Log.d("Authorization", "requestCode: $requestCode, resultCode: $resultCode")
 
-    // Request code will be used to verify if result comes from the login activity. Can be set to any integer.
-//    private static final int REQUEST_CODE = 1337;
-//    private static final String REDIRECT_URI = "yourcustomprotocol://callback";
-//
-//    AuthorizationRequest.Builder builder =
-//    new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI);
-//
-//    builder.setScopes(new String[]{"streaming"});
-//    AuthorizationRequest request = builder.build();
-//
-//    AuthorizationClient.openLoginActivity(this, REQUEST_CODE, request);
+        // Check if result comes from the correct activity
+        if (requestCode == this.requestCode) {
+            val response = AuthorizationClient.getResponse(resultCode, intent)
+            when (response.type) {
+                AuthorizationResponse.Type.TOKEN -> {
+                    Log.d("Authorization", "token: ${response.accessToken}")
+                    showSpotifyButton = false
+                    userAccessToken = response.accessToken
+                }
+                AuthorizationResponse.Type.ERROR -> { onRequestTokenClicked() }
+                else -> {}
+            }
+        }
+    }
 
 }
