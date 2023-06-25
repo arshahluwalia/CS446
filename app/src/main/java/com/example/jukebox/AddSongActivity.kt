@@ -93,6 +93,10 @@ class AddSongActivity : ComponentActivity() {
         }
     }
 
+    private fun searchSongSpotify(){
+        token = SpotiftyUserToken.getToken()
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun BoxWithConstraintsScope.AddSongBox() {
