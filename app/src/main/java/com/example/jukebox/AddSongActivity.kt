@@ -59,17 +59,10 @@ class AddSongActivity : ComponentActivity() {
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize()
         ) {
-            ScreenBackground()
+            SecondaryBackground()
             BackToQueueButton()
             AddSongBox()
         }
-    }
-
-    @Composable
-    fun BoxWithConstraintsScope.ScreenBackground() {
-        Box(
-            modifier = Modifier.reusableBackground()
-        )
     }
 
     @Composable

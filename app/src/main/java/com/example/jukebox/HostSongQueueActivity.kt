@@ -104,10 +104,7 @@ private fun EnterName(navController: NavController) {
                     )
                 )
                 Button(
-                    onClick = {
-                        navController.navigate("songqueue/$hostName")
-                        roomManager.setHostName(roomCode, hostName)
-                              },
+                    onClick = { navController.navigate("songqueue/$hostName") },
                     enabled = hostName.isNotEmpty()
                 ) {
                     Text(text = "Done")

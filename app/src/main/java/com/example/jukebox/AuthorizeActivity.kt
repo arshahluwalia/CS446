@@ -68,7 +68,7 @@ class AuthorizeActivity : ComponentActivity() {
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize()
         ) {
-            ScreenBackground()
+            SecondaryBackground()
             MoveOnButton()
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton()
@@ -76,12 +76,6 @@ class AuthorizeActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun BoxWithConstraintsScope.ScreenBackground() {
-        Box(
-            modifier = Modifier.reusableBackground()
-        )
-    }
     @Composable
     fun BoxWithConstraintsScope.AuthorizeSpotifyButton(){
         Button(
