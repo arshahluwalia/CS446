@@ -71,29 +71,11 @@ private fun ScreenContent() {
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
-        WelcomeScreenBackground()
+        PrimaryBackground()
         JukeBoxTitle()
         RoomCodeTextField()
         StartARoomButton()
     }
-}
-
-@Composable
-fun BoxWithConstraintsScope.WelcomeScreenBackground() {
-    val aspectRatio = maxWidth / maxHeight
-    Box(
-        Modifier
-            .fillMaxSize()
-            .scale(maxOf(aspectRatio, 1f), maxOf(1 / aspectRatio, 1f))
-            .background(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        PurpleNeon,
-                        OffBlack
-                    )
-                )
-            )
-    )
 }
 
 @Composable

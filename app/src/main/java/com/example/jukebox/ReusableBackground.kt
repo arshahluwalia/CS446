@@ -1,14 +1,18 @@
 package com.example.jukebox
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.ui.theme.OffBlack
 import com.example.jukebox.ui.theme.PurpleNeon
@@ -29,6 +33,24 @@ fun Modifier.reusableBackground() = composed {
                 ),
             )
         )
+}
+
+@Composable
+fun PrimaryBackground() {
+    Image(
+        modifier = Modifier.scale(1.3f).background(color = Color.Black).fillMaxSize(),
+        painter = painterResource(id = R.drawable.primary_background),
+        contentDescription = null
+    )
+}
+
+@Composable
+fun SecondaryBackground() {
+    Image(
+        modifier = Modifier.scale(2.0f).background(color = Color.Black).fillMaxSize(),
+        painter = painterResource(id = R.drawable.secondary_background),
+        contentDescription = null
+    )
 }
 
 

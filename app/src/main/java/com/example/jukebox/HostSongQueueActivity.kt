@@ -62,50 +62,44 @@ class HostSongQueueActivity : ComponentActivity(){
 private fun EnterName(navController: NavController) {
     var hostName by remember { mutableStateOf("") }
     JukeboxTheme() {
-        Box(modifier = Modifier) {
-            Image(
-                modifier = Modifier.scale(2.0f).background(color = Color.Black).fillMaxSize(),
-                painter = painterResource(id = R.drawable.secondary_background),
-                contentDescription = null
+        SecondaryBackground()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                textAlign = TextAlign.Center,
+                text = "Enter your name here! This is what the guests will see.",
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
             )
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    textAlign = TextAlign.Center,
-                    text = "Enter your name here! This is what the guests will see.",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                )
-                TextField(
-                    modifier = Modifier.padding(vertical = 20.dp),
-                    value = hostName,
-                    onValueChange = {
-                        hostName = it
-                    },
-                    label = {
-                        Text(
-                            text = "Enter your name",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                    },
-                    shape = RoundedCornerShape(20),
-                    singleLine = true,
-                    colors = TextFieldDefaults.textFieldColors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
+            TextField(
+                modifier = Modifier.padding(vertical = 20.dp),
+                value = hostName,
+                onValueChange = {
+                    hostName = it
+                },
+                label = {
+                    Text(
+                        text = "Enter your name",
+                        style = MaterialTheme.typography.headlineSmall
                     )
+                },
+                shape = RoundedCornerShape(20),
+                singleLine = true,
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent,
                 )
-                Button(
-                    onClick = { navController.navigate("songqueue/$hostName") },
-                    enabled = hostName.isNotEmpty()
-                ) {
-                    Text(text = "Done")
-                }
+            )
+            Button(
+                onClick = { navController.navigate("songqueue/$hostName") },
+                enabled = hostName.isNotEmpty()
+            ) {
+                Text(text = "Done")
             }
         }
     }
@@ -113,28 +107,25 @@ private fun EnterName(navController: NavController) {
 @Composable
 private fun SongQueue(hostName: String?) {
     JukeboxTheme() {
-        Box(modifier = Modifier.fillMaxSize().background(color = Color.Black)) {
-            Image(painter = painterResource(id = R.drawable.secondary_background), contentDescription = null)
-            SongQueueScreenContent(
-                hostName = hostName ?: "You",
-                isHost = true,
-                playingSong = Song(
-                    songTitle = "Hips Don't Lie",
-                    songArtist = "Shakira",
-                    isApproved = true
-                ),
-                queuedSongList = listOf(
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                )
+        SongQueueScreenContent(
+            hostName = hostName ?: "You",
+            isHost = true,
+            playingSong = Song(
+                songTitle = "Hips Don't Lie",
+                songArtist = "Shakira",
+                isApproved = true
+            ),
+            queuedSongList = listOf(
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
             )
-        }
+        )
     }
 }

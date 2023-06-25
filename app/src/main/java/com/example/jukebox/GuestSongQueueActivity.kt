@@ -98,7 +98,7 @@ fun SongQueueScreenContent(
             }
         }
     ) {
-        Column(modifier = Modifier.reusableBackground()) { }
+        SecondaryBackground()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -270,7 +270,7 @@ fun SongItem(song: Song) {
 @Composable
 private fun PreviewScreenContent() {
     JukeboxTheme() {
-        Column(modifier = Modifier.reusableBackground()) { }
+        SecondaryBackground()
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
