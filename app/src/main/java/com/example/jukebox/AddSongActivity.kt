@@ -1,7 +1,7 @@
 package com.example.jukebox
 
-import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,20 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.jukebox.ui.theme.Black
+import com.example.jukebox.spotify.SpotifyApiTask.requestTrackID
 
 class AddSongActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,9 +85,6 @@ class AddSongActivity : ComponentActivity() {
         }
     }
 
-    private fun searchSongSpotify(){
-        token = SpotiftyUserToken.getToken()
-    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -103,21 +92,22 @@ class AddSongActivity : ComponentActivity() {
         var songName by remember { mutableStateOf("") }
         Column(
             modifier = Modifier
-                .padding(top =  maxHeight*3 / 20)
-                .align(Alignment.TopCenter)
-                ,
+                .padding(top = maxHeight * 3 / 20)
+                .align(Alignment.TopCenter),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // TODO: round corner of container
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 70.dp)
                     .background(Color.Black)
 
             ){
                 TextField(
-                    modifier = Modifier.padding(top = 30.dp,start = 20.dp, end = 20.dp)
+                    modifier = Modifier
+                        .padding(top = 30.dp, start = 20.dp, end = 20.dp)
                         .align(Alignment.TopCenter),
                     value= songName,
                     shape = RoundedCornerShape(20),
@@ -129,8 +119,15 @@ class AddSongActivity : ComponentActivity() {
                         )
                     },
                     onValueChange = {
-                        songName = it;
+                        songName = it
                     },
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            // search, parse, populate, choose add
+                            Log.d("textfield", songName)
+                            requestTrackID(songName)
+                        }
+                    ),
                     colors = TextFieldDefaults.textFieldColors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
