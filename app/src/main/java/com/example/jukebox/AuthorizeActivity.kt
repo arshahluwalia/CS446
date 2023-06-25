@@ -117,6 +117,7 @@ class AuthorizeActivity : ComponentActivity() {
             onClick = {
                 SpotifyAccessTokenTask.requestAccessToken()
                 val intent = Intent(context, HostSongQueueActivity::class.java)
+                intent.putExtra("roomCode", roomCode)
                 context.startActivity(intent)
             },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleNeon)

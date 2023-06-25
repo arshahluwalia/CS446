@@ -43,6 +43,7 @@ class HostSongQueueActivity : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            roomCode = intent.getStringExtra("roomCode").toString()
             val navController = rememberNavController()
             NavHost(navController, startDestination = "entername") {
                 composable("entername") { EnterName(navController) }
@@ -56,6 +57,8 @@ class HostSongQueueActivity : ComponentActivity(){
         }
     }
 }
+
+private lateinit var roomCode : String
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,7 +104,10 @@ private fun EnterName(navController: NavController) {
                     )
                 )
                 Button(
-                    onClick = { navController.navigate("songqueue/$hostName") },
+                    onClick = {
+                        navController.navigate("songqueue/$hostName")
+                        roomManager.setHostName(roomCode, hostName)
+                              },
                     enabled = hostName.isNotEmpty()
                 ) {
                     Text(text = "Done")

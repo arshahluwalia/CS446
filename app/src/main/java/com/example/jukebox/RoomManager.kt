@@ -92,27 +92,27 @@ class RoomManager {
             }
         })
     }
-
-    fun roomExists(roomCode: String): Boolean {
-        var roomExists = false
+    fun checkRoomExists(roomCode: String) {
         database.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for (snapshot in dataSnapshot.children) {
-                    val key = snapshot.key
-                    roomExists = true
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.hasChild(roomCode)) {
                 }
             }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle the error
+            override fun onCancelled(error: DatabaseError) {
             }
         })
-        return roomExists
     }
+
 
     fun setHostToken(roomCode: String, hostToken: String) {
         val hostTokenRef = database.child("$roomCode/hostToken")
         hostTokenRef.setValue(hostToken)
+    }
+
+    fun setHostName(roomCode: String, name: String) {
+        val hostNameRef = database.child("$roomCode/hostName")
+        hostNameRef.setValue(name)
     }
 
     // Not working, need to fix
