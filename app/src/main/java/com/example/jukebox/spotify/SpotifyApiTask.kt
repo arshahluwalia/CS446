@@ -1,13 +1,16 @@
 package com.example.jukebox.spotify
 
+import android.media.Image
 import android.util.Log
+import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.net.URLEncoder
 
-    object SpotifyApiTask : CoroutineScope by MainScope() {
+
+object SpotifyApiTask : CoroutineScope by MainScope() {
 
         fun requestTrackID(songName: String) {
             if (!SpotifyAccessToken.isTokenValid()) {
@@ -20,6 +23,7 @@ import java.net.URLEncoder
                         "application/json",
                         encodedSongName,
                     )
+//                    Log.d("spotify logging: ", result.body()
                     if (result.body() != null) {
                         Log.d("spotify logging: ", result.body().toString())
                     } else {
@@ -34,3 +38,4 @@ import java.net.URLEncoder
 
 
     }
+

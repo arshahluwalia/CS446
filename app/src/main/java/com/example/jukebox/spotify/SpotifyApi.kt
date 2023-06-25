@@ -1,13 +1,14 @@
 package com.example.jukebox.spotify
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
+
 
 interface SpotifyApi {
 	@POST("api/token")
@@ -23,5 +24,7 @@ interface SpotifyApi {
 		@Header("Authorization") auth: String,
 		@Header("Content-Type") content: String,
 		@Query("q") songName: String,
-	) : Response<String>
+	) : Response<Track>
+
+
 }
