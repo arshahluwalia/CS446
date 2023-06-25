@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -93,41 +94,76 @@ class RoomManager {
         })
     }
 
-    fun roomExists(roomCode: String): Boolean {
-        var roomExists = false
-        database.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for (snapshot in dataSnapshot.children) {
-                    val key = snapshot.key
-                    roomExists = true
-                }
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle the error
-            }
-        })
-        return roomExists
-    }
-
     fun setHostToken(roomCode: String, hostToken: String) {
         val hostTokenRef = database.child("$roomCode/hostToken")
         hostTokenRef.setValue(hostToken)
     }
 
-    // Not working, need to fix
-//    fun getQueue(hostToken: String) : SongQueue {
-//        val queueRef = database.child("$hostToken/queue")
-//        var queue: SongQueue
-//        queueRef.addListenerForSingleValueEvent(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//               queue = dataSnapshot.getValue(SongQueue::class.java)!!
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                // Handle any errors
-//            }
-//        })
-//        return queue
-//    }
+    fun setHostName(roomCode: String, name: String) {
+        val hostNameRef = database.child("$roomCode/hostName")
+        hostNameRef.setValue(name)
+    }
+    fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
+        var roomCodeExists = false
+        val roomCodesRef = database
+
+        roomCodesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val roomCodes = mutableListOf<String>()
+                for (snapshot in dataSnapshot.children) {
+                    val roomCode = snapshot.key
+                    if (inputRoom == roomCode) {
+                        roomCodeExists = true
+                    }
+                }
+                callback(roomCodeExists)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(roomCodeExists)
+            }
+        })
+    }
+
+    fun getQueue(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/queue")
+
+        queueRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val songs = mutableListOf<Song>()
+                for (snapshot in dataSnapshot.children) {
+                    val song = snapshot.getValue(Song::class.java)
+                    song?.let { songs.add(it) }
+                }
+                val songQueue = SongQueue(songs)
+                callback(songQueue)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(SongQueue()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
+    fun getUserTokens(roomCode: String, callback: (List<String>) -> Unit) {
+        val userTokensRef = database.child("$roomCode/userTokens")
+
+        userTokensRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val userTokensList = mutableListOf<String>()
+                for (snapshot in dataSnapshot.children) {
+                    val userToken = snapshot.getValue(String::class.java)
+                    userToken?.let { userTokensList.add(it) }
+                }
+                callback(userTokensList)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(emptyList()) // Invoke the callback with an empty list to indicate an error or cancellation
+            }
+        })
+    }
 }
