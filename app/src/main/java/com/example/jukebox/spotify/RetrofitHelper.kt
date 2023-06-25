@@ -6,6 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitHelper {
 
 	private const val accountUrl = "https://accounts.spotify.com"
+	private const val spotifyApiUrl = "https://api.spotify.com"
 
 	fun getAccountUrlInstance(): Retrofit {
 		return Retrofit.Builder().baseUrl(accountUrl)
