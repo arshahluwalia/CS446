@@ -9,23 +9,22 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.net.URLEncoder
 
-
-object SpotifyApiTask : CoroutineScope by MainScope() {
+object SpotifySearchTask : CoroutineScope by MainScope() {
 
         fun requestTrackID(songName: String) {
             if (!SpotifyAccessToken.isTokenValid()) {
                 val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
                 //TODO: fix encoding
                 var encodedSongName = URLEncoder.encode(songName, "UTF-8")
-                val accessToken = SpotifyUserToken.getToken()
-                Log.d("token is:",accessToken)
+                val accessToken = "Bearer ${SpotifyUserToken.getToken()}"
+
                 launch {
                     val result = api.searchSong(
                         accessToken,
                         "application/json",
                         encodedSongName,
                     )
-//                    Log.d("spotify logging: ", result.body()
+
                     if (result.body() != null) {
                         Log.d("spotify logging: ", result.body().toString())
                     } else {
