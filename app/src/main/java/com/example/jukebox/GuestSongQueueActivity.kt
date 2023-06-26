@@ -100,6 +100,7 @@ fun SongQueueScreenContent(
             FloatingActionButton(
                 onClick = {
                     val intent = Intent(context, AddSongActivity::class.java)
+                    intent.putExtra("roomCode", roomCode)
                     context.startActivity(intent)
                 },
             ) {

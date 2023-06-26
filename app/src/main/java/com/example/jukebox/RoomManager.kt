@@ -57,7 +57,6 @@ class RoomManager {
         val queueRef = database.child("$roomCode/queue")
         queueRef.child(song.context_uri).setValue(song)
     }
-
     fun removeSongFromQueue(roomCode: String, songId: String) {
         val queueRef = database.child("$roomCode/queue")
         queueRef.child(songId).removeValue()

@@ -37,19 +37,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.spotify.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
+import com.example.jukebox.SongQueue
+import com.example.jukebox.RoomManager
 
 class AddSongActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val roomCode = intent.getStringExtra("roomCode").toString()
         val dispatcher = onBackPressedDispatcher
         setContent {
-            ScreenContent(dispatcher)
+            ScreenContent(dispatcher, roomCode)
         }
     }
 }
 
 @Composable
-private fun ScreenContent(dispatcher: OnBackPressedDispatcher? = null) {
+private fun ScreenContent(dispatcher: OnBackPressedDispatcher? = null, roomCode: String) {
     JukeboxTheme() {
         Box {
             SecondaryBackground()
@@ -58,7 +61,7 @@ private fun ScreenContent(dispatcher: OnBackPressedDispatcher? = null) {
                     BackToQueueButton(dispatcher)
                 }
                 AddSongTitle()
-                AddSongBox()
+                AddSongBox(roomCode)
             }
         }
 
@@ -100,8 +103,12 @@ private fun AddSongTitle() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddSongBox() {
+private fun AddSongBox(roomCode: String) {
     var songName by remember { mutableStateOf("") }
+//    val database = Firebase.database.reference
+    val roomManager = RoomManager()
+
+
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.Center,
@@ -135,6 +142,7 @@ private fun AddSongBox() {
                         // search, parse, populate, choose add
                         Log.d("textfield", songName)
                         requestTrackID(songName)
+                        roomManager.addSongToQueue(roomCode,Song(songTitle = songName, context_uri = songName))
                     }
                 ),
                 colors = TextFieldDefaults.textFieldColors(
@@ -150,5 +158,5 @@ private fun AddSongBox() {
 @Composable
 @Preview
 private fun PreviewScreenContent() {
-    ScreenContent()
+    ScreenContent(roomCode = "abcde")
 }
