@@ -1,6 +1,5 @@
 package com.example.jukebox.spotify
 
-import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -25,6 +24,4 @@ interface SpotifyApi {
 		@Header("Content-Type") content: String,
 		@Query("q") songName: String,
 	) : Response<Track>
-
-
 }

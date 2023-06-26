@@ -26,9 +26,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltipBox
+import androidx.compose.material3.PlainTooltipState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,10 +49,13 @@ import androidx.compose.ui.unit.dp
 import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
+import kotlinx.coroutines.launch
 
+private lateinit var roomCode : String
 class GuestSongQueueActivity  : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        roomCode = intent.getStringExtra("roomCode").toString()
         setContent {
             // TODO: need to retrieve song list, current song, and host name instead of hardcoding
             JukeboxTheme() {
@@ -67,7 +74,8 @@ class GuestSongQueueActivity  : ComponentActivity(){
                         Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                         Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                         Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    )
+                    ),
+                    roomCode = roomCode
                 )
             }
         }
@@ -81,7 +89,8 @@ fun SongQueueScreenContent(
     hostName: String,
     isHost: Boolean,
     playingSong: Song,
-    queuedSongList: List<Song>
+    queuedSongList: List<Song>,
+    roomCode: String = ""
 ) {
     val context = LocalContext.current
     // TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -106,6 +115,7 @@ fun SongQueueScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             SongQueueTitle(hostName = hostName)
+            RoomCode(roomCode = roomCode)
             SongQueue(
                 isHost = isHost,
                 playingSong = playingSong,
@@ -121,7 +131,7 @@ private fun SongQueueTitle(
 ) {
     // TODO: change "tonight" wording to reflect time of day or just use "today"
     Text(
-        modifier = Modifier.padding(top = 70.dp, start = 20.dp, end = 20.dp, bottom = 30.dp),
+        modifier = Modifier.padding(top = 70.dp, start = 20.dp, end = 20.dp, bottom = 20.dp),
         text = buildAnnotatedString {
             withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
                 append(hostName)
@@ -132,6 +142,47 @@ private fun SongQueueTitle(
         style = MaterialTheme.typography.titleSmall,
         textAlign = TextAlign.Center,
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RoomCode(
+    roomCode: String,
+) {
+    val context = LocalContext.current
+    val tooltipState = remember { PlainTooltipState() }
+    val scope = rememberCoroutineScope()
+
+    Row(
+        modifier = Modifier.padding(bottom = 30.dp),
+        verticalAlignment = Alignment.CenterVertically)
+    {
+        Text(
+            text = buildAnnotatedString {
+                append("The room code is ")
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                    append(roomCode)
+                }
+            },
+            color = Color.White,
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center,
+        )
+        PlainTooltipBox(
+            tooltip = { Text("Copied to clipboard") },
+            tooltipState = tooltipState
+        ) {
+            Image(
+                modifier = Modifier.size(20.dp).clickable {
+                    CopyToClipboard.copyToClipboard(context, "roomCode", roomCode)
+                    scope.launch { tooltipState.show() }
+                }.tooltipAnchor(),
+                painter = painterResource(id = R.drawable.copy_to_clipboard),
+                contentDescription = null,
+            )
+        }
+
+    }
 }
 
 @Composable
@@ -289,7 +340,8 @@ private fun PreviewScreenContent() {
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                )
+                ),
+                roomCode = "ABCDE"
             )
         }
     }
