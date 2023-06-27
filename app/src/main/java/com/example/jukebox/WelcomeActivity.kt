@@ -162,6 +162,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                             if (exists) {
                                 Log.d("Welcome Activity", "User joined room $roomCode")
                                 val intent = Intent(context, GuestSongQueueActivity::class.java)
+                                intent.putExtra("roomCode", roomCode)
                                 context.startActivity(intent)
                             } else {
                                 AlertDialog.Builder(context)
