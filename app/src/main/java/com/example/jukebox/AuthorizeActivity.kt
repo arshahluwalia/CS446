@@ -1,4 +1,4 @@
-package com.example.jukebox//package com.example.jukebox
+package com.example.jukebox
 
 import android.content.Intent
 import android.net.Uri
@@ -6,12 +6,13 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.spotify.SpotifyAccessTokenTask
 import com.example.jukebox.spotify.SpotifyUserToken
@@ -34,7 +37,6 @@ import com.example.jukebox.ui.theme.PurpleNeon
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
-import com.spotify.sdk.android.auth.LoginActivity.REQUEST_CODE
 
 
 class AuthorizeActivity : ComponentActivity() {
@@ -53,74 +55,14 @@ class AuthorizeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             JukeboxTheme() {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    roomCode = intent.getStringExtra("roomCode").toString()
-                    Log.d("Authorization", "roomCode: $roomCode")
-                    ScreenContent()
-                }
+                roomCode = intent.getStringExtra("roomCode").toString()
+                Log.d("Authorization", "roomCode: $roomCode")
+                ScreenContent(
+                    showSpotifyButton = showSpotifyButton,
+                    roomCode = roomCode,
+                    onRequestTokenClicked = { onRequestTokenClicked() }
+                )
             }
-        }
-    }
-
-    @Composable
-    private fun ScreenContent() {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            SecondaryBackground()
-            MoveOnButton()
-            if (showSpotifyButton) {
-                AuthorizeSpotifyButton()
-            }
-        }
-    }
-
-    @Composable
-    fun BoxWithConstraintsScope.AuthorizeSpotifyButton(){
-        Button(
-            modifier = Modifier
-                .padding(bottom = maxHeight / 12)
-                .align(Alignment.BottomCenter),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 10.dp,
-                pressedElevation = 15.dp,
-                disabledElevation = 0.dp
-            ),
-            shape = RoundedCornerShape(20),
-            onClick = {
-                onRequestTokenClicked()
-//                val intent = Intent(context, HostSongQueueActivity::class.java)
-//                context.startActivity(intent)
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
-        ) {
-            Text(
-                text = AnnotatedString("Login to Spotify"),
-                style = MaterialTheme.typography.headlineSmall
-            )
-        }
-    }
-    @Composable
-    fun BoxWithConstraintsScope.MoveOnButton() {
-        val context = LocalContext.current
-        Button(
-            modifier = Modifier
-                .padding(bottom = maxHeight / 5)
-                .align(Alignment.BottomCenter),
-            onClick = {
-                SpotifyAccessTokenTask.requestAccessToken()
-                val intent = Intent(context, HostSongQueueActivity::class.java)
-                intent.putExtra("roomCode", roomCode)
-                context.startActivity(intent)
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = PurpleNeon)
-        ) {
-            Text(
-                text = AnnotatedString("Go to host queue"),
-                style = MaterialTheme.typography.headlineSmall
-            )
         }
     }
 
@@ -159,11 +101,85 @@ class AuthorizeActivity : ComponentActivity() {
                     userAccessToken = response.accessToken
                     SpotifyUserToken.setToken(userAccessToken)
                     roomManager.setHostToken(roomCode, userAccessToken)
+                    // TODO: open song queue screen
                 }
                 AuthorizationResponse.Type.ERROR -> { onRequestTokenClicked() }
                 else -> {}
             }
         }
     }
+}
+
+@Composable
+private fun ScreenContent(
+    showSpotifyButton: Boolean,
+    roomCode: String,
+    onRequestTokenClicked: () -> Unit
+) {
+    Box {
+        SecondaryBackground()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            AuthorizeTitle()
+            ContinueButton(roomCode)
+            if (showSpotifyButton) {
+                AuthorizeSpotifyButton(onRequestTokenClicked)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AuthorizeTitle() {
+    Text(text = "Login to Spotify", style = MaterialTheme.typography.titleSmall, color = Color.White)
+}
+
+@Composable
+fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
+    Button(
+        modifier = Modifier.padding(bottom = 20.dp),
+        shape = RoundedCornerShape(20),
+        onClick = { onRequestTokenClicked() },
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+    ) {
+        Text(
+            text = AnnotatedString("Login |"),
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Image(
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .width(60.dp),
+            painter = painterResource(id = R.drawable.spotify_logo),
+            contentDescription = null
+        )
+    }
+}
+@Composable
+fun ContinueButton(roomCode: String) {
+    val context = LocalContext.current
+    Button(
+        modifier = Modifier.padding(vertical = 30.dp),
+        onClick = {
+            SpotifyAccessTokenTask.requestAccessToken()
+            val intent = Intent(context, HostSongQueueActivity::class.java)
+            intent.putExtra("roomCode", roomCode)
+            context.startActivity(intent)
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = PurpleNeon)
+    ) {
+        Text(
+            text = AnnotatedString("Go to host queue"),
+            style = MaterialTheme.typography.headlineSmall
+        )
+    }
+}
+
+@Composable
+@Preview
+private fun PreviewScreenContent() {
 
 }
