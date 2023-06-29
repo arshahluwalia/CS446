@@ -12,13 +12,13 @@ import kotlinx.coroutines.async
 
 object SpotifySearchTask : CoroutineScope by MainScope() {
 
-        fun requestTrackID(songName: String) : List<Song> {
+        suspend fun requestTrackID(songName: String) : List<Song> {
             var listOfSongs = mutableListOf<Song>()
             if (!SpotifyAccessToken.isTokenValid()) {
                 val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
                 val accessToken = "Bearer BQB54CEzp_Z_QQaR9GKqd1uCRoN8PNKfMlkgjda4VtUUxDONX1x4tUyE0G7lzyUfN_0COAJfu1CqCEpAW9Khp2_NDaFcQX8xPO5Uy8qyHREeJI7LtyuEum3KE5dFXf6Kq4o127J4ODe-t4OszAVyIVOCkbn0ksPTIbvMdQiuCIVssc21SANDRGDGD4-cnhcHJX15p0ezhlrFSd5gyst9ZcScRynNonhlF6LstSSJmJ_yyHZwY5w"
 
-                async {
+                val job = async {
                     val result = api.searchSong(
                         accessToken,
                         "application/json",
@@ -39,6 +39,7 @@ object SpotifySearchTask : CoroutineScope by MainScope() {
                         Log.d("spotify logging: ", "null response")
                     }
                 }
+                job.await()
             }
             Log.d("spotify logging: ", "reached here")
             for (newSong in listOfSongs) {

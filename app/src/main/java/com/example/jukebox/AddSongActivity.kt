@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import com.example.jukebox.spotify.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.SongQueue
 import com.example.jukebox.RoomManager
+import kotlinx.coroutines.launch
 
 class AddSongActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,6 +106,7 @@ private fun AddSongTitle() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddSongBox(roomCode: String) {
+    val scope = rememberCoroutineScope()
     var songName by remember { mutableStateOf("") }
 //    val database = Firebase.database.reference
     val roomManager = RoomManager()
@@ -141,8 +144,10 @@ private fun AddSongBox(roomCode: String) {
                     onDone = {
                         // search, parse, populate, choose add
                         Log.d("textfield", songName)
-                        var listOfSongs = requestTrackID(songName)
-                        Log.d("Search: ", "Returned songs: $listOfSongs")
+                        scope.launch {
+                            var listOfSongs = requestTrackID(songName)
+                            Log.d("Search: ", "Returned songs: $listOfSongs")
+                        }
                         roomManager.addSongToQueue(roomCode,Song(songTitle = songName, context_uri = songName))
                     }
                 ),
