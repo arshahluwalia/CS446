@@ -164,7 +164,6 @@ private fun ContinueButton(roomCode: String) {
     Button(
         modifier = Modifier.padding(vertical = 30.dp),
         onClick = {
-            SpotifyAccessTokenTask.requestAccessToken()
             val intent = Intent(context, HostSongQueueActivity::class.java)
             intent.putExtra("roomCode", roomCode)
             context.startActivity(intent)

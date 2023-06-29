@@ -14,5 +14,5 @@ object SpotifyAccessToken {
 		expiryTimestamp = newExpiryTimestamp
 	}
 	fun isTokenValid(): Boolean =
-		token != "" && expiryTimestamp != null && expiryTimestamp!! < Clock.System.now()
+		token != "" && expiryTimestamp != null && expiryTimestamp!! > Clock.System.now()
 }
