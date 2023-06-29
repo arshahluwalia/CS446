@@ -18,10 +18,10 @@ interface SpotifyApi {
 		@Field("grant_type") grantType: String
 	) : Response<AccessToken>
 
-	@GET("search?type=track")
+	@GET("search?type=track&market=CA&limit=5")
 	suspend fun searchSong(
 		@Header("Authorization") auth: String,
 		@Header("Content-Type") content: String,
 		@Query("q") songName: String,
-	) : Response<Track>
+	) : Response<SpotifySearchResponse>
 }

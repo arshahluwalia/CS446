@@ -141,7 +141,8 @@ private fun AddSongBox(roomCode: String) {
                     onDone = {
                         // search, parse, populate, choose add
                         Log.d("textfield", songName)
-                        requestTrackID(songName)
+                        var listOfSongs = requestTrackID(songName)
+                        Log.d("Search: ", "Returned songs: $listOfSongs")
                         roomManager.addSongToQueue(roomCode,Song(songTitle = songName, context_uri = songName))
                     }
                 ),
