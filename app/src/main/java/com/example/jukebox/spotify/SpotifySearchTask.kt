@@ -38,7 +38,7 @@ object SpotifySearchTask : CoroutineScope by MainScope() {
 
     }
 
-class Track {
+class Track { // TODO: Move these classes into their own class in spotify/models and convert to data class
     var artists: List<ArtistSimple>? = null
 
     @SerializedName("available_markets")

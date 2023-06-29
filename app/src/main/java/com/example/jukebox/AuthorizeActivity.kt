@@ -138,7 +138,7 @@ private fun AuthorizeTitle() {
 }
 
 @Composable
-fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
+private fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
     Button(
         modifier = Modifier.padding(bottom = 20.dp),
         shape = RoundedCornerShape(20),
@@ -159,7 +159,7 @@ fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
     }
 }
 @Composable
-fun ContinueButton(roomCode: String) {
+private fun ContinueButton(roomCode: String) {
     val context = LocalContext.current
     Button(
         modifier = Modifier.padding(vertical = 30.dp),
@@ -181,5 +181,11 @@ fun ContinueButton(roomCode: String) {
 @Composable
 @Preview
 private fun PreviewScreenContent() {
-
+    JukeboxTheme() {
+        ScreenContent(
+            showSpotifyButton = true,
+            roomCode = "ABCDE",
+            onRequestTokenClicked = { }
+        )
+    }
 }
