@@ -33,11 +33,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,12 +42,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.spotify.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
-import com.example.jukebox.SongQueue
-import com.example.jukebox.RoomManager
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class AddSongActivity : ComponentActivity() {
@@ -59,13 +54,36 @@ class AddSongActivity : ComponentActivity() {
         val roomCode = intent.getStringExtra("roomCode").toString()
         val dispatcher = onBackPressedDispatcher
         setContent {
-            ScreenContent(dispatcher, roomCode)
+            val songName = MutableStateFlow("")
+            val songList = MutableStateFlow<List<Song>>(emptyList())
+
+            ScreenContent(
+                dispatcher = dispatcher,
+                roomCode = roomCode,
+                addToQueue = { addToQueue(songName.value, songList) },
+                songName = songName,
+                songList = songList
+            )
         }
+    }
+
+    private suspend fun addToQueue(songName: String, mutableSongList: MutableStateFlow<List<Song>>) {
+        val songList = requestTrackID(songName)
+        songList.forEach {
+            Log.d("songlist", it.songTitle)
+        }
+        mutableSongList.value = songList
     }
 }
 
 @Composable
-private fun ScreenContent(dispatcher: OnBackPressedDispatcher? = null, roomCode: String) {
+private fun ScreenContent(
+    dispatcher: OnBackPressedDispatcher? = null,
+    roomCode: String,
+    addToQueue: suspend () -> Unit,
+    songName: MutableStateFlow<String>,
+    songList: MutableStateFlow<List<Song>>,
+) {
     JukeboxTheme() {
         Box {
             SecondaryBackground()
@@ -74,7 +92,7 @@ private fun ScreenContent(dispatcher: OnBackPressedDispatcher? = null, roomCode:
                     BackToQueueButton(dispatcher)
                 }
                 AddSongTitle()
-                AddSongBox(roomCode)
+                AddSongBox(roomCode, addToQueue, songName, songList)
             }
         }
 
@@ -115,12 +133,15 @@ private fun AddSongTitle() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddSongBox(roomCode: String) {
+private fun AddSongBox(
+    roomCode: String,
+    addToQueue: suspend () -> Unit,
+    songName: MutableStateFlow<String>,
+    songList: MutableStateFlow<List<Song>>
+) {
     val scope = rememberCoroutineScope()
-    var songName by remember { mutableStateOf("") }
 //    val database = Firebase.database.reference
     val roomManager = RoomManager()
-
 
     Column(
         modifier = Modifier,
@@ -138,7 +159,7 @@ private fun AddSongBox(roomCode: String) {
                 modifier = Modifier
                     .padding(top = 30.dp, start = 20.dp, end = 20.dp)
                     .align(Alignment.TopCenter),
-                value= songName,
+                value= songName.collectAsState().value,
                 shape = RoundedCornerShape(20),
                 singleLine = true,
                 label = {
@@ -147,17 +168,15 @@ private fun AddSongBox(roomCode: String) {
                     )
                 },
                 onValueChange = {
-                    songName = it
+                    songName.value = it
                 },
                 keyboardActions = KeyboardActions(
                     onDone = {
                         // search, parse, populate, choose add
                         // TODO: only add song when they are chosen, here we should display
                         scope.launch {
-                            var listOfSongs = requestTrackID(songName)
-                            Log.d("Search: ", "Returned songs: $listOfSongs")
+                            addToQueue()
                         }
-                        roomManager.addSongToQueue(roomCode,Song(songTitle = songName, context_uri = songName))
                     }
                 ),
                 colors = TextFieldDefaults.textFieldColors(
@@ -167,18 +186,22 @@ private fun AddSongBox(roomCode: String) {
                     errorIndicatorColor = Color.Transparent,
                 )
             )
+            Column(modifier = Modifier
+                .align(Alignment.Center)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 20.dp)) {
+                QueuedSongs(queuedSongList = songList.collectAsState().value)
+            }
         }
     }
 }
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddQueueScreenContent(
-    hostName: String,
-    isHost: Boolean,
-    playingSong: Song,
-    queuedSongList: List<Song>,
+    queuedSongList: MutableStateFlow<List<Song>>,
     roomCode: String = ""
 ) {
     val context = LocalContext.current
@@ -205,9 +228,9 @@ fun AddQueueScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             SongQueue(
-                isHost = isHost,
-                playingSong = playingSong,
-                queuedSongList = queuedSongList
+                isHost = false,
+                playingSong = Song(),
+                queuedSongList = queuedSongList.collectAsState().value
             )
         }
     }

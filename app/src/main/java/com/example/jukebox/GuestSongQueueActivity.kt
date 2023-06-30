@@ -3,6 +3,7 @@ package com.example.jukebox
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -272,6 +273,7 @@ private fun SongProgressBar(){
 fun QueuedSongs(
     queuedSongList: List<Song>
 ) {
+
     queuedSongList.forEach { song ->
         Row(
             modifier = Modifier.fillMaxWidth(),
