@@ -140,8 +140,6 @@ private fun AddSongBox(
 ) {
     val scope = rememberCoroutineScope()
     val roomManager = RoomManager()
-    var listOfSongs = mutableListOf<Song>()
-
 
     Column(
         modifier = Modifier,
