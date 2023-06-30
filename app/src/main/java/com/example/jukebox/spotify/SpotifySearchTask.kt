@@ -14,9 +14,9 @@ object SpotifySearchTask : CoroutineScope by MainScope() {
 
         suspend fun requestTrackID(songName: String) : List<Song> {
             var listOfSongs = mutableListOf<Song>()
-            if (!SpotifyAccessToken.isTokenValid()) {
+            if (SpotifyAccessToken.isTokenValid()) {
                 val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
-                val accessToken = "Bearer BQB54CEzp_Z_QQaR9GKqd1uCRoN8PNKfMlkgjda4VtUUxDONX1x4tUyE0G7lzyUfN_0COAJfu1CqCEpAW9Khp2_NDaFcQX8xPO5Uy8qyHREeJI7LtyuEum3KE5dFXf6Kq4o127J4ODe-t4OszAVyIVOCkbn0ksPTIbvMdQiuCIVssc21SANDRGDGD4-cnhcHJX15p0ezhlrFSd5gyst9ZcScRynNonhlF6LstSSJmJ_yyHZwY5w"
+                val accessToken = "Bearer ${SpotifyAccessToken.getToken()}"
 
                 val job = async {
                     val result = api.searchSong(
@@ -40,8 +40,10 @@ object SpotifySearchTask : CoroutineScope by MainScope() {
                     }
                 }
                 job.await()
+            } else {
+                Log.d("spotify logging: ", "token is not valid")
             }
-            Log.d("spotify logging: ", "reached here")
+
             for (newSong in listOfSongs) {
                 Log.d("spotify logging: ", "after added new song: artist: ${newSong.songArtist}, title: ${newSong.songTitle}, uri: ${newSong.context_uri}")
 

@@ -1,5 +1,7 @@
 package com.example.jukebox
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -13,11 +15,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -32,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,7 +83,6 @@ private fun ScreenContent(dispatcher: OnBackPressedDispatcher? = null, roomCode:
 
 @Composable
 private fun BackToQueueButton(dispatcher: OnBackPressedDispatcher? = null) {
-    // TODO: need to make look less like a button, maybe clickable text
     TextButton(
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp,
@@ -117,7 +127,6 @@ private fun AddSongBox(roomCode: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // TODO: round corner of container
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,7 +152,7 @@ private fun AddSongBox(roomCode: String) {
                 keyboardActions = KeyboardActions(
                     onDone = {
                         // search, parse, populate, choose add
-                        Log.d("textfield", songName)
+                        // TODO: only add song when they are chosen, here we should display
                         scope.launch {
                             var listOfSongs = requestTrackID(songName)
                             Log.d("Search: ", "Returned songs: $listOfSongs")
@@ -161,8 +170,46 @@ private fun AddSongBox(roomCode: String) {
         }
     }
 }
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-private fun PreviewScreenContent() {
-    ScreenContent(roomCode = "abcde")
+fun AddQueueScreenContent(
+    hostName: String,
+    isHost: Boolean,
+    playingSong: Song,
+    queuedSongList: List<Song>,
+    roomCode: String = ""
+) {
+    val context = LocalContext.current
+    // TODO: handle song names that are too long (cut off and auto scroll horizontally)
+    Scaffold(
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    val intent = Intent(context, AddSongActivity::class.java)
+                    intent.putExtra("roomCode", roomCode)
+                    context.startActivity(intent)
+                },
+            ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+            }
+        }
+    ) {
+        SecondaryBackground()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            SongQueue(
+                isHost = isHost,
+                playingSong = playingSong,
+                queuedSongList = queuedSongList
+            )
+        }
+    }
 }
+
