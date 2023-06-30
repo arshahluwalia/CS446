@@ -7,7 +7,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -43,15 +46,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.spotify.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
-import com.example.jukebox.SongQueue
 import com.example.jukebox.RoomManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class AddSongActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,22 +120,20 @@ private fun AddSongTitle() {
     )
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddSongBox(roomCode: String) {
     val scope = rememberCoroutineScope()
     var songName by remember { mutableStateOf("") }
-//    val database = Firebase.database.reference
     val roomManager = RoomManager()
-
+    var listOfSongs = mutableListOf<Song>()
 
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 70.dp)
@@ -136,8 +142,8 @@ private fun AddSongBox(roomCode: String) {
         ){
             TextField(
                 modifier = Modifier
-                    .padding(top = 30.dp, start = 20.dp, end = 20.dp)
-                    .align(Alignment.TopCenter),
+                    .padding(top = 30.dp, start = 20.dp, end = 20.dp),
+//                    .align(Alignment.TopCenter),
                 value= songName,
                 shape = RoundedCornerShape(20),
                 singleLine = true,
@@ -153,11 +159,19 @@ private fun AddSongBox(roomCode: String) {
                     onDone = {
                         // search, parse, populate, choose add
                         // TODO: only add song when they are chosen, here we should display
-                        scope.launch {
-                            var listOfSongs = requestTrackID(songName)
-                            Log.d("Search: ", "Returned songs: $listOfSongs")
+                        var job = CoroutineScope(Dispatchers.Main).async {
+                            var songs = withContext(Dispatchers.IO) {
+                                requestTrackID(songName)
+                            }
+                            Log.d("Add song: ", "Returned songs: $songs")
+                            return@async songs
                         }
-                        roomManager.addSongToQueue(roomCode,Song(songTitle = songName, context_uri = songName))
+                        job.start()
+                        Log.d("Add song: ", "Returned songs")
+                        for (newSong in listOfSongs) {
+                            Log.d("Add song: ", "in ADD activity: artist: ${newSong.songArtist}, title: ${newSong.songTitle}, uri: ${newSong.context_uri}")
+                        }
+//                        roomManager.addSongToQueue(roomCode,Song(songTitle = songName, context_uri = songName))
                     }
                 ),
                 colors = TextFieldDefaults.textFieldColors(
@@ -167,49 +181,57 @@ private fun AddSongBox(roomCode: String) {
                     errorIndicatorColor = Color.Transparent,
                 )
             )
+            Column(
+                modifier = Modifier.padding(start = 50.dp, end = 50.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                searchSongQueue(queuedSongList = listOfSongs)
+            }
+
         }
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddQueueScreenContent(
-    hostName: String,
-    isHost: Boolean,
-    playingSong: Song,
-    queuedSongList: List<Song>,
-    roomCode: String = ""
+fun searchSongQueue(
+    queuedSongList: List<Song>
 ) {
-    val context = LocalContext.current
-    // TODO: handle song names that are too long (cut off and auto scroll horizontally)
-    Scaffold(
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val intent = Intent(context, AddSongActivity::class.java)
-                    intent.putExtra("roomCode", roomCode)
-                    context.startActivity(intent)
-                },
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-            }
-        }
-    ) {
-        SecondaryBackground()
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+    Log.d("Display: ", "Songs to add: $queuedSongList")
+    queuedSongList.forEach { song ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            SongQueue(
-                isHost = isHost,
-                playingSong = playingSong,
-                queuedSongList = queuedSongList
-            )
+            Text(text = "helloworld", color = Color.White)
+            searchSongItem(song = song)
         }
     }
 }
+
+
+@Composable
+fun searchSongItem(song: Song) {
+    // TODO: add isHost implementation, change icons if hose
+    Row(
+        modifier = Modifier.padding(start = 30.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier
+            .padding(15.dp)
+        ) {
+            Text(text = "helloworld", color = Color.White)
+            Text(text = song.songTitle, color = Color.White)
+            Text(text = song.songArtist, color = Color.White)
+        }
+    }
+    Image(
+        modifier = Modifier
+            .padding(end = 50.dp)
+            .clickable { /* TODO: add song */ },
+        painter = painterResource(id = R.drawable.upvote_arrow),
+        contentDescription = null
+    )
+}
+
 
