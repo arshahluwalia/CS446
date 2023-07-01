@@ -1,13 +1,15 @@
-package com.example.jukebox.spotify
+package com.example.jukebox.spotify.task
 
 import android.util.Base64
 import android.util.Log
 import com.example.jukebox.BuildConfig
+import com.example.jukebox.spotify.RetrofitHelper
+import com.example.jukebox.spotify.SpotifyAccessToken
+import com.example.jukebox.spotify.SpotifyApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -16,7 +18,6 @@ private const val clientSECRET = BuildConfig.SPOTIFY_CLIENT_SECRET
 
 object SpotifyAccessTokenTask : CoroutineScope by MainScope() {
 
-	@OptIn(ExperimentalTime::class)
 	fun requestAccessToken() {
 		if (!SpotifyAccessToken.isTokenValid()) {
 			val api = RetrofitHelper.getAccountUrlInstance().create(SpotifyApi::class.java)
@@ -32,7 +33,10 @@ object SpotifyAccessTokenTask : CoroutineScope by MainScope() {
 				if (result.body() != null) {
 					Log.d("spotify logging: ", result.body().toString())
 					val token = result.body()
-					SpotifyAccessToken.setToken(newToken = token!!.access_token, newExpiryTimestamp = Clock.System.now() + token!!.expires_in.seconds)
+					SpotifyAccessToken.setToken(
+						newToken = token!!.access_token,
+						newExpiryTimestamp = Clock.System.now() + token!!.expires_in.seconds
+					)
 				} else {
 					Log.d("spotify logging: ", "null response")
 				}
@@ -44,9 +48,3 @@ object SpotifyAccessTokenTask : CoroutineScope by MainScope() {
 		return Base64.encodeToString(value.toByteArray(), Base64.NO_WRAP)
 	}
 }
-
-data class AccessToken (
-	val access_token: String,
-	val token_type: String,
-	val expires_in: Int
-)

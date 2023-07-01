@@ -1,5 +1,7 @@
 package com.example.jukebox.spotify
 
+import com.example.jukebox.spotify.models.AccessToken
+import com.example.jukebox.spotify.models.SpotifySearchResponse
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded

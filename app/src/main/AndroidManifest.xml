@@ -29,13 +29,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".GuestSongQueueActivity"
+            android:name=".songqueue.GuestSongQueueActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Jukebox">
         </activity>
         <activity
-            android:name=".HostSongQueueActivity"
+            android:name=".songqueue.HostSongQueueActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Jukebox">

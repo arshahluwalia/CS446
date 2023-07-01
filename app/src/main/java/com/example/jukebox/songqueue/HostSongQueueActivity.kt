@@ -1,4 +1,4 @@
-package com.example.jukebox
+package com.example.jukebox.songqueue
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -34,6 +35,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.jukebox.R
+import com.example.jukebox.SecondaryBackground
+import com.example.jukebox.Song
+import com.example.jukebox.roomManager
 import com.example.jukebox.ui.theme.JukeboxTheme
 
 private lateinit var roomCode : String
@@ -135,6 +140,36 @@ private fun SongQueue(hostName: String?) {
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                 ),
                 roomCode = roomCode
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewScreenContent() {
+    JukeboxTheme() {
+        SecondaryBackground()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            SongQueueScreenContent(
+                hostName = "Lucas",
+                isHost = true,
+                playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                queuedSongList = listOf(
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                ),
+                roomCode = "ABCDE"
             )
         }
     }

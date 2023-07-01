@@ -32,8 +32,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
@@ -41,12 +39,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.spotify.SpotifyAccessTokenTask.requestAccessToken
-import com.example.jukebox.ui.theme.DarkPurple
+import com.example.jukebox.songqueue.GuestSongQueueActivity
+import com.example.jukebox.spotify.task.SpotifyAccessTokenTask.requestAccessToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
-import com.example.jukebox.ui.theme.OffBlack
-import com.example.jukebox.ui.theme.PurpleNeon
 import kotlin.random.Random
 
 

@@ -1,15 +1,11 @@
 package com.example.jukebox
 
-import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,33 +22,29 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.spotify.SpotifySearchTask.requestTrackID
+import com.example.jukebox.spotify.task.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -65,22 +57,20 @@ class AddSongActivity : ComponentActivity() {
         setContent {
             val songName = MutableStateFlow("")
             val songList = MutableStateFlow<List<Song>>(emptyList())
-
-            ScreenContent(
-                dispatcher = dispatcher,
-                roomCode = roomCode,
-                addToQueue = { addToQueue(songName.value, songList) },
-                songName = songName,
-                songList = songList
-            )
+            JukeboxTheme() {
+                ScreenContent(
+                    dispatcher = dispatcher,
+                    roomCode = roomCode,
+                    addToQueue = { addToQueue(songName.value, songList) },
+                    songName = songName,
+                    songList = songList
+                )
+            }
         }
     }
 
     private suspend fun addToQueue(songName: String, mutableSongList: MutableStateFlow<List<Song>>) {
         val songList = requestTrackID(songName)
-        songList.forEach {
-            Log.d("songlist", it.songTitle)
-        }
         mutableSongList.value = songList
     }
 }
@@ -93,18 +83,15 @@ private fun ScreenContent(
     songName: MutableStateFlow<String>,
     songList: MutableStateFlow<List<Song>>,
 ) {
-    JukeboxTheme() {
-        Box {
-            SecondaryBackground()
-            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-                    BackToQueueButton(dispatcher)
-                }
-                AddSongTitle()
-                AddSongBox(roomCode, addToQueue, songName, songList)
+    Box {
+        SecondaryBackground()
+        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                BackToQueueButton(dispatcher)
             }
+            AddSongTitle()
+            AddSongBox(roomCode, addToQueue, songName, songList)
         }
-
     }
 }
 
@@ -202,7 +189,7 @@ private fun AddSongBox(
 
 
 @Composable
-fun SearchSongQueue(
+private fun SearchSongQueue(
     queuedSongList: List<Song>,
     roomCode: String
 ) {
@@ -220,7 +207,7 @@ fun SearchSongQueue(
 
 
 @Composable
-fun SearchSongItem(song: Song, roomCode: String) {
+private fun SearchSongItem(song: Song, roomCode: String) {
     val roomManager = RoomManager()
     var isClicked by remember { mutableStateOf(false) }
     Row(
@@ -247,4 +234,20 @@ fun SearchSongItem(song: Song, roomCode: String) {
     }
 }
 
-
+@Composable
+@Preview
+private fun PreviewScreenContent() {
+    JukeboxTheme() {
+        ScreenContent(
+            dispatcher = null,
+            roomCode = "ABCDE",
+            addToQueue = {  },
+            songName = MutableStateFlow("Hello"),
+            songList = MutableStateFlow(listOf(
+                Song(songArtist = "Adele", songTitle = "Hello"),
+                Song(songArtist = "Adele", songTitle = "Hello"),
+                Song(songArtist = "Adele", songTitle = "Hello"),
+            ))
+        )
+    }
+}

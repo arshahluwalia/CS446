@@ -30,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.spotify.SpotifyAccessTokenTask
+import com.example.jukebox.songqueue.HostSongQueueActivity
 import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
