@@ -146,21 +146,6 @@ internal fun PlayingSong(
 }
 
 @Composable
-internal fun SongControl() {
-	Row(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-		horizontalArrangement = Arrangement.SpaceBetween,
-		verticalAlignment = Alignment.CenterVertically
-	) {
-		Image(painter = painterResource(id = R.drawable.previous_track), contentDescription = null)
-		Image(painter = painterResource(id = R.drawable.pause_track), contentDescription = null)
-		Image(painter = painterResource(id = R.drawable.next_track), contentDescription = null)
-	}
-}
-
-@Composable
 internal fun SongProgressBar(){
 	Column(modifier = Modifier
 		.fillMaxWidth()
