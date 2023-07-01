@@ -21,10 +21,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,6 +38,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -139,7 +148,6 @@ private fun AddSongBox(
     songList: MutableStateFlow<List<Song>>
 ) {
     val scope = rememberCoroutineScope()
-    val roomManager = RoomManager()
 
     Column(
         modifier = Modifier,
@@ -186,47 +194,17 @@ private fun AddSongBox(
             Column(modifier = Modifier
                 .verticalScroll(rememberScrollState())
                 .padding(top = 20.dp)) {
-                QueuedSongs(queuedSongList = songList.collectAsState().value)
+                SearchSongQueue(queuedSongList = songList.collectAsState().value, roomCode)
             }
         }
     }
 }
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddQueueScreenContent(
-    queuedSongList: MutableStateFlow<List<Song>>,
-    roomCode: String = ""
-) {
-    val context = LocalContext.current
-    // TODO: handle song names that are too long (cut off and auto scroll horizontally)
-    Scaffold(
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val intent = Intent(context, AddSongActivity::class.java)
-                    intent.putExtra("roomCode", roomCode)
-                    context.startActivity(intent)
-                },
-            ) {}
-        }
-    ) {
-        SecondaryBackground()
-        Column(
-            modifier = Modifier.padding(start = 50.dp, end = 50.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            SearchSongQueue(queuedSongList = queuedSongList.collectAsState().value)
-        }
-    }
-}
-
 @Composable
 fun SearchSongQueue(
-    queuedSongList: List<Song>
+    queuedSongList: List<Song>,
+    roomCode: String
 ) {
     Log.d("Display: ", "Songs to add: $queuedSongList")
     queuedSongList.forEach { song ->
@@ -235,16 +213,16 @@ fun SearchSongQueue(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "helloworld", color = Color.White)
-            SearchSongItem(song = song)
+            SearchSongItem(song = song, roomCode)
         }
     }
 }
 
 
 @Composable
-fun SearchSongItem(song: Song) {
-    // TODO: add isHost implementation, change icons if hose
+fun SearchSongItem(song: Song, roomCode: String) {
+    val roomManager = RoomManager()
+    var isClicked by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -252,18 +230,21 @@ fun SearchSongItem(song: Song) {
         Column(modifier = Modifier
             .padding(15.dp)
         ) {
-            Text(text = "helloworld", color = Color.White)
             Text(text = song.songTitle, color = Color.White)
             Text(text = song.songArtist, color = Color.White)
         }
     }
-    Image(
-        modifier = Modifier
-            .padding(end = 50.dp)
-            .clickable { /* TODO: add song */ },
-        painter = painterResource(id = R.drawable.upvote_arrow),
-        contentDescription = null
-    )
+    // TODO: Reset the button to add when a new search is made
+    IconButton(
+        onClick = {
+        roomManager.addSongToQueue(roomCode, song)
+        isClicked = true
+    }) {
+        Icon(
+            imageVector = if (isClicked) Icons.Filled.Check else Icons.Filled.Add,
+            contentDescription = null,
+            tint = Color.White)
+    }
 }
 
 
