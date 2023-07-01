@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,14 +42,17 @@ import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.roomManager
 import com.example.jukebox.ui.theme.JukeboxTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 
 private lateinit var roomCode : String
 
 class HostSongQueueActivity : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val songQueue = MutableStateFlow<List<Song>>(emptyList())
+        roomCode = intent.getStringExtra("roomCode").toString()
+        getSongQueue(roomCode, songQueue)
         setContent {
-            roomCode = intent.getStringExtra("roomCode").toString()
             val navController = rememberNavController()
             NavHost(navController, startDestination = "entername") {
                 composable("entername") { EnterName(navController) }
@@ -55,9 +60,15 @@ class HostSongQueueActivity : ComponentActivity(){
                     "songqueue/{hostName}",
                     arguments = listOf(navArgument("hostName") { type = NavType.StringType })
                 ) {backStackEntry ->
-                    SongQueue(backStackEntry.arguments?.getString("hostName"))
+                    SongQueue(backStackEntry.arguments?.getString("hostName"), songQueue = songQueue)
                 }
             }
+        }
+    }
+
+    private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        roomManager.getQueue(roomCode) { queue ->
+            songQueue.value = queue.queue
         }
     }
 }
@@ -99,12 +110,19 @@ private fun EnterName(navController: NavController) {
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
                         errorIndicatorColor = Color.Transparent,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            navController.navigate("songqueue/$hostName")
+                            roomManager.setHostName(roomCode, hostName)
+                        }
                     )
                 )
                 Button(
                     onClick = {
                         navController.navigate("songqueue/$hostName")
-                        roomManager.setHostName(roomCode, hostName)},
+                        roomManager.setHostName(roomCode, hostName)
+                    },
                     enabled = hostName.isNotEmpty()
                 ) {
                     Text(text = "Done")
@@ -114,7 +132,7 @@ private fun EnterName(navController: NavController) {
     }
 }
 @Composable
-private fun SongQueue(hostName: String?) {
+private fun SongQueue(hostName: String?, songQueue: MutableStateFlow<List<Song>>) {
     JukeboxTheme() {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -128,17 +146,7 @@ private fun SongQueue(hostName: String?) {
                     songArtist = "Shakira",
                     isApproved = true
                 ),
-                queuedSongList = listOf(
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                ),
+                queuedSongList = songQueue.collectAsState().value,
                 roomCode = roomCode
             )
         }

@@ -1,6 +1,5 @@
 package com.example.jukebox
 
-import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -128,7 +127,7 @@ class RoomManager {
     fun getQueue(roomCode: String, callback: (SongQueue) -> Unit) {
         val queueRef = database.child("$roomCode/queue")
 
-        queueRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        queueRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val songs = mutableListOf<Song>()
                 for (snapshot in dataSnapshot.children) {

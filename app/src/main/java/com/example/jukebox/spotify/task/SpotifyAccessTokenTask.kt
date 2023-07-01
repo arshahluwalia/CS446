@@ -11,7 +11,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 
 private const val clientID = BuildConfig.SPOTIFY_CLIENT_ID
 private const val clientSECRET = BuildConfig.SPOTIFY_CLIENT_SECRET

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,11 +31,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.CopyToClipboard
 import com.example.jukebox.R
+import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.ui.theme.DarkPurple
+import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import kotlinx.coroutines.launch
 
@@ -42,7 +46,6 @@ import kotlinx.coroutines.launch
 internal fun SongQueueTitle(
 	hostName: String,
 ) {
-	// TODO: change "tonight" wording to reflect time of day or just use "today"
 	Text(
 		modifier = Modifier.padding(top = 70.dp, start = 20.dp, end = 20.dp, bottom = 20.dp),
 		text = buildAnnotatedString {
@@ -105,7 +108,7 @@ internal fun SongQueue(
 	queuedSongList: List<Song>
 ) {
 	Column(
-		modifier = Modifier.padding(start = 50.dp, end = 50.dp),
+		modifier = Modifier.fillMaxSize().padding(start = 50.dp, end = 50.dp),
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		PlayingSong(playingSong = playingSong, isHost = isHost)
@@ -189,7 +192,7 @@ internal fun QueuedSongs(
 		Row(
 			modifier = Modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.SpaceBetween
+//			horizontalArrangement = Arrangement.SpaceBetween
 		) {
 			SongItem(song = song)
 		}
@@ -200,8 +203,8 @@ internal fun QueuedSongs(
 internal fun SongItem(song: Song) {
 	// TODO: add isHost implementation, change icons if hose
 	Row(
-		modifier = Modifier.padding(start = 30.dp),
-		verticalAlignment = Alignment.CenterVertically
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.SpaceBetween
 	) {
 		if (song.isApproved) {
 			Image(
@@ -224,9 +227,38 @@ internal fun SongItem(song: Song) {
 	}
 	Image(
 		modifier = Modifier
-			.padding(end = 50.dp)
 			.clickable { /* TODO: upvote song */ },
 		painter = painterResource(id = R.drawable.upvote_arrow),
 		contentDescription = null
 	)
+}
+
+@Preview
+@Composable
+private fun PreviewScreenContent() {
+	JukeboxTheme() {
+		SecondaryBackground()
+		Column(
+			modifier = Modifier.fillMaxSize(),
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			SongQueueScreenContent(
+				hostName = "Lucas",
+				isHost = false,
+				playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+				queuedSongList = listOf(
+					Song(songTitle = "What makes you beautifullllllllllllll", songArtist = "Shakira", isApproved = true),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+				),
+				roomCode = "ABCDE"
+			)
+		}
+	}
 }

@@ -158,6 +158,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                         if (roomCode.length == charLimit) {
                             if (exists) {
                                 Log.d("Welcome Activity", "User joined room $roomCode")
+                                requestAccessToken()
                                 val intent = Intent(context, GuestSongQueueActivity::class.java)
                                 intent.putExtra("roomCode", roomCode)
                                 context.startActivity(intent)
@@ -186,6 +187,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                         if (roomCode.length == charLimit) {
                             if (exists) {
                                 Log.d("Welcome Activity", "User joined room $roomCode")
+                                requestAccessToken()
                                 val intent = Intent(context, GuestSongQueueActivity::class.java)
                                 intent.putExtra("roomCode", roomCode)
                                 context.startActivity(intent)

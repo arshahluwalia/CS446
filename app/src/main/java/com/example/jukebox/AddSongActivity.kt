@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -135,6 +137,7 @@ private fun AddSongBox(
     songList: MutableStateFlow<List<Song>>
 ) {
     val scope = rememberCoroutineScope()
+    val activity = LocalContext.current as Activity
 
     Column(
         modifier = Modifier,
@@ -169,6 +172,7 @@ private fun AddSongBox(
                         scope.launch {
                             addToQueue()
                         }
+                        HideSoftKeyboard.hideSoftKeyboard(activity)
                     }
                 ),
                 colors = TextFieldDefaults.textFieldColors(
@@ -224,8 +228,8 @@ private fun SearchSongItem(song: Song, roomCode: String) {
     // TODO: Reset the button to add when a new search is made
     IconButton(
         onClick = {
-        roomManager.addSongToQueue(roomCode, song)
-        isClicked = true
+            roomManager.addSongToQueue(roomCode, song)
+            isClicked = true
     }) {
         Icon(
             imageVector = if (isClicked) Icons.Filled.Check else Icons.Filled.Add,
