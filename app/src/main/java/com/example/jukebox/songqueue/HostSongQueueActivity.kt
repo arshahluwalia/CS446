@@ -60,7 +60,11 @@ class HostSongQueueActivity : ComponentActivity(){
                     "songqueue/{hostName}",
                     arguments = listOf(navArgument("hostName") { type = NavType.StringType })
                 ) {backStackEntry ->
-                    SongQueue(backStackEntry.arguments?.getString("hostName"), songQueue = songQueue)
+                    SongQueue(
+                        backStackEntry.arguments?.getString("hostName"),
+                        songQueue = songQueue,
+                        removeSong = ::removeSong
+                    )
                 }
             }
         }
@@ -70,6 +74,10 @@ class HostSongQueueActivity : ComponentActivity(){
         roomManager.getQueue(roomCode) { queue ->
             songQueue.value = queue.queue
         }
+    }
+
+    private fun removeSong(song: Song) {
+        roomManager.removeSongFromQueue(roomCode, song.context_uri)
     }
 }
 
@@ -132,7 +140,11 @@ private fun EnterName(navController: NavController) {
     }
 }
 @Composable
-private fun SongQueue(hostName: String?, songQueue: MutableStateFlow<List<Song>>) {
+private fun SongQueue(
+    hostName: String?,
+    songQueue: MutableStateFlow<List<Song>>,
+    removeSong: (Song) -> Unit = { }
+) {
     JukeboxTheme() {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -147,7 +159,8 @@ private fun SongQueue(hostName: String?, songQueue: MutableStateFlow<List<Song>>
                     isApproved = true
                 ),
                 queuedSongList = songQueue.collectAsState().value,
-                roomCode = roomCode
+                roomCode = roomCode,
+                removeSong = removeSong
             )
         }
     }

@@ -1,23 +1,37 @@
 package com.example.jukebox.songqueue
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.PlainTooltipState
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -33,15 +47,61 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.CopyToClipboard
+import com.example.jukebox.AddSongActivity
 import com.example.jukebox.R
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
+import com.example.jukebox.util.CopyToClipboard
 import kotlinx.coroutines.launch
 
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun SongQueueScreenContent(
+	hostName: String,
+	isHost: Boolean,
+	playingSong: Song,
+	queuedSongList: List<Song>,
+	roomCode: String = "",
+	removeSong: (Song) -> Unit = { }
+) {
+	val context = LocalContext.current
+	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
+	Scaffold(
+		floatingActionButtonPosition = FabPosition.End,
+		floatingActionButton = {
+			FloatingActionButton(
+				onClick = {
+					val intent = Intent(context, AddSongActivity::class.java)
+					intent.putExtra("roomCode", roomCode)
+					context.startActivity(intent)
+				},
+			) {
+				Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+			}
+		}
+	) {
+		SecondaryBackground()
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.verticalScroll(rememberScrollState()),
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			SongQueueTitle(hostName = hostName)
+			RoomCode(roomCode = roomCode)
+			SongQueue(
+				isHost = isHost,
+				playingSong = playingSong,
+				queuedSongList = queuedSongList,
+				removeSong = removeSong
+			)
+		}
+	}
+}
 @Composable
 internal fun SongQueueTitle(
 	hostName: String,
@@ -89,10 +149,13 @@ internal fun RoomCode(
 			tooltipState = tooltipState
 		) {
 			Image(
-				modifier = Modifier.size(20.dp).clickable {
-					CopyToClipboard.copyToClipboard(context, "roomCode", roomCode)
-					scope.launch { tooltipState.show() }
-				}.tooltipAnchor(),
+				modifier = Modifier
+					.size(20.dp)
+					.clickable {
+						CopyToClipboard.copyToClipboard(context, "roomCode", roomCode)
+						scope.launch { tooltipState.show() }
+					}
+					.tooltipAnchor(),
 				painter = painterResource(id = R.drawable.copy_to_clipboard),
 				contentDescription = null,
 			)
@@ -105,18 +168,17 @@ internal fun RoomCode(
 internal fun SongQueue(
 	isHost: Boolean,
 	playingSong: Song,
-	queuedSongList: List<Song>
+	queuedSongList: List<Song>,
+	removeSong: (Song) -> Unit = {}
 ) {
 	Column(
-		modifier = Modifier.fillMaxSize().padding(start = 50.dp, end = 50.dp),
+		modifier = Modifier
+			.fillMaxSize()
+			.padding(start = 50.dp, end = 50.dp),
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		PlayingSong(playingSong = playingSong, isHost = isHost)
-		if (isHost) {
-			QueuedSongs(queuedSongList = queuedSongList)
-		} else {
-			QueuedSongs(queuedSongList = queuedSongList)
-		}
+		QueuedSongs(queuedSongList = queuedSongList, isHost = isHost, removeSong = removeSong)
 	}
 }
 
@@ -185,37 +247,47 @@ internal fun SongProgressBar(){
 
 @Composable
 internal fun QueuedSongs(
-	queuedSongList: List<Song>
+	queuedSongList: List<Song>,
+	isHost: Boolean,
+	removeSong: (Song) -> Unit = { }
 ) {
 
 	queuedSongList.forEach { song ->
 		Row(
 			modifier = Modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically,
-//			horizontalArrangement = Arrangement.SpaceBetween
 		) {
-			SongItem(song = song)
+			SongItem(song = song, isHost = isHost, removeSong = removeSong)
 		}
 	}
 }
 
 @Composable
-internal fun SongItem(song: Song) {
+internal fun SongItem(
+	song: Song,
+	isHost: Boolean,
+	removeSong: (Song) -> Unit = { }
+) {
+	val expanded = remember { mutableStateOf(false) }
 	// TODO: add isHost implementation, change icons if hose
 	Row(
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalArrangement = Arrangement.SpaceBetween
 	) {
-		if (song.isApproved) {
-			Image(
-				modifier = Modifier
-					.size(30.dp)
-					.clickable { /* TODO: Add tooltip explaining that host needs to approve*/ },
-				painter = painterResource(id = R.drawable.approved_check),
-				contentDescription = null
-			)
+		if (isHost) {
+
 		} else {
-			Column(modifier = Modifier.padding(start = 30.dp)) {}
+			if (song.isApproved) {
+				Image(
+					modifier = Modifier
+						.size(30.dp)
+						.clickable { /* TODO: Add tooltip explaining that host needs to approve*/ },
+					painter = painterResource(id = R.drawable.approved_check),
+					contentDescription = null
+				)
+			} else {
+				Column(modifier = Modifier.padding(start = 30.dp)) {}
+			}
 		}
 		Column(modifier = Modifier
 			.padding(15.dp)
@@ -225,12 +297,33 @@ internal fun SongItem(song: Song) {
 			Text(text = song.songArtist, color = Color.White)
 		}
 	}
-	Image(
-		modifier = Modifier
-			.clickable { /* TODO: upvote song */ },
-		painter = painterResource(id = R.drawable.upvote_arrow),
-		contentDescription = null
-	)
+	Box() {
+		if (isHost) {
+			Image(
+				modifier = Modifier
+					.size(20.dp)
+					.clickable { expanded.value = true },
+				painter = painterResource(id = R.drawable.ellipsis),
+				contentDescription = null
+			)
+			DropdownMenu(
+				expanded = expanded.value,
+				onDismissRequest = { expanded.value = !expanded.value }
+			) {
+				DropdownMenuItem(
+					text = { Text(text = "Remove Song") },
+					onClick = { removeSong(song) }
+				)
+			}
+		} else {
+			Image(
+				modifier = Modifier
+					.clickable { /* TODO: upvote song */ },
+				painter = painterResource(id = R.drawable.upvote_arrow),
+				contentDescription = null
+			)
+		}
+	}
 }
 
 @Preview
