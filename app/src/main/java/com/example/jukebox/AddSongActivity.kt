@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.spotify.task.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
+import com.example.jukebox.util.HideSoftKeyboard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
