@@ -15,5 +15,9 @@ class Song(
 	fun upvote() {
 		votes++
 	}
+
+	fun downvote(){
+		votes--
+	}
 }
 

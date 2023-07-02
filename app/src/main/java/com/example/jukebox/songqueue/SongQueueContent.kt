@@ -6,10 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -18,6 +20,8 @@ import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.PlainTooltipState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -41,6 +45,9 @@ import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.alpha
 
 @Composable
 internal fun SongQueueTitle(
@@ -75,7 +82,7 @@ internal fun RoomCode(
 	{
 		Text(
 			text = buildAnnotatedString {
-				append("The room code is ")
+				append("The room code is: ")
 				withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
 					append(roomCode)
 				}
@@ -89,10 +96,13 @@ internal fun RoomCode(
 			tooltipState = tooltipState
 		) {
 			Image(
-				modifier = Modifier.size(20.dp).clickable {
-					CopyToClipboard.copyToClipboard(context, "roomCode", roomCode)
-					scope.launch { tooltipState.show() }
-				}.tooltipAnchor(),
+				modifier = Modifier
+					.size(20.dp)
+					.clickable {
+						CopyToClipboard.copyToClipboard(context, "roomCode", roomCode)
+						scope.launch { tooltipState.show() }
+					}
+					.tooltipAnchor(),
 				painter = painterResource(id = R.drawable.copy_to_clipboard),
 				contentDescription = null,
 			)
@@ -109,7 +119,9 @@ internal fun SongQueue(
 	roomCode: String
 ) {
 	Column(
-		modifier = Modifier.fillMaxSize().padding(start = 50.dp, end = 50.dp),
+		modifier = Modifier
+			.fillMaxSize()
+			.padding(start = 40.dp, end = 40.dp),
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode)
@@ -130,7 +142,7 @@ internal fun PlayingSong(
 	Column(
 		modifier = Modifier
 			.clip(shape = RoundedCornerShape(10.dp))
-			.background(color = PurpleNeon),
+			.background(color = PurpleNeon)
 	) {
 		Row(
 			verticalAlignment = Alignment.CenterVertically
@@ -174,24 +186,29 @@ internal fun SongProgressBar(){
 internal fun QueuedSongs(
 	queuedSongList: List<Song>
 ) {
-
 	queuedSongList.forEach { song ->
 		Row(
 			modifier = Modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically,
-//			horizontalArrangement = Arrangement.SpaceBetween
+			horizontalArrangement = Arrangement.SpaceBetween
 		) {
+			var isSongUpvoted by remember {
+				mutableStateOf(false)
+			}
 			SongItem(song = song)
+			UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+				isSongUpvoted = !isSongUpvoted
+			})
 		}
 	}
 }
 
 @Composable
 internal fun SongItem(song: Song) {
-	// TODO: add isHost implementation, change icons if hose
+	// TODO: add isHost implementation, change icons if host
 	Row(
 		verticalAlignment = Alignment.CenterVertically,
-		horizontalArrangement = Arrangement.SpaceBetween
+		modifier = Modifier.fillMaxWidth(fraction = 0.85f)
 	) {
 		if (song.isApproved) {
 			Image(
@@ -202,20 +219,36 @@ internal fun SongItem(song: Song) {
 				contentDescription = null
 			)
 		} else {
-			Column(modifier = Modifier.padding(start = 30.dp)) {}
+			Column(modifier = Modifier.padding(start = 10.dp)) {}
 		}
 		Column(modifier = Modifier
-			.padding(15.dp)
+			.padding(top = 10.dp, bottom = 10.dp)
 			.clickable { /* TODO: Redirects to spotify */ },
 		) {
 			Text(text = song.songTitle, color = Color.White)
-			Text(text = song.songArtist, color = Color.White)
+			Text(text = song.songArtist, color = Color.LightGray)
+			Text(text = "upvotes " + song.votes, color = Color.LightGray)
 		}
 	}
+}
+
+@Composable
+internal fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit) {
 	Image(
 		modifier = Modifier
-			.clickable { /* TODO: upvote song */ },
-		painter = painterResource(id = R.drawable.upvote_arrow),
+			.clickable { /* TODO: upvote song */
+				if(!isUpvoted){ /*If the user hasn't upvoted: increment upvotes by one*/
+					song.upvote()
+				}
+				else{ /*If the user has upvoted: undo the upvote*/
+					song.downvote()
+				}
+				onVoteClick()
+			}
+			.alpha(if(isUpvoted) 0.5f else 1.0f),
+		painter = painterResource(
+			id = R.drawable.upvote_arrow
+		),
 		contentDescription = null
 	)
 }
