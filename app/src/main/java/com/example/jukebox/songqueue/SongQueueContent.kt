@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltipBox
@@ -51,6 +52,8 @@ import com.example.jukebox.AddSongActivity
 import com.example.jukebox.R
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
+import com.example.jukebox.roomManager
+import com.example.jukebox.spotify.task.SpotifySongControlTask
 import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
@@ -91,6 +94,7 @@ fun SongQueueScreenContent(
 				.verticalScroll(rememberScrollState()),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
+			SettingsButton(isHost = isHost)
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode)
 			SongQueue(
@@ -104,11 +108,43 @@ fun SongQueueScreenContent(
 	}
 }
 @Composable
+fun SettingsButton(
+	isHost: Boolean,
+) {
+	if (isHost) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 10.dp),
+			horizontalArrangement = Arrangement.End,
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			IconButton(
+				onClick = {
+					// open settings
+				}) {
+				Image(
+					modifier = Modifier
+						.size(30.dp),
+					painter = painterResource(id = R.drawable.settings_button),
+					contentDescription = null
+				)
+			}
+		}
+	}
+	else {
+		Row(
+			modifier = Modifier.padding(top = 35.dp, start = 20.dp, end = 20.dp, bottom = 35.dp)
+		) {}
+	}
+}
+
+@Composable
 fun SongQueueTitle(
 	hostName: String,
 ) {
 	Text(
-		modifier = Modifier.padding(top = 70.dp, start = 20.dp, end = 20.dp, bottom = 20.dp),
+		modifier = Modifier.padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 20.dp),
 		text = buildAnnotatedString {
 			withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
 				append(hostName)
