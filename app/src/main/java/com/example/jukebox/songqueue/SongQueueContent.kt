@@ -104,7 +104,7 @@ fun SongQueueScreenContent(
 	}
 }
 @Composable
-internal fun SongQueueTitle(
+fun SongQueueTitle(
 	hostName: String,
 ) {
 	Text(
@@ -123,7 +123,7 @@ internal fun SongQueueTitle(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun RoomCode(
+fun RoomCode(
 	roomCode: String,
 ) {
 	val context = LocalContext.current
@@ -165,7 +165,7 @@ internal fun RoomCode(
 }
 
 @Composable
-internal fun SongQueue(
+fun SongQueue(
 	isHost: Boolean,
 	playingSong: Song,
 	queuedSongList: List<Song>,
@@ -184,7 +184,7 @@ internal fun SongQueue(
 }
 
 @Composable
-internal fun PlayingSong(
+fun PlayingSong(
 	playingSong: Song,
 	isHost: Boolean,
 	roomCode: String
@@ -210,7 +210,7 @@ internal fun PlayingSong(
 }
 
 @Composable
-internal fun SongProgressBar(){
+fun SongProgressBar(){
 	Column(modifier = Modifier
 		.fillMaxWidth()
 		.padding(end = 20.dp, top = 10.dp)
@@ -233,48 +233,51 @@ internal fun SongProgressBar(){
 }
 
 @Composable
-internal fun QueuedSongs(
+fun QueuedSongs(
 	queuedSongList: List<Song>,
 	isHost: Boolean,
 	removeSong: (Song) -> Unit = { }
 ) {
-
+	if (isHost) {
+		queuedSongList.forEach { song ->
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.SpaceBetween
+			) {
+				HostSongItem(song = song, removeSong = removeSong)
+			}
+		}
+	}
 	queuedSongList.forEach { song ->
 		Row(
 			modifier = Modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.SpaceBetween
 		) {
-			SongItem(song = song, isHost = isHost, removeSong = removeSong)
+				GuestSongItem(song = song)
 		}
 	}
 }
 
 @Composable
-internal fun SongItem(
+fun GuestSongItem(
 	song: Song,
-	isHost: Boolean,
-	removeSong: (Song) -> Unit = { }
 ) {
-	val expanded = remember { mutableStateOf(false) }
-	// TODO: add isHost implementation, change icons if hose
 	Row(
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalArrangement = Arrangement.SpaceBetween
 	) {
-		if (isHost) {
-
+		if (song.isApproved) {
+			Image(
+				modifier = Modifier
+					.size(30.dp)
+					.clickable { /* TODO: Add tooltip explaining that host needs to approve*/ },
+				painter = painterResource(id = R.drawable.approve_check),
+				contentDescription = null
+			)
 		} else {
-			if (song.isApproved) {
-				Image(
-					modifier = Modifier
-						.size(30.dp)
-						.clickable { /* TODO: Add tooltip explaining that host needs to approve*/ },
-					painter = painterResource(id = R.drawable.approved_check),
-					contentDescription = null
-				)
-			} else {
-				Column(modifier = Modifier.padding(start = 30.dp)) {}
-			}
+			Column(modifier = Modifier.padding(start = 30.dp)) {}
 		}
 		Column(modifier = Modifier
 			.padding(15.dp)
@@ -284,8 +287,53 @@ internal fun SongItem(
 			Text(text = song.songArtist, color = Color.White)
 		}
 	}
-	Box() {
-		if (isHost) {
+	Image(
+		modifier = Modifier
+			.clickable { /* TODO: upvote song */ },
+		painter = painterResource(id = R.drawable.upvote_arrow),
+		contentDescription = null
+	)
+}
+
+@Composable
+fun HostSongItem(
+	song: Song,
+	removeSong: (Song) -> Unit = { }
+) {
+	val expanded = remember { mutableStateOf(false) }
+	Column(modifier = Modifier
+		.padding(15.dp)
+		.clickable { /* TODO: Redirects to spotify */ },
+	) {
+		Text(text = song.songTitle, color = Color.White)
+		Text(text = song.songArtist, color = Color.White)
+	}
+	Row(verticalAlignment = Alignment.CenterVertically) {
+		Image(
+			modifier = Modifier
+				.size(30.dp)
+				.clickable { /* TODO: approve */ }
+				.padding(start = 10.dp),
+			painter = if (song.isApproved) {
+				painterResource(id = R.drawable.approve_check_purple)
+			} else {
+				painterResource(id = R.drawable.approve_check)
+			},
+			contentDescription = null
+		)
+		Image(
+			modifier = Modifier
+				.size(30.dp)
+				.clickable { /* TODO: deny */ }
+				.padding(start = 10.dp),
+			painter = if (song.isApproved) {
+				painterResource(id = R.drawable.deny_x)
+			} else {
+				painterResource(id = R.drawable.deny_x_purple)
+			},
+			contentDescription = null
+		)
+		Box(modifier = Modifier.padding(start = 10.dp)) {
 			Image(
 				modifier = Modifier
 					.size(20.dp)
@@ -302,13 +350,6 @@ internal fun SongItem(
 					onClick = { removeSong(song) }
 				)
 			}
-		} else {
-			Image(
-				modifier = Modifier
-					.clickable { /* TODO: upvote song */ },
-				painter = painterResource(id = R.drawable.upvote_arrow),
-				contentDescription = null
-			)
 		}
 	}
 }
