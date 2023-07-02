@@ -97,7 +97,8 @@ fun SongQueueScreenContent(
 				isHost = isHost,
 				playingSong = playingSong,
 				queuedSongList = queuedSongList,
-				removeSong = removeSong
+				removeSong = removeSong,
+				roomCode = roomCode
 			)
 		}
 	}
@@ -160,7 +161,6 @@ internal fun RoomCode(
 				contentDescription = null,
 			)
 		}
-
 	}
 }
 
@@ -169,7 +169,8 @@ internal fun SongQueue(
 	isHost: Boolean,
 	playingSong: Song,
 	queuedSongList: List<Song>,
-	removeSong: (Song) -> Unit = {}
+	removeSong: (Song) -> Unit = {},
+	roomCode: String
 ) {
 	Column(
 		modifier = Modifier
@@ -177,7 +178,7 @@ internal fun SongQueue(
 			.padding(start = 50.dp, end = 50.dp),
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
-		PlayingSong(playingSong = playingSong, isHost = isHost)
+		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode)
 		QueuedSongs(queuedSongList = queuedSongList, isHost = isHost, removeSong = removeSong)
 	}
 }
@@ -186,6 +187,7 @@ internal fun SongQueue(
 internal fun PlayingSong(
 	playingSong: Song,
 	isHost: Boolean,
+	roomCode: String
 ) {
 	Column(
 		modifier = Modifier
@@ -202,23 +204,8 @@ internal fun PlayingSong(
 			SongProgressBar()
 		}
 		if (isHost) {
-			SongControl()
+			SongControl(roomCode)
 		}
-	}
-}
-
-@Composable
-internal fun SongControl() {
-	Row(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-		horizontalArrangement = Arrangement.SpaceBetween,
-		verticalAlignment = Alignment.CenterVertically
-	) {
-		Image(painter = painterResource(id = R.drawable.previous_track), contentDescription = null)
-		Image(painter = painterResource(id = R.drawable.pause_track), contentDescription = null)
-		Image(painter = painterResource(id = R.drawable.next_track), contentDescription = null)
 	}
 }
 
