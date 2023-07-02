@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -101,6 +102,29 @@ class RoomManager {
         val hostNameRef = database.child("$roomCode/hostName")
         hostNameRef.setValue(name)
     }
+
+    fun getHostName(roomCode: String, callback: (String) -> Unit) {
+        val hostNameRef = database.child("$roomCode/hostName")
+
+        hostNameRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val hostName = dataSnapshot.getValue(String::class.java)
+                if (hostName != null) {
+                    Log.d("Room Manager", "hostName: $hostName")
+                    callback(hostName)
+                } else {
+                    Log.d("Room Manager", "hostName not found")
+                    callback("Someone")
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(String()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
     fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
         var roomCodeExists = false
         val roomCodesRef = database
