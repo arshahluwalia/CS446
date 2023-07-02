@@ -197,14 +197,28 @@ private fun SearchSongQueue(
     queuedSongList: List<Song>,
     roomCode: String
 ) {
+    val roomManager = RoomManager()
     Log.d("Display: ", "Songs to add: $queuedSongList")
     queuedSongList.forEach { song ->
+        var isClicked by remember { mutableStateOf(false) }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start
         ) {
             SearchSongItem(song = song, roomCode)
+            // TODO: Reset the button to add when a new search is made
+            IconButton(
+                onClick = {
+                    roomManager.addSongToQueue(roomCode, song)
+                    isClicked = true
+                }) {
+                Icon(
+                    imageVector = if (isClicked) Icons.Filled.Check else Icons.Filled.Add,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
         }
     }
 }
@@ -212,10 +226,8 @@ private fun SearchSongQueue(
 
 @Composable
 private fun SearchSongItem(song: Song, roomCode: String) {
-    val roomManager = RoomManager()
-    var isClicked by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.padding(start = 30.dp),
+        modifier = Modifier.fillMaxWidth(0.85f).padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier
@@ -224,17 +236,6 @@ private fun SearchSongItem(song: Song, roomCode: String) {
             Text(text = song.songTitle, color = Color.White)
             Text(text = song.songArtist, color = Color.White)
         }
-    }
-    // TODO: Reset the button to add when a new search is made
-    IconButton(
-        onClick = {
-            roomManager.addSongToQueue(roomCode, song)
-            isClicked = true
-    }) {
-        Icon(
-            imageVector = if (isClicked) Icons.Filled.Check else Icons.Filled.Add,
-            contentDescription = null,
-            tint = Color.White)
     }
 }
 

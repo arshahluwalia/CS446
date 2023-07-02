@@ -287,31 +287,34 @@ fun QueuedSongs(
 		queuedSongList.forEach { song ->
 			Row(
 				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.Start
 			) {
 				var isSongUpvoted by remember{
 					mutableStateOf(false)
 				}
-				HostSongItem(song = song, removeSong = removeSong)
+				HostSongItem(song = song)
+				ApproveDenyButtons(song = song, removeSong = removeSong)
 //				UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 //					isSongUpvoted = !isSongUpvoted
 //				})
 			}
 		}
-	}
-	queuedSongList.forEach { song ->
-		Row(
-			modifier = Modifier.fillMaxWidth(),
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.Start
-		) {
-			var isSongUpvoted by remember{
-				mutableStateOf(false)
+	} else {
+		queuedSongList.forEach { song ->
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.Start
+			) {
+				var isSongUpvoted by remember {
+					mutableStateOf(false)
+				}
+				GuestSongItem(song = song)
+				UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+					isSongUpvoted = !isSongUpvoted
+				})
 			}
-			GuestSongItem(song = song)
-			UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
-				isSongUpvoted = !isSongUpvoted
-			})
 		}
 	}
 }
@@ -351,33 +354,25 @@ fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit){
 	Image(
 		modifier = Modifier
 			.clickable { /*If the user hasn't upvoted, increment upvotes by one*/
-				if(!isUpvoted){
+				if (!isUpvoted) {
 					song.upvote()
-				}
-				else{ /*If user has upvoted: undo the upvote*/
+				} else { /*If user has upvoted: undo the upvote*/
 					song.downvote()
 				}
 				onVoteClick()
 			}
-			.alpha(if(isUpvoted) 0.5f else 1.0f),
+			.alpha(if (isUpvoted) 0.5f else 1.0f),
 		painter = painterResource(id = R.drawable.upvote_arrow),
 		contentDescription = null
 	)
 }
 
 @Composable
-fun HostSongItem(
-	song: Song,
+fun ApproveDenyButtons(
+	song : Song,
 	removeSong: (Song) -> Unit = { }
 ) {
 	val expanded = remember { mutableStateOf(false) }
-	Column(modifier = Modifier
-		.padding(15.dp)
-		.clickable { /* TODO: Redirects to spotify */ },
-	) {
-		Text(text = song.songTitle, color = Color.White)
-		Text(text = song.songArtist, color = Color.White)
-	}
 	Row(verticalAlignment = Alignment.CenterVertically) {
 		Image(
 			modifier = Modifier
@@ -421,6 +416,20 @@ fun HostSongItem(
 				)
 			}
 		}
+	}
+}
+
+@Composable
+fun HostSongItem(
+	song: Song
+) {
+	Column(modifier = Modifier
+		.fillMaxWidth(fraction = 0.7f)
+		.padding(15.dp)
+		.clickable { /* TODO: Redirects to spotify */ },
+	) {
+		Text(text = song.songTitle, color = Color.White)
+		Text(text = song.songArtist, color = Color.White)
 	}
 }
 

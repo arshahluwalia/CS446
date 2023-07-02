@@ -38,9 +38,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jukebox.R
+import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
-import com.example.jukebox.roomManager
 import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -71,12 +71,14 @@ class HostSongQueueActivity : ComponentActivity(){
     }
 
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
         roomManager.getQueue(roomCode) { queue ->
             songQueue.value = queue.queue
         }
     }
 
     private fun removeSong(song: Song) {
+        val roomManager = RoomManager()
         roomManager.removeSongFromQueue(roomCode, song.context_uri)
     }
 }
@@ -85,6 +87,7 @@ class HostSongQueueActivity : ComponentActivity(){
 @Composable
 private fun EnterName(navController: NavController) {
     var hostName by remember { mutableStateOf("") }
+    val roomManager = RoomManager()
     JukeboxTheme() {
         Box() {
             SecondaryBackground()

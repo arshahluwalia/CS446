@@ -10,9 +10,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
-import com.example.jukebox.roomManager
 import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -40,12 +40,14 @@ class GuestSongQueueActivity  : ComponentActivity(){
     }
 
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
         roomManager.getQueue(roomCode) { queue ->
             songQueue.value = queue.queue
         }
     }
 
     private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {
+        val roomManager = RoomManager()
         roomManager.getHostName(roomCode) { name ->
             hostName.value = name
         }
@@ -66,7 +68,7 @@ private fun PreviewScreenContent() {
                 isHost = false,
                 playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
                 queuedSongList = listOf(
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                    Song(songTitle = "Hips Don't LieHips Don't LieHips Don't Lie", songArtist = "Shakira", isApproved = true),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),

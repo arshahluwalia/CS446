@@ -62,7 +62,7 @@ class WelcomeActivity : ComponentActivity() {
     }
 }
 
-val roomManager = RoomManager()
+private val roomManager = RoomManager()
 
 @Composable
 private fun ScreenContent() {
