@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.example.jukebox.AddSongActivity
 import com.example.jukebox.R
 import com.example.jukebox.SecondaryBackground
+import com.example.jukebox.SettingsActivity
 import com.example.jukebox.Song
 import com.example.jukebox.roomManager
 import com.example.jukebox.spotify.task.SpotifySongControlTask
@@ -94,7 +95,10 @@ fun SongQueueScreenContent(
 				.verticalScroll(rememberScrollState()),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
-			SettingsButton(isHost = isHost)
+			SettingsButton(
+				isHost = isHost,
+				roomCode = roomCode
+			)
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode)
 			SongQueue(
@@ -110,8 +114,10 @@ fun SongQueueScreenContent(
 @Composable
 internal fun SettingsButton(
 	isHost: Boolean,
+	roomCode: String = "",
 ) {
 	if (isHost) {
+		val context = LocalContext.current
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
@@ -121,7 +127,9 @@ internal fun SettingsButton(
 		) {
 			IconButton(
 				onClick = {
-					// open settings
+					val intent = Intent(context, SettingsActivity::class.java)
+					intent.putExtra("roomCode", roomCode)
+					context.startActivity(intent)
 				}) {
 				Image(
 					modifier = Modifier
