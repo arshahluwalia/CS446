@@ -1,4 +1,4 @@
-package com.example.jukebox
+package com.example.jukebox.util
 
 import android.content.ClipData
 import android.content.ClipboardManager
