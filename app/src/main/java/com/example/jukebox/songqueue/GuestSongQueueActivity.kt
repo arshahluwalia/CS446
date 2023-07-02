@@ -88,6 +88,7 @@ fun SongQueueScreenContent(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            SettingsButton(isHost = isHost)
             SongQueueTitle(hostName = hostName)
             RoomCode(roomCode = roomCode)
             SongQueue(
