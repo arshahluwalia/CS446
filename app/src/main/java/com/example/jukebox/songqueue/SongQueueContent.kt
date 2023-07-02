@@ -52,8 +52,6 @@ import com.example.jukebox.AddSongActivity
 import com.example.jukebox.R
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
-import com.example.jukebox.roomManager
-import com.example.jukebox.spotify.task.SpotifySongControlTask
 import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
