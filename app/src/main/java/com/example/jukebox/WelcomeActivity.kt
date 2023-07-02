@@ -108,12 +108,8 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
 
     fun validate(text: String) {
         roomManager.checkRoomExists(text) { exists ->
-            isError = !((roomCode.length == charLimit) && exists)
-            if (roomCode.length != charLimit) {
-                errorText = "Room code must be $charLimit characters"
-            } else {
-                errorText = "Please enter a valid room code"
-            }
+            isError = !exists
+            errorText = "Please enter a valid room code"
         }
     }
 
@@ -155,24 +151,16 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                 if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
                     validate(roomCode)
                     roomManager.checkRoomExists(roomCode) { exists ->
-                        if (roomCode.length == charLimit) {
-                            if (exists) {
-                                Log.d("Welcome Activity", "User joined room $roomCode")
-                                requestAccessToken()
-                                val intent = Intent(context, GuestSongQueueActivity::class.java)
-                                intent.putExtra("roomCode", roomCode)
-                                context.startActivity(intent)
-                            } else {
-                                AlertDialog.Builder(context)
-                                    .setTitle("Invalid Room Code")
-                                    .setMessage("No room exists with this code")
-                                    .setPositiveButton("OK", null)
-                                    .show()
-                            }
+                        if (exists) {
+                            Log.d("Welcome Activity", "User joined room $roomCode")
+                            requestAccessToken()
+                            val intent = Intent(context, GuestSongQueueActivity::class.java)
+                            intent.putExtra("roomCode", roomCode)
+                            context.startActivity(intent)
                         } else {
                             AlertDialog.Builder(context)
                                 .setTitle("Invalid Room Code")
-                                .setMessage("The Room Code Must be 5 Characters")
+                                .setMessage("No room exists with this code")
                                 .setPositiveButton("OK", null)
                                 .show()
                         }
@@ -184,24 +172,16 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
                 onDone = {
                     validate(roomCode)
                     roomManager.checkRoomExists(roomCode) { exists ->
-                        if (roomCode.length == charLimit) {
-                            if (exists) {
-                                Log.d("Welcome Activity", "User joined room $roomCode")
-                                requestAccessToken()
-                                val intent = Intent(context, GuestSongQueueActivity::class.java)
-                                intent.putExtra("roomCode", roomCode)
-                                context.startActivity(intent)
-                            } else {
-                                AlertDialog.Builder(context)
-                                    .setTitle("Invalid Room Code")
-                                    .setMessage("No room exists with this code")
-                                    .setPositiveButton("OK", null)
-                                    .show()
-                            }
+                        if (exists) {
+                            Log.d("Welcome Activity", "User joined room $roomCode")
+                            requestAccessToken()
+                            val intent = Intent(context, GuestSongQueueActivity::class.java)
+                            intent.putExtra("roomCode", roomCode)
+                            context.startActivity(intent)
                         } else {
                             AlertDialog.Builder(context)
                                 .setTitle("Invalid Room Code")
-                                .setMessage("The Room Code Must be 5 Characters")
+                                .setMessage("No room exists with this code")
                                 .setPositiveButton("OK", null)
                                 .show()
                         }
