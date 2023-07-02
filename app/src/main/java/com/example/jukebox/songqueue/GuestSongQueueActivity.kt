@@ -93,7 +93,8 @@ fun SongQueueScreenContent(
             SongQueue(
                 isHost = isHost,
                 playingSong = playingSong,
-                queuedSongList = queuedSongList
+                queuedSongList = queuedSongList,
+                roomCode = roomCode
             )
         }
     }

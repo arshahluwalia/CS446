@@ -168,7 +168,6 @@ private fun AddSongBox(
                 keyboardActions = KeyboardActions(
                     onDone = {
                         // search, parse, populate, choose add
-                        // TODO: only add song when they are chosen, here we should display
                         scope.launch {
                             addToQueue()
                         }

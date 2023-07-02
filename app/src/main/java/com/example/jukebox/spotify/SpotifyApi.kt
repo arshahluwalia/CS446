@@ -29,10 +29,9 @@ interface SpotifyApi {
 		@Query("q") songName: String,
 	) : Response<SpotifySearchResponse>
 
-	@POST("{device_id}/player/previous")
+	@POST("me/player/previous")
 	@FormUrlEncoded
 	suspend fun skipToPrevious(
-		@Path("device_id") userId: String,
 		@Header("Authorization") auth: String,
 		@Header("Content-Type") content: String
 	): Response<RequestStatus>

@@ -5,22 +5,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.roomManager
+import androidx.compose.runtime.rememberCoroutineScope
 import com.example.jukebox.R
+import com.example.jukebox.spotify.task.SpotifySongControlTask.playPreviousSong
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun SongControl() {
+fun SongControl(roomCode: String) {
+    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -31,7 +32,11 @@ fun SongControl() {
         //TODO: Fix the weird shapes of next and prev button
         IconButton(
             onClick = {
-                //TODO: https://api.spotify.com/v1/me/player/previous - wip in SpotifyApi
+                roomManager.getUserTokens(roomCode) { userTokens ->
+                    scope.launch {
+                        playPreviousSong(userTokens)
+                    }
+                }
             }) {
             Image(painter = painterResource(id = R.drawable.previous_track), contentDescription = null)
         }

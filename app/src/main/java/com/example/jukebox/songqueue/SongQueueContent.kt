@@ -105,13 +105,14 @@ internal fun RoomCode(
 internal fun SongQueue(
 	isHost: Boolean,
 	playingSong: Song,
-	queuedSongList: List<Song>
+	queuedSongList: List<Song>,
+	roomCode: String
 ) {
 	Column(
 		modifier = Modifier.fillMaxSize().padding(start = 50.dp, end = 50.dp),
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
-		PlayingSong(playingSong = playingSong, isHost = isHost)
+		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode)
 		if (isHost) {
 			QueuedSongs(queuedSongList = queuedSongList)
 		} else {
@@ -124,6 +125,7 @@ internal fun SongQueue(
 internal fun PlayingSong(
 	playingSong: Song,
 	isHost: Boolean,
+	roomCode: String
 ) {
 	Column(
 		modifier = Modifier
@@ -140,7 +142,7 @@ internal fun PlayingSong(
 			SongProgressBar()
 		}
 		if (isHost) {
-			SongControl()
+			SongControl(roomCode)
 		}
 	}
 }
