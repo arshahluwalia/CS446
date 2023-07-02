@@ -2,6 +2,8 @@ package com.example.jukebox.songqueue
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -219,8 +222,8 @@ fun SongQueue(
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
-			.padding(start = 50.dp, end = 50.dp),
-		horizontalAlignment = Alignment.CenterHorizontally
+			.padding(start = 40.dp, end = 30.dp),
+		horizontalAlignment = Alignment.End
 	) {
 		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode)
 		QueuedSongs(queuedSongList = queuedSongList, isHost = isHost, removeSong = removeSong)
@@ -286,10 +289,15 @@ fun QueuedSongs(
 		queuedSongList.forEach { song ->
 			Row(
 				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.SpaceBetween
+				verticalAlignment = Alignment.CenterVertically
 			) {
+				var isSongUpvoted by remember{
+					mutableStateOf(false)
+				}
 				HostSongItem(song = song, removeSong = removeSong)
+//				UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+//					isSongUpvoted = !isSongUpvoted
+//				})
 			}
 		}
 	}
@@ -297,9 +305,15 @@ fun QueuedSongs(
 		Row(
 			modifier = Modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.SpaceBetween
+			horizontalArrangement = Arrangement.Start
 		) {
+			var isSongUpvoted by remember{
+				mutableStateOf(false)
+			}
 			GuestSongItem(song = song)
+			UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+				isSongUpvoted = !isSongUpvoted
+			})
 		}
 	}
 }
@@ -310,7 +324,7 @@ fun GuestSongItem(
 ) {
 	Row(
 		verticalAlignment = Alignment.CenterVertically,
-		horizontalArrangement = Arrangement.SpaceBetween
+		modifier = Modifier.fillMaxWidth(fraction = 0.85f)
 	) {
 		if (song.isApproved) {
 			Image(
@@ -324,16 +338,30 @@ fun GuestSongItem(
 			Column(modifier = Modifier.padding(start = 30.dp)) {}
 		}
 		Column(modifier = Modifier
-			.padding(15.dp)
+			.padding(top = 10.dp, bottom = 10.dp)
 			.clickable { /* TODO: Redirects to spotify */ },
 		) {
 			Text(text = song.songTitle, color = Color.White)
-			Text(text = song.songArtist, color = Color.White)
+			Text(text = song.songArtist, color = Color.LightGray)
+			Text(text = "upvotes: " + song.votes, color = Color.LightGray)
 		}
 	}
+}
+
+@Composable
+fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit){
 	Image(
 		modifier = Modifier
-			.clickable { /* TODO: upvote song */ },
+			.clickable { /*If the user hasn't upvoted, increment upvotes by one*/
+				if(!isUpvoted){
+					song.upvote()
+				}
+				else{ /*If user has upvoted: undo the upvote*/
+					song.downvote()
+				}
+				onVoteClick()
+			}
+			.alpha(if(isUpvoted) 0.5f else 1.0f),
 		painter = painterResource(id = R.drawable.upvote_arrow),
 		contentDescription = null
 	)
