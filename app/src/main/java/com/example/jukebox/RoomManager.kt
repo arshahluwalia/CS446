@@ -109,13 +109,7 @@ class RoomManager {
         hostNameRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val hostName = dataSnapshot.getValue(String::class.java)
-                if (hostName != null) {
-                    Log.d("Room Manager", "hostName: $hostName")
-                    callback(hostName)
-                } else {
-                    Log.d("Room Manager", "hostName not found")
-                    callback("Someone")
-                }
+                callback(hostName ?: "Someone")
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
