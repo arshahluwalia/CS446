@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -17,22 +18,19 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playPreviousSong
 import kotlinx.coroutines.launch
 
-
 @Composable
-fun SongControl(roomCode: String) {
-    val roomManager = RoomManager()
+fun SongControl(roomCode: String, roomManager: RoomManager?) {
     val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+            .padding(start = 20.dp, end = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        //TODO: Fix the weird shapes of next and prev button
-        IconButton(
+        Button(
             onClick = {
-                roomManager.getUserTokens(roomCode) { userTokens ->
+                roomManager?.getUserTokens(roomCode) { userTokens ->
                     scope.launch {
                         playPreviousSong(userTokens)
                     }
@@ -40,13 +38,13 @@ fun SongControl(roomCode: String) {
             }) {
             Image(painter = painterResource(id = R.drawable.previous_track), contentDescription = null)
         }
-        IconButton(
+        Button(
             onClick = {
                 //TODO: https://api.spotify.com/v1/me/player/play
             }) {
             Image(painter = painterResource(id = R.drawable.pause_track), contentDescription = null)
         }
-        IconButton(
+        Button(
             onClick = {
                 //TODO: https://api.spotify.com/v1/me/player/next
             }) {
@@ -54,5 +52,3 @@ fun SongControl(roomCode: String) {
         }
     }
 }
-
-

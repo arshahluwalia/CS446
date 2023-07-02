@@ -206,7 +206,7 @@ private fun SearchSongQueue(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
-            SearchSongItem(song = song, roomCode)
+            SearchSongItem(song = song)
             // TODO: Reset the button to add when a new search is made
             IconButton(
                 onClick = {
@@ -225,7 +225,7 @@ private fun SearchSongQueue(
 
 
 @Composable
-private fun SearchSongItem(song: Song, roomCode: String) {
+private fun SearchSongItem(song: Song) {
     Row(
         modifier = Modifier.fillMaxWidth(0.85f).padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically

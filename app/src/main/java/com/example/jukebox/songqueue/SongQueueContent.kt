@@ -1,6 +1,7 @@
 package com.example.jukebox.songqueue
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -48,11 +49,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.AddSongActivity
 import com.example.jukebox.R
+import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.SettingsActivity
 import com.example.jukebox.Song
@@ -71,7 +74,9 @@ fun SongQueueScreenContent(
 	playingSong: Song,
 	queuedSongList: List<Song>,
 	roomCode: String = "",
-	removeSong: (Song) -> Unit = { }
+	removeSong: (Song) -> Unit = { },
+	roomManager: RoomManager?,
+	appContext: Context
 ) {
 	val context = LocalContext.current
 	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -101,13 +106,14 @@ fun SongQueueScreenContent(
 				roomCode = roomCode
 			)
 			SongQueueTitle(hostName = hostName)
-			RoomCode(roomCode = roomCode)
+			RoomCode(roomCode = roomCode, appContext = appContext)
 			SongQueue(
 				isHost = isHost,
 				playingSong = playingSong,
 				queuedSongList = queuedSongList,
 				removeSong = removeSong,
-				roomCode = roomCode
+				roomCode = roomCode,
+				roomManager = roomManager
 			)
 		}
 	}
@@ -170,8 +176,8 @@ fun SongQueueTitle(
 @Composable
 fun RoomCode(
 	roomCode: String,
+	appContext: Context
 ) {
-	val context = LocalContext.current
 	val tooltipState = remember { PlainTooltipState() }
 	val scope = rememberCoroutineScope()
 
@@ -198,7 +204,7 @@ fun RoomCode(
 				modifier = Modifier
 					.size(20.dp)
 					.clickable {
-						CopyToClipboard.copyToClipboard(context, "roomCode", roomCode)
+						CopyToClipboard.copyToClipboard(appContext, "roomCode", roomCode)
 						scope.launch { tooltipState.show() }
 					}
 					.tooltipAnchor(),
@@ -215,7 +221,8 @@ fun SongQueue(
 	playingSong: Song,
 	queuedSongList: List<Song>,
 	removeSong: (Song) -> Unit = {},
-	roomCode: String
+	roomCode: String,
+	roomManager: RoomManager?
 ) {
 	Column(
 		modifier = Modifier
@@ -223,7 +230,7 @@ fun SongQueue(
 			.padding(start = 40.dp, end = 30.dp),
 		horizontalAlignment = Alignment.End
 	) {
-		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode)
+		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode, roomManager)
 		QueuedSongs(queuedSongList = queuedSongList, isHost = isHost, removeSong = removeSong)
 	}
 }
@@ -232,24 +239,47 @@ fun SongQueue(
 fun PlayingSong(
 	playingSong: Song,
 	isHost: Boolean,
-	roomCode: String
+	roomCode: String,
+	roomManager: RoomManager?
 ) {
+	val expanded = remember { mutableStateOf(false) }
 	Column(
 		modifier = Modifier
 			.clip(shape = RoundedCornerShape(10.dp))
-			.background(color = PurpleNeon),
+			.background(color = PurpleNeon)
+			.padding(bottom = 20.dp),
 	) {
 		Row(
-			verticalAlignment = Alignment.CenterVertically
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.Start
 		) {
-			Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
-				Text(text = playingSong.songTitle, color = Color.White)
+			Column(modifier = Modifier.fillMaxWidth(0.85f).padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
+				Text(text = playingSong.songTitle, color = Color.White, overflow = TextOverflow.Ellipsis)
 				Text(text = playingSong.songArtist, color = Color.White)
 			}
-			SongProgressBar()
+			Box(modifier = Modifier.padding(start = 10.dp)) {
+				Image(
+					modifier = Modifier
+						.size(20.dp)
+						.clickable { expanded.value = true },
+					painter = painterResource(id = R.drawable.ellipsis),
+					contentDescription = null
+				)
+				DropdownMenu(
+					expanded = expanded.value,
+					onDismissRequest = { expanded.value = !expanded.value }
+				) {
+					DropdownMenuItem(
+						text = { Text(text = "Open in Spotify") },
+						onClick = { /* TODO: open in spotify */ }
+					)
+				}
+			}
 		}
+
+		SongProgressBar()
 		if (isHost) {
-			SongControl(roomCode)
+			SongControl(roomCode, roomManager)
 		}
 	}
 }
@@ -258,7 +288,7 @@ fun PlayingSong(
 fun SongProgressBar(){
 	Column(modifier = Modifier
 		.fillMaxWidth()
-		.padding(end = 20.dp, top = 10.dp)
+		.padding(horizontal = 20.dp, vertical = 10.dp)
 	) {
 		LinearProgressIndicator(
 			modifier = Modifier
@@ -295,9 +325,6 @@ fun QueuedSongs(
 				}
 				HostSongItem(song = song)
 				ApproveDenyButtons(song = song, removeSong = removeSong)
-//				UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
-//					isSongUpvoted = !isSongUpvoted
-//				})
 			}
 		}
 	} else {
@@ -325,13 +352,13 @@ fun GuestSongItem(
 ) {
 	Row(
 		verticalAlignment = Alignment.CenterVertically,
-		modifier = Modifier.fillMaxWidth(fraction = 0.85f)
+		modifier = Modifier.fillMaxWidth(fraction = 0.8f)
 	) {
 		if (song.isApproved) {
 			Image(
 				modifier = Modifier
 					.size(30.dp)
-					.clickable { /* TODO: Add tooltip explaining that host needs to approve*/ },
+					.clickable { /* TODO: Add tooltip explaining that host has approved*/ },
 				painter = painterResource(id = R.drawable.approve_check),
 				contentDescription = null
 			)
@@ -339,18 +366,18 @@ fun GuestSongItem(
 			Column(modifier = Modifier.padding(start = 30.dp)) {}
 		}
 		Column(modifier = Modifier
-			.padding(top = 10.dp, bottom = 10.dp)
-			.clickable { /* TODO: Redirects to spotify */ },
+			.padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
 		) {
 			Text(text = song.songTitle, color = Color.White)
 			Text(text = song.songArtist, color = Color.LightGray)
-			Text(text = "upvotes: " + song.votes, color = Color.LightGray)
+			Text(text = "Upvotes: " + song.votes, color = Color.LightGray)
 		}
 	}
 }
 
 @Composable
-fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit){
+fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit) {
+	val expanded = remember { mutableStateOf(false) }
 	Image(
 		modifier = Modifier
 			.clickable { /*If the user hasn't upvoted, increment upvotes by one*/
@@ -365,6 +392,24 @@ fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit){
 		painter = painterResource(id = R.drawable.upvote_arrow),
 		contentDescription = null
 	)
+	Box(modifier = Modifier.padding(start = 10.dp)) {
+		Image(
+			modifier = Modifier
+				.size(20.dp)
+				.clickable { expanded.value = true },
+			painter = painterResource(id = R.drawable.ellipsis),
+			contentDescription = null
+		)
+		DropdownMenu(
+			expanded = expanded.value,
+			onDismissRequest = { expanded.value = !expanded.value }
+		) {
+			DropdownMenuItem(
+				text = { Text(text = "Open in Spotify") },
+				onClick = { /* TODO: open in spotify */ }
+			)
+		}
+	}
 }
 
 @Composable
@@ -414,6 +459,10 @@ fun ApproveDenyButtons(
 					text = { Text(text = "Remove Song") },
 					onClick = { removeSong(song) }
 				)
+				DropdownMenuItem(
+					text = { Text(text = "Open in Spotify") },
+					onClick = { /* TODO: open in spotify */ }
+				)
 			}
 		}
 	}
@@ -429,7 +478,8 @@ fun HostSongItem(
 		.clickable { /* TODO: Redirects to spotify */ },
 	) {
 		Text(text = song.songTitle, color = Color.White)
-		Text(text = song.songArtist, color = Color.White)
+		Text(text = song.songArtist, color = Color.LightGray)
+		Text(text = "Upvotes: " + song.votes, color = Color.LightGray)
 	}
 }
 
@@ -457,7 +507,9 @@ private fun PreviewScreenContent() {
 					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
 					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
 				),
-				roomCode = "ABCDE"
+				roomCode = "ABCDE",
+				roomManager = null,
+				appContext = LocalContext.current
 			)
 		}
 	}

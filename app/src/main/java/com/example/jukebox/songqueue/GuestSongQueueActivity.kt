@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
@@ -25,6 +26,8 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getSongQueue(roomCode, songQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
+        val roomManager = RoomManager()
+        val appContext = applicationContext
         setContent {
             // TODO: need to retrieve song list, and current song instead of hardcoding
             JukeboxTheme() {
@@ -33,7 +36,9 @@ class GuestSongQueueActivity  : ComponentActivity(){
                     isHost = false,
                     playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
                     queuedSongList = songQueue.collectAsState().value,
-                    roomCode = roomCode
+                    roomCode = roomCode,
+                    roomManager = roomManager,
+                    appContext = appContext
                 )
             }
         }
@@ -78,7 +83,9 @@ private fun PreviewScreenContent() {
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                 ),
-                roomCode = "ABCDE"
+                roomCode = "ABCDE",
+                roomManager = null,
+                appContext = LocalContext.current
             )
         }
     }

@@ -52,11 +52,7 @@ class WelcomeActivity : ComponentActivity() {
 
         setContent {
             JukeboxTheme() {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    ScreenContent()
-                }
+                ScreenContent()
             }
         }
     }
@@ -77,7 +73,7 @@ private fun ScreenContent() {
 }
 
 @Composable
-fun BoxWithConstraintsScope.JukeBoxTitle() {
+private fun BoxWithConstraintsScope.JukeBoxTitle() {
     Column(
         modifier = Modifier
             .padding(top = maxHeight / 4)
@@ -100,7 +96,7 @@ fun BoxWithConstraintsScope.JukeBoxTitle() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoxWithConstraintsScope.RoomCodeTextField() {
+private fun BoxWithConstraintsScope.RoomCodeTextField() {
     var roomCode by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
     var errorText by remember { mutableStateOf("") }
@@ -199,7 +195,7 @@ fun BoxWithConstraintsScope.RoomCodeTextField() {
 }
 
 @Composable
-fun QRCode() {
+private fun QRCode() {
     val context = LocalContext.current
     Box(
         modifier = Modifier
@@ -220,7 +216,7 @@ fun QRCode() {
 }
 
 @Composable
-fun BoxWithConstraintsScope.StartARoomButton() {
+private fun BoxWithConstraintsScope.StartARoomButton() {
     val context = LocalContext.current
     Button(
         modifier = Modifier

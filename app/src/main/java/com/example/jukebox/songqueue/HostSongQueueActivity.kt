@@ -1,5 +1,7 @@
 package com.example.jukebox.songqueue
 
+import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +45,7 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.ui.theme.JukeboxTheme
+import com.example.jukebox.util.HideSoftKeyboard
 import kotlinx.coroutines.flow.MutableStateFlow
 
 private lateinit var roomCode : String
@@ -52,6 +56,8 @@ class HostSongQueueActivity : ComponentActivity(){
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         roomCode = intent.getStringExtra("roomCode").toString()
         getSongQueue(roomCode, songQueue)
+        val roomManager = RoomManager()
+        val appContext = applicationContext
         setContent {
             val navController = rememberNavController()
             NavHost(navController, startDestination = "entername") {
@@ -63,7 +69,9 @@ class HostSongQueueActivity : ComponentActivity(){
                     SongQueue(
                         backStackEntry.arguments?.getString("hostName"),
                         songQueue = songQueue,
-                        removeSong = ::removeSong
+                        removeSong = ::removeSong,
+                        roomManager = roomManager,
+                        appContext = appContext
                     )
                 }
             }
@@ -88,8 +96,9 @@ class HostSongQueueActivity : ComponentActivity(){
 private fun EnterName(navController: NavController) {
     var hostName by remember { mutableStateOf("") }
     val roomManager = RoomManager()
-    JukeboxTheme() {
-        Box() {
+    val activity = LocalContext.current as Activity
+    JukeboxTheme {
+        Box {
             SecondaryBackground()
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -124,6 +133,7 @@ private fun EnterName(navController: NavController) {
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = {
+                            HideSoftKeyboard.hideSoftKeyboard(activity = activity)
                             navController.navigate("songqueue/$hostName")
                             roomManager.setHostName(roomCode, hostName)
                         }
@@ -131,6 +141,7 @@ private fun EnterName(navController: NavController) {
                 )
                 Button(
                     onClick = {
+                        HideSoftKeyboard.hideSoftKeyboard(activity = activity)
                         navController.navigate("songqueue/$hostName")
                         roomManager.setHostName(roomCode, hostName)
                     },
@@ -146,9 +157,11 @@ private fun EnterName(navController: NavController) {
 private fun SongQueue(
     hostName: String?,
     songQueue: MutableStateFlow<List<Song>>,
-    removeSong: (Song) -> Unit = { }
+    removeSong: (Song) -> Unit = { },
+    roomManager: RoomManager,
+    appContext: Context
 ) {
-    JukeboxTheme() {
+    JukeboxTheme {
         Box(modifier = Modifier
             .fillMaxSize()
             .background(color = Color.Black)) {
@@ -163,7 +176,9 @@ private fun SongQueue(
                 ),
                 queuedSongList = songQueue.collectAsState().value,
                 roomCode = roomCode,
-                removeSong = removeSong
+                removeSong = removeSong,
+                roomManager = roomManager,
+                appContext = appContext
             )
         }
     }
@@ -172,7 +187,7 @@ private fun SongQueue(
 @Preview
 @Composable
 private fun PreviewScreenContent() {
-    JukeboxTheme() {
+    JukeboxTheme {
         SecondaryBackground()
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -181,7 +196,7 @@ private fun PreviewScreenContent() {
             SongQueueScreenContent(
                 hostName = "Lucas",
                 isHost = true,
-                playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                playingSong = Song(songTitle = "Hips Don't Lieeee", songArtist = "Shakira", isApproved = true),
                 queuedSongList = listOf(
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
@@ -193,7 +208,9 @@ private fun PreviewScreenContent() {
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                     Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
                 ),
-                roomCode = "ABCDE"
+                roomCode = "ABCDE",
+                roomManager = null,
+                appContext = LocalContext.current
             )
         }
     }
