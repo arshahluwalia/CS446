@@ -23,11 +23,13 @@ class GuestSongQueueActivity  : ComponentActivity(){
         roomCode = intent.getStringExtra("roomCode").toString()
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         getSongQueue(roomCode, songQueue)
+        val hostName = MutableStateFlow("")
+        getHostName(roomCode, hostName)
         setContent {
-            // TODO: need to retrieve song list, current song, and host name instead of hardcoding
+            // TODO: need to retrieve song list, and current song instead of hardcoding
             JukeboxTheme() {
                 SongQueueScreenContent(
-                    hostName = "Lucas",
+                    hostName = hostName.collectAsState().value,
                     isHost = false,
                     playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
                     queuedSongList = songQueue.collectAsState().value,
@@ -40,6 +42,12 @@ class GuestSongQueueActivity  : ComponentActivity(){
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         roomManager.getQueue(roomCode) { queue ->
             songQueue.value = queue.queue
+        }
+    }
+
+    private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {
+        roomManager.getHostName(roomCode) { name ->
+            hostName.value = name
         }
     }
 }

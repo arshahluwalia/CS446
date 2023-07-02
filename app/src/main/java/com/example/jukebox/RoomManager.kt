@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -10,7 +11,7 @@ import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 
 class RoomManager {
-    val database = Firebase.database.reference
+    private val database = Firebase.database.reference
 
     fun createRoom(roomCode: String) {
         val newRoom = Room(roomCode)
@@ -56,6 +57,7 @@ class RoomManager {
         val queueRef = database.child("$roomCode/queue")
         queueRef.child(song.context_uri).setValue(song)
     }
+
     fun removeSongFromQueue(roomCode: String, songId: String) {
         val queueRef = database.child("$roomCode/queue")
         queueRef.child(songId).removeValue()
@@ -81,7 +83,6 @@ class RoomManager {
             }
 
             override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
-
                 if (error != null) {
                     println("transaction-onCompleteError: ${error.message}")
                 }
@@ -101,16 +102,30 @@ class RoomManager {
         val hostNameRef = database.child("$roomCode/hostName")
         hostNameRef.setValue(name)
     }
+
+    fun getHostName(roomCode: String, callback: (String) -> Unit) {
+        val hostNameRef = database.child("$roomCode/hostName")
+
+        hostNameRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val hostName = dataSnapshot.getValue(String::class.java)
+                callback(hostName ?: "Someone")
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(String()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
     fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
         var roomCodeExists = false
-        val roomCodesRef = database
 
-        roomCodesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        database.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val roomCodes = mutableListOf<String>()
                 for (snapshot in dataSnapshot.children) {
-                    val roomCode = snapshot.key
-                    if (inputRoom == roomCode) {
+                    if (inputRoom == snapshot.key) {
                         roomCodeExists = true
                     }
                 }
