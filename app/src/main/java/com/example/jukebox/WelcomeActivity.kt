@@ -98,16 +98,9 @@ private fun BoxWithConstraintsScope.JukeBoxTitle() {
 @Composable
 private fun BoxWithConstraintsScope.RoomCodeTextField() {
     var roomCode by remember { mutableStateOf("") }
-    var isError by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf("") }
+    val isError by remember { mutableStateOf(false) }
+    val errorText by remember { mutableStateOf("") }
     val charLimit = 5
-
-    fun validate(text: String) {
-        roomManager.checkRoomExists(text) { exists ->
-            isError = !exists
-            errorText = "Please enter a valid room code"
-        }
-    }
 
     Row(
         modifier = Modifier
@@ -145,7 +138,6 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
             trailingIcon = { QRCode() },
             modifier = Modifier.onKeyEvent {
                 if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-                    validate(roomCode)
                     roomManager.checkRoomExists(roomCode) { exists ->
                         if (exists) {
                             Log.d("Welcome Activity", "User joining room $roomCode")
@@ -154,7 +146,6 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
                             intent.putExtra("roomCode", roomCode)
                             intent.putExtra("isHost", false)
                             context.startActivity(intent)
-
                         } else {
                             AlertDialog.Builder(context)
                                 .setTitle("Invalid Room Code")
@@ -168,7 +159,6 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
             },
             keyboardActions = KeyboardActions(
                 onDone = {
-                    validate(roomCode)
                     roomManager.checkRoomExists(roomCode) { exists ->
                         if (exists) {
                             Log.d("Welcome Activity", "User joining room $roomCode")
