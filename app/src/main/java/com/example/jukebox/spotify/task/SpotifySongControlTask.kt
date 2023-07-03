@@ -8,10 +8,11 @@ import com.example.jukebox.spotify.SpotifyApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
 
 object SpotifySongControlTask : CoroutineScope by MainScope()  {
 
-    suspend fun playPreviousSong(userTokensList : List<String>) {
+    suspend fun playPreviousSong(userTokensList : MutableList<String>) {
         Log.d("spotify control: ", "in play prev song")
         /*if (SpotifyAccessToken.isTokenValid()) {
             val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)

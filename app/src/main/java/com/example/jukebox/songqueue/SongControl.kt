@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,10 +30,10 @@ private fun getHostToken(roomCode: String, hostToken: MutableStateFlow<String>) 
     }
 }
 
-private fun getUserTokens(roomCode: String, userTokens: MutableStateFlow<List<String>>) {
+private fun getUserTokens(roomCode: String, userTokens: MutableStateFlow<MutableList<String>>) {
     val roomManager = RoomManager()
     roomManager.getUserTokens(roomCode) { name ->
-        userTokens.value = name
+        userTokens.value = name as MutableList<String>
     }
 }
 
@@ -42,11 +43,10 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
     val scope = rememberCoroutineScope()
     var hostToken = MutableStateFlow("")
     getHostToken(roomCode, hostToken)
-    var userTokens = MutableStateFlow<List<String>>(emptyList())
+    var userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
     getUserTokens(roomCode, userTokens)
-    val combinedTokens = hostToken.combine(userTokens) { hostTokenValue, userTokensValue ->
-        userTokensValue + listOf(hostTokenValue)
-    }
+    var userList = userTokens.collectAsState().value
+    userList.add(hostToken.collectAsState().value)
 
     Row(
         modifier = Modifier
@@ -59,7 +59,7 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
             onClick = {
                     scope.launch {
                         Log.d("spotify control: ", "play prev button")
-                        playPreviousSong(combinedTokens as List<String>)
+                        playPreviousSong(userList)
                     }
             }
         ) {
