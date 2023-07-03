@@ -105,14 +105,14 @@ fun SongQueueScreenContent(
 		) {
 			Row(
 				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.Start
+				horizontalArrangement = Arrangement.SpaceBetween
 			) {
 				BackButton(dispatcher)
+				SettingsButton(
+					isHost = isHost,
+					roomCode = roomCode
+				)
 			}
-			SettingsButton(
-				isHost = isHost,
-				roomCode = roomCode
-			)
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
 			SongQueue(

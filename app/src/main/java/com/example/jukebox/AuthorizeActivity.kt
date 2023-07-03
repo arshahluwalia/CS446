@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.songqueue.GuestSongQueueActivity
 import com.example.jukebox.songqueue.HostSongQueueActivity
@@ -43,7 +42,6 @@ import com.example.jukebox.ui.theme.PurpleNeon
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
-import kotlin.reflect.KClass
 
 class AuthorizeActivity : ComponentActivity() {
 
