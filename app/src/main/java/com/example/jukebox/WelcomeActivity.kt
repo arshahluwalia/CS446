@@ -39,7 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.songqueue.GuestSongQueueActivity
 import com.example.jukebox.spotify.task.SpotifyAccessTokenTask.requestAccessToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
@@ -297,7 +296,7 @@ private fun testRoomManager() {
             for (song in queue.queue) {
                 Log.d("Room Manager", "Fetched song: context_uri: ${song.context_uri}, " +
                         "Title: ${song.songTitle}, Artist: ${song.songArtist}, " +
-                        "approved: ${song.isApproved}, votes: ${song.votes}")
+                        "approved: ${song.approvalStatus}, votes: ${song.votes}")
             }
         }
     }

@@ -41,6 +41,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.R
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
@@ -65,7 +66,12 @@ class HostSongQueueActivity : ComponentActivity(){
         setContent {
             val navController = rememberNavController()
             NavHost(navController, startDestination = "entername") {
-                composable("entername") { EnterName(navController) }
+                composable("entername") {
+                    EnterName(navController = navController,
+                        activity = this@HostSongQueueActivity,
+                        roomManager = roomManager
+                    )
+                }
                 composable(
                     "songqueue/{hostName}",
                     arguments = listOf(navArgument("hostName") { type = NavType.StringType })
@@ -76,7 +82,8 @@ class HostSongQueueActivity : ComponentActivity(){
                         songQueue = songQueue,
                         removeSong = ::removeSong,
                         roomManager = roomManager,
-                        appContext = appContext
+                        appContext = appContext,
+                        setApprovalStatus = ::setApprovalStatus
                     )
                 }
             }
@@ -101,14 +108,22 @@ class HostSongQueueActivity : ComponentActivity(){
             hostName.value = name
         }
     }
+
+    private fun setApprovalStatus(song: Song, approvalStatus: ApprovalStatus) {
+        val roomManager = RoomManager()
+        roomManager.setSongApprovalStatus(roomCode, song, approvalStatus)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EnterName(navController: NavController) {
+private fun EnterName(
+    navController: NavController?,
+    activity: Activity?,
+    roomManager: RoomManager?
+) {
     var hostName by remember { mutableStateOf("") }
-    val roomManager = RoomManager()
-    val activity = LocalContext.current as Activity
+
     JukeboxTheme {
         Box {
             SecondaryBackground()
@@ -145,17 +160,21 @@ private fun EnterName(navController: NavController) {
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            HideSoftKeyboard.hideSoftKeyboard(activity = activity)
-                            navController.navigate("songqueue/$hostName")
-                            roomManager.setHostName(roomCode, hostName)
+                            if (activity != null) {
+                                HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+                            }
+                            navController?.navigate("songqueue/$hostName")
+                            roomManager?.setHostName(roomCode, hostName)
                         }
                     )
                 )
                 Button(
                     onClick = {
-                        HideSoftKeyboard.hideSoftKeyboard(activity = activity)
-                        navController.navigate("songqueue/$hostName")
-                        roomManager.setHostName(roomCode, hostName)
+                        if (activity != null) {
+                            HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+                        }
+                        navController?.navigate("songqueue/$hostName")
+                        roomManager?.setHostName(roomCode, hostName)
                     },
                     enabled = hostName.isNotEmpty()
                 ) {
@@ -172,7 +191,8 @@ private fun SongQueue(
     songQueue: MutableStateFlow<List<Song>>,
     removeSong: (Song) -> Unit = { },
     roomManager: RoomManager,
-    appContext: Context
+    appContext: Context,
+    setApprovalStatus: (Song, ApprovalStatus) -> Unit
 ) {
     JukeboxTheme {
         Box(modifier = Modifier
@@ -186,13 +206,14 @@ private fun SongQueue(
                 playingSong = Song(
                     songTitle = "Hips Don't Lie",
                     songArtist = "Shakira",
-                    isApproved = true
+                    approvalStatus = ApprovalStatus.APPROVED
                 ),
                 queuedSongList = songQueue.collectAsState().value,
                 roomCode = roomCode,
                 removeSong = removeSong,
                 roomManager = roomManager,
-                appContext = appContext
+                appContext = appContext,
+                setApprovalStatus = setApprovalStatus
             )
         }
     }
@@ -200,7 +221,17 @@ private fun SongQueue(
 
 @Preview
 @Composable
-private fun PreviewScreenContent() {
+private fun PreviewEnterNameScreenContent() {
+    EnterName(
+        navController = null,
+        activity = null,
+        roomManager = null
+    )
+}
+
+@Preview
+@Composable
+private fun PreviewHostQueueScreenContent() {
     JukeboxTheme {
         SecondaryBackground()
         Column(
@@ -210,17 +241,13 @@ private fun PreviewScreenContent() {
             SongQueueScreenContent(
                 hostName = "Lucas",
                 isHost = true,
-                playingSong = Song(songTitle = "Hips Don't Lieeee", songArtist = "Shakira", isApproved = true),
+                playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.APPROVED),
                 queuedSongList = listOf(
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.APPROVED),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.DENIED),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.DENIED),
                 ),
                 roomCode = "ABCDE",
                 roomManager = null,

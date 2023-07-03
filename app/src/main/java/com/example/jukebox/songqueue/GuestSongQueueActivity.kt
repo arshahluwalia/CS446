@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
@@ -31,13 +32,13 @@ class GuestSongQueueActivity  : ComponentActivity(){
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
         setContent {
-            // TODO: need to retrieve song list, and current song instead of hardcoding
+            // TODO: need to retrieve current song instead of hardcoding
             JukeboxTheme() {
                 SongQueueScreenContent(
                     dispatcher = dispatcher,
                     hostName = hostName.collectAsState().value,
                     isHost = false,
-                    playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                    playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
                     queuedSongList = songQueue.collectAsState().value,
                     roomCode = roomCode,
                     roomManager = roomManager,
@@ -74,17 +75,13 @@ private fun PreviewScreenContent() {
             SongQueueScreenContent(
                 hostName = "Lucas",
                 isHost = false,
-                playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+                playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.APPROVED),
                 queuedSongList = listOf(
-                    Song(songTitle = "Hips Don't LieHips Don't LieHips Don't Lie", songArtist = "Shakira", isApproved = true),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+                    Song(songTitle = "Hips Don't LieHips Don't LieHips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.APPROVED),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.DENIED),
+                    Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.DENIED),
                 ),
                 roomCode = "ABCDE",
                 roomManager = null,

@@ -1,6 +1,5 @@
 package com.example.jukebox
 
-import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -61,6 +60,30 @@ class RoomManager {
     fun removeSongFromQueue(roomCode: String, songId: String) {
         val queueRef = database.child("$roomCode/queue")
         queueRef.child(songId).removeValue()
+    }
+
+    fun setSongApprovalStatus(roomCode: String, song: Song, approvalStatus: ApprovalStatus) {
+        val approvalRef = database.child("$roomCode/queue/${song.context_uri}/approvalStatus")
+
+        approvalRef.runTransaction(
+            object : Transaction.Handler {
+                override fun doTransaction(mutableData: MutableData): Transaction.Result {
+
+                    mutableData.value = approvalStatus.toString()
+
+                    return Transaction.success(mutableData)
+                }
+
+                override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                    if (error != null) {
+                        println("transaction-onCompleteError: ${error.message}")
+                    }
+
+                    val currentApprovalStatus = currentData?.getValue(String::class.java) ?: "null"
+                    println("currentApprovalStatus: $currentApprovalStatus")
+                }
+            }
+        )
     }
 
     fun upvoteSong(roomCode: String, songId: String) {

@@ -32,14 +32,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,13 +46,26 @@ class SettingsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val roomCode = intent.getStringExtra("roomCode").toString()
         val dispatcher = onBackPressedDispatcher
+        val roomManager = RoomManager()
+        val hostName = MutableStateFlow("")
+        getHostName(roomCode, hostName)
         setContent {
             JukeboxTheme() {
                 ScreenContent(
                     dispatcher = dispatcher,
                     roomCode = roomCode,
+                    roomManager = roomManager,
+                    hostName = hostName,
+                    activity = this
                 )
             }
+        }
+    }
+
+    private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {
+        val roomManager = RoomManager()
+        roomManager.getHostName(roomCode) { name ->
+            hostName.value = name
         }
     }
 }
@@ -64,6 +74,9 @@ class SettingsActivity : ComponentActivity() {
 private fun ScreenContent(
     dispatcher: OnBackPressedDispatcher? = null,
     roomCode: String,
+    roomManager: RoomManager?,
+    hostName: MutableStateFlow<String>,
+    activity: Activity?
 ) {
     Box {
         SecondaryBackground()
@@ -72,7 +85,12 @@ private fun ScreenContent(
                 BackToQueueButton(dispatcher)
             }
             SettingsTitle()
-            ChangeNameField(roomCode)
+            ChangeNameField(
+                roomCode = roomCode,
+                roomManager = roomManager,
+                currentHostName = hostName,
+                activity = activity
+            )
         }
     }
 }
@@ -121,12 +139,11 @@ private fun SettingsTitle() {
 @Composable
 private fun ChangeNameField(
     roomCode: String,
+    roomManager: RoomManager?,
+    currentHostName: MutableStateFlow<String>,
+    activity: Activity?
 ) {
     var hostName by remember { mutableStateOf("") }
-    val currentHostName = MutableStateFlow("")
-    getHostName(roomCode, currentHostName)
-    val roomManager = RoomManager()
-    val activity = LocalContext.current as Activity
 
     Text(
         modifier = Modifier.padding(vertical = 20.dp),
@@ -157,26 +174,23 @@ private fun ChangeNameField(
         ),
         keyboardActions = KeyboardActions(
             onDone = {
-                HideSoftKeyboard.hideSoftKeyboard(activity = activity)
-                roomManager.setHostName(roomCode, hostName)
+                if (activity != null) {
+                    HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+                }
+                roomManager?.setHostName(roomCode, hostName)
             }
         )
     )
     Button(
         onClick = {
-            HideSoftKeyboard.hideSoftKeyboard(activity = activity)
-            roomManager.setHostName(roomCode, hostName)
-                  },
+            if (activity != null) {
+                HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+            }
+            roomManager?.setHostName(roomCode, hostName)
+        },
         enabled = hostName.isNotEmpty()
     ) {
         Text(text = "Save")
-    }
-}
-
-private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {
-    val roomManager = RoomManager()
-    roomManager.getHostName(roomCode) { name ->
-        hostName.value = name
     }
 }
 
@@ -187,6 +201,9 @@ private fun PreviewScreenContent() {
         ScreenContent(
             dispatcher = null,
             roomCode = "ABCDE",
+            hostName = MutableStateFlow("Lucas"),
+            roomManager = null,
+            activity = null
         )
     }
 }

@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.activity.OnBackPressedDispatcher
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,9 +35,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,6 +56,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.AddSongActivity
+import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.R
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
@@ -78,7 +79,8 @@ fun SongQueueScreenContent(
 	roomCode: String = "",
 	removeSong: (Song) -> Unit = { },
 	roomManager: RoomManager?,
-	appContext: Context
+	appContext: Context,
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
 ) {
 	val context = LocalContext.current
 	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -108,10 +110,9 @@ fun SongQueueScreenContent(
 				horizontalArrangement = Arrangement.SpaceBetween
 			) {
 				BackButton(dispatcher)
-				SettingsButton(
-					isHost = isHost,
-					roomCode = roomCode
-				)
+				if (isHost) {
+					SettingsButton(roomCode = roomCode)
+				}
 			}
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
@@ -121,7 +122,8 @@ fun SongQueueScreenContent(
 				queuedSongList = queuedSongList,
 				removeSong = removeSong,
 				roomCode = roomCode,
-				roomManager = roomManager
+				roomManager = roomManager,
+				setApprovalStatus = setApprovalStatus
 			)
 		}
 	}
@@ -150,37 +152,29 @@ private fun BackButton(dispatcher: OnBackPressedDispatcher? = null) {
 
 @Composable
 fun SettingsButton(
-	isHost: Boolean,
 	roomCode: String = "",
 ) {
-	if (isHost) {
-		val context = LocalContext.current
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 10.dp),
-			horizontalArrangement = Arrangement.End,
-			verticalAlignment = Alignment.CenterVertically,
-		) {
-			IconButton(
-				onClick = {
-					val intent = Intent(context, SettingsActivity::class.java)
-					intent.putExtra("roomCode", roomCode)
-					context.startActivity(intent)
-				}) {
-				Image(
-					modifier = Modifier
-						.size(30.dp),
-					painter = painterResource(id = R.drawable.settings_button),
-					contentDescription = null
-				)
-			}
+	val context = LocalContext.current
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 10.dp),
+		horizontalArrangement = Arrangement.End,
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		IconButton(
+			onClick = {
+				val intent = Intent(context, SettingsActivity::class.java)
+				intent.putExtra("roomCode", roomCode)
+				context.startActivity(intent)
+			}) {
+			Image(
+				modifier = Modifier
+					.size(30.dp),
+				painter = painterResource(id = R.drawable.settings_button),
+				contentDescription = null
+			)
 		}
-	}
-	else {
-//		Row(
-//			modifier = Modifier.padding(top = 35.dp, start = 20.dp, end = 20.dp, bottom = 35.dp)
-//		) {}
 	}
 }
 
@@ -252,7 +246,8 @@ fun SongQueue(
 	queuedSongList: List<Song>,
 	removeSong: (Song) -> Unit = {},
 	roomCode: String,
-	roomManager: RoomManager?
+	roomManager: RoomManager?,
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
 ) {
 	Column(
 		modifier = Modifier
@@ -261,7 +256,11 @@ fun SongQueue(
 		horizontalAlignment = Alignment.End
 	) {
 		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode, roomManager)
-		QueuedSongs(queuedSongList = queuedSongList, isHost = isHost, removeSong = removeSong)
+		QueuedSongs(
+			queuedSongList = queuedSongList,
+			isHost = isHost, removeSong = removeSong,
+			setApprovalStatus = setApprovalStatus
+		)
 	}
 }
 
@@ -341,7 +340,8 @@ fun SongProgressBar(){
 fun QueuedSongs(
 	queuedSongList: List<Song>,
 	isHost: Boolean,
-	removeSong: (Song) -> Unit = { }
+	removeSong: (Song) -> Unit = { },
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
 ) {
 	if (isHost) {
 		queuedSongList.forEach { song ->
@@ -350,11 +350,12 @@ fun QueuedSongs(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				var isSongUpvoted by remember{
-					mutableStateOf(false)
-				}
 				HostSongItem(song = song)
-				ApproveDenyButtons(song = song, removeSong = removeSong)
+				ApproveDenyButtons(
+					song = song,
+					removeSong = removeSong,
+					setApprovalStatus = setApprovalStatus
+				)
 			}
 		}
 	} else {
@@ -384,7 +385,7 @@ fun GuestSongItem(
 		verticalAlignment = Alignment.CenterVertically,
 		modifier = Modifier.fillMaxWidth(fraction = 0.8f)
 	) {
-		if (song.isApproved) {
+		if (song.approvalStatus == ApprovalStatus.APPROVED) {
 			Image(
 				modifier = Modifier
 					.size(30.dp)
@@ -445,16 +446,23 @@ fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit) {
 @Composable
 fun ApproveDenyButtons(
 	song : Song,
-	removeSong: (Song) -> Unit = { }
+	removeSong: (Song) -> Unit = { },
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit
 ) {
 	val expanded = remember { mutableStateOf(false) }
 	Row(verticalAlignment = Alignment.CenterVertically) {
 		Image(
 			modifier = Modifier
 				.size(30.dp)
-				.clickable { /* TODO: approve */ }
+				.clickable {
+					if (song.approvalStatus == ApprovalStatus.APPROVED) {
+						setApprovalStatus(song, ApprovalStatus.PENDING_APPROVAL)
+					} else {
+						setApprovalStatus(song, ApprovalStatus.APPROVED)
+					}
+				}
 				.padding(start = 10.dp),
-			painter = if (song.isApproved) {
+			painter = if (song.approvalStatus == ApprovalStatus.APPROVED) {
 				painterResource(id = R.drawable.approve_check_purple)
 			} else {
 				painterResource(id = R.drawable.approve_check)
@@ -464,12 +472,18 @@ fun ApproveDenyButtons(
 		Image(
 			modifier = Modifier
 				.size(30.dp)
-				.clickable { /* TODO: deny */ }
+				.clickable {
+					if (song.approvalStatus == ApprovalStatus.DENIED) {
+						setApprovalStatus(song, ApprovalStatus.PENDING_APPROVAL)
+					} else {
+						setApprovalStatus(song, ApprovalStatus.DENIED)
+					}
+				}
 				.padding(start = 10.dp),
-			painter = if (song.isApproved) {
-				painterResource(id = R.drawable.deny_x)
-			} else {
+			painter = if (song.approvalStatus == ApprovalStatus.DENIED) {
 				painterResource(id = R.drawable.deny_x_purple)
+			} else {
+				painterResource(id = R.drawable.deny_x)
 			},
 			contentDescription = null
 		)
@@ -525,17 +539,13 @@ private fun PreviewScreenContent() {
 			SongQueueScreenContent(
 				hostName = "Lucas",
 				isHost = false,
-				playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
+				playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.APPROVED),
 				queuedSongList = listOf(
-					Song(songTitle = "What makes you beautifullllllllllllll", songArtist = "Shakira", isApproved = true),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
-					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = false),
+					Song(songTitle = "What makes you beautifullllllllllllll", songArtist = "Shakira", approvalStatus = ApprovalStatus.APPROVED),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.DENIED),
+					Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.DENIED),
 				),
 				roomCode = "ABCDE",
 				roomManager = null,

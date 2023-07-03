@@ -4,7 +4,7 @@ class Song(
 	val context_uri: String = "",
 	val songTitle: String = "",
 	val songArtist: String = "",
-	val isApproved: Boolean = false,
+	val approvalStatus: ApprovalStatus = ApprovalStatus.PENDING_APPROVAL,
 	var votes: Int = 0,
 ) {
 //	init {
@@ -19,5 +19,11 @@ class Song(
 	fun downvote(){
 		votes--
 	}
+}
+
+enum class ApprovalStatus {
+	PENDING_APPROVAL,
+	APPROVED,
+	DENIED
 }
 

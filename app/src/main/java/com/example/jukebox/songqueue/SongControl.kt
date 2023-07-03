@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -20,19 +19,24 @@ import com.example.jukebox.R
 import com.example.jukebox.RoomManager
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playPreviousSong
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-private fun getHostToken(roomCode: String, hostToken: MutableStateFlow<String>) {
-    val roomManager = RoomManager()
-    roomManager.getHostToken(roomCode) { name ->
+private fun getHostToken(
+    roomCode: String,
+    hostToken: MutableStateFlow<String>,
+    roomManager: RoomManager?
+) {
+    roomManager?.getHostToken(roomCode) { name ->
         hostToken.value = name
     }
 }
 
-private fun getUserTokens(roomCode: String, userTokens: MutableStateFlow<MutableList<String>>) {
-    val roomManager = RoomManager()
-    roomManager.getUserTokens(roomCode) { name ->
+private fun getUserTokens(
+    roomCode: String,
+    userTokens: MutableStateFlow<MutableList<String>>,
+    roomManager: RoomManager?
+) {
+    roomManager?.getUserTokens(roomCode) { name ->
         userTokens.value = name as MutableList<String>
     }
 }
@@ -42,9 +46,9 @@ private fun getUserTokens(roomCode: String, userTokens: MutableStateFlow<Mutable
 fun SongControl(roomCode: String, roomManager: RoomManager?) {
     val scope = rememberCoroutineScope()
     var hostToken = MutableStateFlow("")
-    getHostToken(roomCode, hostToken)
+    getHostToken(roomCode, hostToken, roomManager)
     var userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
-    getUserTokens(roomCode, userTokens)
+    getUserTokens(roomCode, userTokens, roomManager)
     var userList = userTokens.collectAsState().value
     userList.add(hostToken.collectAsState().value)
 
