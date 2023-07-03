@@ -98,6 +98,23 @@ class RoomManager {
         hostTokenRef.setValue(hostToken)
     }
 
+    fun getHostToken(roomCode: String, callback: (String) -> Unit) {
+        val userTokensRef = database.child("$roomCode/hostToken")
+
+        userTokensRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val hostToken = dataSnapshot.getValue(String::class.java)
+                callback(hostToken ?: "")
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(String()) // Invoke the callback with an empty list to indicate an error or cancellation
+            }
+        })
+    }
+
+
     fun setHostName(roomCode: String, name: String) {
         val hostNameRef = database.child("$roomCode/hostName")
         hostNameRef.setValue(name)

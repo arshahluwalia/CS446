@@ -193,7 +193,7 @@ private fun AuthorizeTitle() {
 @Composable
 private fun roleText(isHost: Boolean) {
     Text(
-        text = if (isHost) "you're creating a room as a host" else "you're entering a room as a guest",
+        text = if (isHost) "Creating a room as a host" else "you're entering a room as a guest",
         style = MaterialTheme.typography.bodyMedium,
         color = Color.White
     )

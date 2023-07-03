@@ -12,9 +12,9 @@ import kotlinx.coroutines.async
 object SpotifySongControlTask : CoroutineScope by MainScope()  {
 
     suspend fun playPreviousSong(userTokensList : List<String>) {
-        if (SpotifyAccessToken.isTokenValid()) {
+        Log.d("spotify control: ", "in play prev song")
+        /*if (SpotifyAccessToken.isTokenValid()) {
             val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
-
             for (accessToken in userTokensList){
                 val job = async {
                     val executeJob: suspend (accessToken: String) -> Unit = { token ->
@@ -24,9 +24,9 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
                         )
 
                         if (result.body() != null) {
-                            Log.d("spotify logging: ", result.body().toString())
+                            Log.d("spotify control: ", result.body().toString())
                         } else {
-                            Log.d("spotify logging: ", "null response")
+                            Log.d("spotify control: ", "null response")
                         }
                     }
                     executeJob(accessToken)
@@ -34,8 +34,8 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
                 job.await()
             }
         } else {
-            Log.d("spotify logging: ", "token is not valid")
+            Log.d("spotify control: ", "token is not valid")
         }
-
+*/
     }
 }
