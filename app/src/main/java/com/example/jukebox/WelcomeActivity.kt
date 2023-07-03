@@ -148,11 +148,13 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
                     validate(roomCode)
                     roomManager.checkRoomExists(roomCode) { exists ->
                         if (exists) {
-                            Log.d("Welcome Activity", "User joined room $roomCode")
-                            requestAccessToken()
-                            val intent = Intent(context, GuestSongQueueActivity::class.java)
+                            Log.d("Welcome Activity", "User joining room $roomCode")
+//                            requestAccessToken()
+                            val intent = Intent(context, AuthorizeActivity::class.java)
                             intent.putExtra("roomCode", roomCode)
+                            intent.putExtra("isHost", false)
                             context.startActivity(intent)
+
                         } else {
                             AlertDialog.Builder(context)
                                 .setTitle("Invalid Room Code")
@@ -169,10 +171,11 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
                     validate(roomCode)
                     roomManager.checkRoomExists(roomCode) { exists ->
                         if (exists) {
-                            Log.d("Welcome Activity", "User joined room $roomCode")
+                            Log.d("Welcome Activity", "User joining room $roomCode")
                             requestAccessToken()
-                            val intent = Intent(context, GuestSongQueueActivity::class.java)
+                            val intent = Intent(context, AuthorizeActivity::class.java)
                             intent.putExtra("roomCode", roomCode)
+                            intent.putExtra("isHost", false)
                             context.startActivity(intent)
                         } else {
                             AlertDialog.Builder(context)
@@ -234,6 +237,7 @@ private fun BoxWithConstraintsScope.StartARoomButton() {
             requestAccessToken()
             val intent = Intent(context, AuthorizeActivity::class.java)
             intent.putExtra("roomCode", roomCode)
+            intent.putExtra("isHost", true)
             context.startActivity(intent)
         },
         colors = ButtonDefaults.buttonColors(containerColor = LightPurple)

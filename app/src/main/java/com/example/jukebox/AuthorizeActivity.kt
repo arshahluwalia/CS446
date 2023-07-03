@@ -30,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.songqueue.GuestSongQueueActivity
 import com.example.jukebox.songqueue.HostSongQueueActivity
 import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
@@ -37,6 +38,7 @@ import com.example.jukebox.ui.theme.PurpleNeon
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import kotlin.reflect.KClass
 
 
 class AuthorizeActivity : ComponentActivity() {
@@ -49,6 +51,7 @@ class AuthorizeActivity : ComponentActivity() {
 
     private var showSpotifyButton by mutableStateOf(true)
     private lateinit var roomCode : String
+    private var isHost = false
     private val roomManager = RoomManager()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,11 +59,13 @@ class AuthorizeActivity : ComponentActivity() {
         setContent {
             JukeboxTheme() {
                 roomCode = intent.getStringExtra("roomCode").toString()
+                isHost = intent.getBooleanExtra("isHost", false) //defaults to false if not passed
                 Log.d("Authorization", "roomCode: $roomCode")
                 ScreenContent(
                     showSpotifyButton = showSpotifyButton,
                     roomCode = roomCode,
-                    onRequestTokenClicked = { onRequestTokenClicked() }
+                    onRequestTokenClicked = { onRequestTokenClicked() },
+                    isHost = isHost
                 )
             }
         }
@@ -100,7 +105,11 @@ class AuthorizeActivity : ComponentActivity() {
                     showSpotifyButton = false
                     userAccessToken = response.accessToken
                     SpotifyUserToken.setToken(userAccessToken)
-                    roomManager.setHostToken(roomCode, userAccessToken)
+                    if(isHost) {
+                        roomManager.setHostToken(roomCode, userAccessToken)
+                    } else{
+                        roomManager.addUserTokenToRoom(roomCode, userAccessToken)
+                    }
                     // TODO: open song queue screen
                 }
                 AuthorizationResponse.Type.ERROR -> { onRequestTokenClicked() }
@@ -114,7 +123,8 @@ class AuthorizeActivity : ComponentActivity() {
 private fun ScreenContent(
     showSpotifyButton: Boolean,
     roomCode: String,
-    onRequestTokenClicked: () -> Unit
+    onRequestTokenClicked: () -> Unit,
+    isHost: Boolean
 ) {
     Box {
         SecondaryBackground()
@@ -124,7 +134,7 @@ private fun ScreenContent(
             verticalArrangement = Arrangement.Center
         ) {
             AuthorizeTitle()
-            ContinueButton(roomCode)
+            ContinueButton(roomCode, isHost)
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton(onRequestTokenClicked)
             }
@@ -159,24 +169,32 @@ private fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
     }
 }
 @Composable
-private fun ContinueButton(roomCode: String) {
+private fun ContinueButton(roomCode: String, isHost: Boolean) {
     val context = LocalContext.current
     Button(
         modifier = Modifier.padding(vertical = 30.dp),
         onClick = {
-            val intent = Intent(context, HostSongQueueActivity::class.java)
-            intent.putExtra("roomCode", roomCode)
-            context.startActivity(intent)
+            if(isHost){
+                val intent = Intent(context, HostSongQueueActivity::class.java)
+                intent.putExtra("roomCode", roomCode)
+                context.startActivity(intent)
+            } else {
+                val intent = Intent(context, GuestSongQueueActivity::class.java)
+                intent.putExtra("roomCode", roomCode)
+                context.startActivity(intent)
+            }
+
         },
         colors = ButtonDefaults.buttonColors(containerColor = PurpleNeon)
     ) {
         Text(
-            text = AnnotatedString("Go to host queue"),
+            text = AnnotatedString("Go to queue"),
             style = MaterialTheme.typography.headlineSmall
         )
     }
 }
 
+/*
 @Composable
 @Preview
 private fun PreviewScreenContent() {
@@ -187,4 +205,4 @@ private fun PreviewScreenContent() {
             onRequestTokenClicked = { }
         )
     }
-}
+}*/
