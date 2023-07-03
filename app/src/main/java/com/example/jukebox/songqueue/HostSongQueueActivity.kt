@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -58,6 +59,7 @@ class HostSongQueueActivity : ComponentActivity(){
         getSongQueue(roomCode, songQueue)
         val roomManager = RoomManager()
         val appContext = applicationContext
+        val dispatcher = onBackPressedDispatcher
         setContent {
             val navController = rememberNavController()
             NavHost(navController, startDestination = "entername") {
@@ -67,6 +69,7 @@ class HostSongQueueActivity : ComponentActivity(){
                     arguments = listOf(navArgument("hostName") { type = NavType.StringType })
                 ) {backStackEntry ->
                     SongQueue(
+                        dispatcher = dispatcher,
                         backStackEntry.arguments?.getString("hostName"),
                         songQueue = songQueue,
                         removeSong = ::removeSong,
@@ -155,6 +158,7 @@ private fun EnterName(navController: NavController) {
 }
 @Composable
 private fun SongQueue(
+    dispatcher: OnBackPressedDispatcher? = null,
     hostName: String?,
     songQueue: MutableStateFlow<List<Song>>,
     removeSong: (Song) -> Unit = { },
@@ -167,6 +171,7 @@ private fun SongQueue(
             .background(color = Color.Black)) {
             Image(painter = painterResource(id = R.drawable.secondary_background), contentDescription = null)
             SongQueueScreenContent(
+                dispatcher = dispatcher,
                 hostName = hostName ?: "You",
                 isHost = true,
                 playingSong = Song(
