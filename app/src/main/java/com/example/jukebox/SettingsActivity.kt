@@ -117,22 +117,6 @@ private fun SettingsTitle() {
     )
 }
 
-@Composable
-private fun DisplayHostName(
-    roomCode: String,
-) {
-    val hostName = MutableStateFlow("")
-    getHostName(roomCode, hostName)
-
-    Text(
-        modifier = Modifier.padding(vertical = 20.dp),
-        text = "Change name:",
-        style = MaterialTheme.typography.bodyLarge,
-        color = Color.White,
-        textAlign = TextAlign.Center
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChangeNameField(
