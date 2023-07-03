@@ -147,6 +147,7 @@ private fun ScreenContent(
                 BackButton(dispatcher)
             }
             AuthorizeTitle()
+            roleText(isHost)
             ContinueButton(roomCode, isHost)
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton(onRequestTokenClicked)
@@ -186,6 +187,15 @@ private fun AuthorizeTitle() {
         style = MaterialTheme.typography.titleSmall,
         color = Color.White,
         modifier = Modifier.padding(top = 200.dp)
+    )
+}
+
+@Composable
+private fun roleText(isHost: Boolean) {
+    Text(
+        text = if (isHost) "you're creating a room as a host" else "you're entering a room as a guest",
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.White
     )
 }
 
