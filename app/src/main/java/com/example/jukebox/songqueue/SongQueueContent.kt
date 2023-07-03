@@ -3,6 +3,7 @@ package com.example.jukebox.songqueue
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Image
@@ -34,6 +35,7 @@ import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.PlainTooltipState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,10 +67,10 @@ import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
 import kotlinx.coroutines.launch
 
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SongQueueScreenContent(
+	dispatcher: OnBackPressedDispatcher? = null,
 	hostName: String,
 	isHost: Boolean,
 	playingSong: Song,
@@ -101,6 +103,12 @@ fun SongQueueScreenContent(
 				.verticalScroll(rememberScrollState()),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.Start
+			) {
+				BackButton(dispatcher)
+			}
 			SettingsButton(
 				isHost = isHost,
 				roomCode = roomCode
@@ -118,6 +126,28 @@ fun SongQueueScreenContent(
 		}
 	}
 }
+@Composable
+private fun BackButton(dispatcher: OnBackPressedDispatcher? = null) {
+	TextButton(
+		onClick = { dispatcher?.onBackPressed() }
+	) {
+		Row(verticalAlignment = Alignment.CenterVertically) {
+			Image(
+				modifier = Modifier.padding(end = 10.dp),
+				painter = painterResource(
+					id = R.drawable.arrow_back
+				),
+				contentDescription = null
+			)
+			Text(
+				text = "Back",
+				color = Color.White,
+				textDecoration = TextDecoration.Underline
+			)
+		}
+	}
+}
+
 @Composable
 fun SettingsButton(
 	isHost: Boolean,
@@ -148,9 +178,9 @@ fun SettingsButton(
 		}
 	}
 	else {
-		Row(
-			modifier = Modifier.padding(top = 35.dp, start = 20.dp, end = 20.dp, bottom = 35.dp)
-		) {}
+//		Row(
+//			modifier = Modifier.padding(top = 35.dp, start = 20.dp, end = 20.dp, bottom = 35.dp)
+//		) {}
 	}
 }
 

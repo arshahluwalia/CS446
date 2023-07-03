@@ -18,6 +18,7 @@ import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
 private lateinit var roomCode : String
+
 class GuestSongQueueActivity  : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,10 +29,12 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getHostName(roomCode, hostName)
         val roomManager = RoomManager()
         val appContext = applicationContext
+        val dispatcher = onBackPressedDispatcher
         setContent {
             // TODO: need to retrieve song list, and current song instead of hardcoding
             JukeboxTheme() {
                 SongQueueScreenContent(
+                    dispatcher = dispatcher,
                     hostName = hostName.collectAsState().value,
                     isHost = false,
                     playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", isApproved = true),
