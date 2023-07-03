@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,16 +58,19 @@ class AddSongActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val roomCode = intent.getStringExtra("roomCode").toString()
         val dispatcher = onBackPressedDispatcher
+        val roomManager = RoomManager()
         setContent {
             val songName = MutableStateFlow("")
             val songList = MutableStateFlow<List<Song>>(emptyList())
-            JukeboxTheme() {
+            JukeboxTheme {
                 ScreenContent(
                     dispatcher = dispatcher,
                     roomCode = roomCode,
                     addToQueue = { addToQueue(songName.value, songList) },
                     songName = songName,
-                    songList = songList
+                    songList = songList,
+                    activity = this,
+                    roomManager = roomManager
                 )
             }
         }
@@ -85,6 +89,8 @@ private fun ScreenContent(
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
     songList: MutableStateFlow<List<Song>>,
+    activity: Activity?,
+    roomManager: RoomManager?
 ) {
     Box {
         SecondaryBackground()
@@ -93,7 +99,14 @@ private fun ScreenContent(
                 BackToQueueButton(dispatcher)
             }
             AddSongTitle()
-            AddSongBox(roomCode, addToQueue, songName, songList)
+            AddSongBox(
+                roomCode = roomCode,
+                addToQueue = addToQueue,
+                songName = songName,
+                songList = songList,
+                activity = activity,
+                roomManager = roomManager
+            )
         }
     }
 }
@@ -101,21 +114,22 @@ private fun ScreenContent(
 @Composable
 private fun BackToQueueButton(dispatcher: OnBackPressedDispatcher? = null) {
     TextButton(
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp,
-            pressedElevation = 15.dp,
-            disabledElevation = 0.dp
-        ),
-        shape = RoundedCornerShape(20),
-        onClick = {
-            dispatcher?.onBackPressed()
-        }
+        onClick = { dispatcher?.onBackPressed() }
     ) {
-        Text(
-            text = "Back to Queue",
-            color = Color.White,
-            textDecoration = TextDecoration.Underline
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                modifier = Modifier.padding(end = 10.dp),
+                painter = painterResource(
+                    id = R.drawable.arrow_back
+                ),
+                contentDescription = null
+            )
+            Text(
+                text = "Back to Queue",
+                color = Color.White,
+                textDecoration = TextDecoration.Underline
+            )
+        }
     }
 }
 
@@ -129,16 +143,16 @@ private fun AddSongTitle() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddSongBox(
     roomCode: String,
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
-    songList: MutableStateFlow<List<Song>>
+    songList: MutableStateFlow<List<Song>>,
+    activity: Activity?,
+    roomManager: RoomManager?
 ) {
     val scope = rememberCoroutineScope()
-    val activity = LocalContext.current as Activity
 
     Column(
         modifier = Modifier,
@@ -152,52 +166,79 @@ private fun AddSongBox(
                 .clip(shape = RoundedCornerShape(20.dp))
                 .background(color = Color.Black.copy(alpha = 0.4f))
         ){
-            TextField(
-                modifier = Modifier
-                    .padding(top = 30.dp, start = 20.dp, end = 20.dp),
-                value= songName.collectAsState().value,
-                shape = RoundedCornerShape(20),
-                singleLine = true,
-                label = {
-                    Text(
-                        text = "Enter song name",
-                    )
-                },
-                onValueChange = {
-                    songName.value = it
-                },
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        // search, parse, populate, choose add
-                        scope.launch {
-                            addToQueue()
-                        }
-                        HideSoftKeyboard.hideSoftKeyboard(activity)
-                    }
-                ),
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
+            Row(
+                modifier = Modifier.padding(top = 30.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SearchBox(
+                    addToQueue = addToQueue,
+                    songName = songName,
+                    activity = activity
                 )
-            )
+                IconButton(
+                    onClick = {
+                        if (activity != null) {
+                            HideSoftKeyboard.hideSoftKeyboard(activity)
+                        }
+                        scope.launch { addToQueue() }
+                    }
+                ) {
+                    Image(painter = painterResource(id = R.drawable.arrow_forward), contentDescription = null)
+                }
+            }
             Column(modifier = Modifier
                 .verticalScroll(rememberScrollState())
                 .padding(top = 20.dp)) {
-                SearchSongQueue(queuedSongList = songList.collectAsState().value, roomCode)
+                SearchSongQueue(
+                    queuedSongList = songList.collectAsState().value,
+                    roomCode = roomCode,
+                    roomManager = roomManager
+                )
             }
         }
     }
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SearchBox(
+    addToQueue: suspend () -> Unit,
+    songName: MutableStateFlow<String>,
+    activity: Activity?
+) {
+    val scope = rememberCoroutineScope()
+
+    TextField(
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp),
+        value= songName.collectAsState().value,
+        shape = RoundedCornerShape(20),
+        singleLine = true,
+        label = { Text(text = "Enter song name") },
+        onValueChange = { songName.value = it },
+        keyboardActions = KeyboardActions(
+            onDone = {
+                // search, parse, populate, choose add
+                if (activity != null) {
+                    HideSoftKeyboard.hideSoftKeyboard(activity)
+                }
+                scope.launch { addToQueue() }
+            }
+        ),
+        colors = TextFieldDefaults.textFieldColors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+        )
+    )
+}
 
 @Composable
 private fun SearchSongQueue(
     queuedSongList: List<Song>,
-    roomCode: String
+    roomCode: String,
+    roomManager: RoomManager?
 ) {
-    val roomManager = RoomManager()
     Log.d("Display: ", "Songs to add: $queuedSongList")
     queuedSongList.forEach { song ->
         var isClicked by remember { mutableStateOf(false) }
@@ -210,7 +251,7 @@ private fun SearchSongQueue(
             // TODO: Reset the button to add when a new search is made
             IconButton(
                 onClick = {
-                    roomManager.addSongToQueue(roomCode, song)
+                    roomManager?.addSongToQueue(roomCode, song)
                     isClicked = true
                 }) {
                 Icon(
@@ -227,7 +268,9 @@ private fun SearchSongQueue(
 @Composable
 private fun SearchSongItem(song: Song) {
     Row(
-        modifier = Modifier.fillMaxWidth(0.85f).padding(start = 30.dp),
+        modifier = Modifier
+            .fillMaxWidth(0.85f)
+            .padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier
@@ -242,7 +285,7 @@ private fun SearchSongItem(song: Song) {
 @Composable
 @Preview
 private fun PreviewScreenContent() {
-    JukeboxTheme() {
+    JukeboxTheme {
         ScreenContent(
             dispatcher = null,
             roomCode = "ABCDE",
@@ -252,7 +295,9 @@ private fun PreviewScreenContent() {
                 Song(songArtist = "Adele", songTitle = "Hello"),
                 Song(songArtist = "Adele", songTitle = "Hello"),
                 Song(songArtist = "Adele", songTitle = "Hello"),
-            ))
+            )),
+            activity = null,
+            roomManager = null
         )
     }
 }
