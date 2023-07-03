@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
@@ -13,21 +14,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.spotify.task.SpotifySearchTask
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.jukebox.ui.theme.JukeboxTheme
+import com.example.jukebox.util.HideSoftKeyboard
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class SettingsActivity : ComponentActivity() {
@@ -58,6 +72,7 @@ private fun ScreenContent(
                 BackToQueueButton(dispatcher)
             }
             SettingsTitle()
+            ChangeNameField(roomCode)
         }
     }
 }
@@ -100,6 +115,85 @@ private fun SettingsTitle() {
         color = Color.White,
         textAlign = TextAlign.Center
     )
+}
+
+@Composable
+private fun DisplayHostName(
+    roomCode: String,
+) {
+    val hostName = MutableStateFlow("")
+    getHostName(roomCode, hostName)
+
+    Text(
+        modifier = Modifier.padding(vertical = 20.dp),
+        text = "Change name:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Center
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChangeNameField(
+    roomCode: String,
+) {
+    var hostName by remember { mutableStateOf("") }
+    val currentHostName = MutableStateFlow("")
+    getHostName(roomCode, currentHostName)
+    val roomManager = RoomManager()
+    val activity = LocalContext.current as Activity
+
+    Text(
+        modifier = Modifier.padding(vertical = 20.dp),
+        text = "Change name:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Center
+    )
+    TextField(
+        modifier = Modifier.padding(vertical = 20.dp),
+        value = hostName,
+        onValueChange = {
+            hostName = it
+        },
+        placeholder = {
+            Text(
+                text = currentHostName.collectAsState().value,
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        shape = RoundedCornerShape(20),
+        singleLine = true,
+        colors = TextFieldDefaults.textFieldColors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+                roomManager.setHostName(roomCode, hostName)
+            }
+        )
+    )
+    Button(
+        onClick = {
+            HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+            roomManager.setHostName(roomCode, hostName)
+                  },
+        enabled = hostName.isNotEmpty()
+    ) {
+        Text(text = "Save")
+    }
+}
+
+private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {
+    val roomManager = RoomManager()
+    roomManager.getHostName(roomCode) { name ->
+        hostName.value = name
+    }
 }
 
 @Composable

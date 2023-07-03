@@ -57,6 +57,8 @@ class HostSongQueueActivity : ComponentActivity(){
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         roomCode = intent.getStringExtra("roomCode").toString()
         getSongQueue(roomCode, songQueue)
+        val hostName = MutableStateFlow("")
+        getHostName(roomCode, hostName)
         val roomManager = RoomManager()
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
@@ -70,7 +72,7 @@ class HostSongQueueActivity : ComponentActivity(){
                 ) {backStackEntry ->
                     SongQueue(
                         dispatcher = dispatcher,
-                        backStackEntry.arguments?.getString("hostName"),
+                        hostName = hostName.collectAsState().value,
                         songQueue = songQueue,
                         removeSong = ::removeSong,
                         roomManager = roomManager,
@@ -91,6 +93,13 @@ class HostSongQueueActivity : ComponentActivity(){
     private fun removeSong(song: Song) {
         val roomManager = RoomManager()
         roomManager.removeSongFromQueue(roomCode, song.context_uri)
+    }
+
+    private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {
+        val roomManager = RoomManager()
+        roomManager.getHostName(roomCode) { name ->
+            hostName.value = name
+        }
     }
 }
 
