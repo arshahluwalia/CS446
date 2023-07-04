@@ -200,7 +200,6 @@ private fun AddSongBox(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun SearchBox(
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
@@ -224,7 +223,7 @@ private fun SearchBox(
                 scope.launch { addToQueue() }
             }
         ),
-        colors = TextFieldDefaults.textFieldColors(
+        colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,

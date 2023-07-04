@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,7 +42,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.R
+import com.example.jukebox.Room
 import com.example.jukebox.RoomManager
+import com.example.jukebox.RoomStore
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.ui.theme.JukeboxTheme
@@ -57,15 +58,20 @@ class HostSongQueueActivity : ComponentActivity(){
         super.onCreate(savedInstanceState)
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         roomCode = intent.getStringExtra("roomCode").toString()
+        val isReturning = intent.getBooleanExtra("isReturning", false)
         getSongQueue(roomCode, songQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
         val roomManager = RoomManager()
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
+        RoomStore.setMostRecentRoom(Room(roomCode = roomCode))
         setContent {
             val navController = rememberNavController()
-            NavHost(navController, startDestination = "entername") {
+            NavHost(
+                navController,
+                startDestination = if (isReturning) "songqueue/$hostName" else "entername"
+            ) {
                 composable("entername") {
                     EnterName(navController = navController,
                         activity = this@HostSongQueueActivity,
@@ -115,7 +121,6 @@ class HostSongQueueActivity : ComponentActivity(){
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EnterName(
     navController: NavController?,
@@ -152,7 +157,7 @@ private fun EnterName(
                     },
                     shape = RoundedCornerShape(20),
                     singleLine = true,
-                    colors = TextFieldDefaults.textFieldColors(
+                    colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,

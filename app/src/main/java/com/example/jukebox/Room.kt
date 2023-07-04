@@ -1,9 +1,11 @@
 package com.example.jukebox
 
-class Room (val roomCode: String,
-            val hostToken: String = "",
-            val userTokens: MutableList<String> = mutableListOf<String>(),
-            val queue: SongQueue = SongQueue()) {
+class Room (
+    val roomCode: String,
+    val hostToken: String = "",
+    val userTokens: MutableList<String> = mutableListOf<String>(),
+    val queue: SongQueue = SongQueue()
+) {
 
     private fun isHostInitialized(): Boolean {
         return hostToken != ""

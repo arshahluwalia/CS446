@@ -12,10 +12,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.songqueue.HostSongQueueActivity
 import com.example.jukebox.spotify.task.SpotifyAccessTokenTask.requestAccessToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
@@ -48,35 +51,32 @@ import kotlin.random.Random
 class WelcomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val roomManager = RoomManager()
         setContent {
-            JukeboxTheme() {
-                ScreenContent()
+            JukeboxTheme {
+                ScreenContent(roomManager)
             }
         }
     }
 }
 
-private val roomManager = RoomManager()
-
 @Composable
-private fun ScreenContent() {
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
-    ) {
+private fun ScreenContent(
+    roomManager: RoomManager?
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
         PrimaryBackground()
         JukeBoxTitle()
-        RoomCodeTextField()
-        StartARoomButton()
+        RoomManagement(roomManager = roomManager)
     }
 }
 
 @Composable
-private fun BoxWithConstraintsScope.JukeBoxTitle() {
+private fun JukeBoxTitle() {
     Column(
         modifier = Modifier
-            .padding(top = maxHeight / 4)
-            .align(Alignment.TopCenter),
+            .fillMaxWidth()
+            .fillMaxHeight(0.7f),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -93,22 +93,40 @@ private fun BoxWithConstraintsScope.JukeBoxTitle() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BoxWithConstraintsScope.RoomCodeTextField() {
+private fun RoomManagement(roomManager: RoomManager?) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .padding(bottom = 50.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        RoomCodeTextField(roomManager)
+        StartARoomButton(roomManager)
+        if (RoomStore.hasRecentRoom().collectAsState().value) {
+            RoomStore.getMostRecentRoom()?.roomCode?.let { ReturnToRoomButton(it) }
+        }
+    }
+}
+
+@Composable
+private fun RoomCodeTextField(
+    roomManager: RoomManager?
+) {
     var roomCode by remember { mutableStateOf("") }
     val isError by remember { mutableStateOf(false) }
     val errorText by remember { mutableStateOf("") }
     val charLimit = 5
 
     Row(
-        modifier = Modifier
-            .padding(bottom = maxHeight / 6)
-            .align(Alignment.BottomCenter),
+        modifier = Modifier.padding(bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         val context = LocalContext.current
+
         TextField(
             value = roomCode,
             onValueChange = {
@@ -137,10 +155,9 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
             trailingIcon = { QRCode() },
             modifier = Modifier.onKeyEvent {
                 if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-                    roomManager.checkRoomExists(roomCode) { exists ->
+                    roomManager?.checkRoomExists(roomCode) { exists ->
                         if (exists) {
                             Log.d("Welcome Activity", "User joining room $roomCode")
-//                            requestAccessToken()
                             val intent = Intent(context, AuthorizeActivity::class.java)
                             intent.putExtra("roomCode", roomCode)
                             intent.putExtra("isHost", false)
@@ -158,7 +175,7 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
             },
             keyboardActions = KeyboardActions(
                 onDone = {
-                    roomManager.checkRoomExists(roomCode) { exists ->
+                    roomManager?.checkRoomExists(roomCode) { exists ->
                         if (exists) {
                             Log.d("Welcome Activity", "User joining room $roomCode")
                             requestAccessToken()
@@ -176,7 +193,7 @@ private fun BoxWithConstraintsScope.RoomCodeTextField() {
                     }
                 }
             ),
-            colors = TextFieldDefaults.textFieldColors(
+            colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
@@ -208,21 +225,15 @@ private fun QRCode() {
 }
 
 @Composable
-private fun BoxWithConstraintsScope.StartARoomButton() {
+private fun StartARoomButton(
+    roomManager: RoomManager?
+) {
     val context = LocalContext.current
     Button(
-        modifier = Modifier
-            .padding(bottom = maxHeight / 12)
-            .align(Alignment.BottomCenter),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp,
-            pressedElevation = 15.dp,
-            disabledElevation = 0.dp
-        ),
         shape = RoundedCornerShape(20),
         onClick = {
             val roomCode = generateRoomCode()
-            roomManager.createRoom(roomCode)
+            roomManager?.createRoom(roomCode)
             requestAccessToken()
             val intent = Intent(context, AuthorizeActivity::class.java)
             intent.putExtra("roomCode", roomCode)
@@ -239,18 +250,40 @@ private fun BoxWithConstraintsScope.StartARoomButton() {
 }
 
 @Composable
+private fun ReturnToRoomButton(roomCode: String) {
+    val context = LocalContext.current
+    Button(
+        shape = RoundedCornerShape(20),
+        onClick = {
+            requestAccessToken()
+            val intent = Intent(context, HostSongQueueActivity::class.java)
+            intent.putExtra("roomCode", roomCode)
+            intent.putExtra("isReturning", true)
+            context.startActivity(intent)
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
+    ) {
+        Text(
+            text = AnnotatedString("Return to Room"),
+            style = MaterialTheme.typography.headlineSmall
+        )
+    }
+}
+
+@Composable
 @Preview
 private fun PreviewScreenContent() {
-    JukeboxTheme() {
+    JukeboxTheme {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            ScreenContent()
+            ScreenContent(roomManager = null)
         }
     }
 }
 
 private fun generateRoomCode(): String {
+    val roomManager = RoomManager()
     val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // Define the allowed characters
     var newRoomCode = (1..5)
         .map { allowedChars[Random.nextInt(allowedChars.size)] }
@@ -268,6 +301,7 @@ private fun generateRoomCode(): String {
 }
 
 private fun testRoomManager() {
+    val roomManager = RoomManager()
     val roomCode = generateRoomCode()
     val room = Room(roomCode)
     roomManager.createRoom(roomCode, room)
@@ -285,7 +319,7 @@ private fun testRoomManager() {
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.getUserTokens(roomCode) {userTokens ->
-          if (!userTokens.isEmpty()) {
+          if (userTokens.isNotEmpty()) {
                 for (token in userTokens) {
                     Log.d("Room Manager", "Fetched user token: $token")
                 }

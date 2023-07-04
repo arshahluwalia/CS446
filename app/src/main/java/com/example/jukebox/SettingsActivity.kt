@@ -135,7 +135,6 @@ private fun SettingsTitle() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChangeNameField(
     roomCode: String,
@@ -166,7 +165,7 @@ private fun ChangeNameField(
         },
         shape = RoundedCornerShape(20),
         singleLine = true,
-        colors = TextFieldDefaults.textFieldColors(
+        colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
