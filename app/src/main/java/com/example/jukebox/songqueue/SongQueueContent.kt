@@ -259,7 +259,8 @@ fun SongQueue(
 		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode, roomManager)
 		QueuedSongs(
 			queuedSongList = queuedSongList,
-			isHost = isHost, removeSong = removeSong,
+			isHost = isHost,
+			removeSong = removeSong,
 			setApprovalStatus = setApprovalStatus,
 			roomManager = roomManager,
 			roomCode = roomCode
@@ -285,7 +286,9 @@ fun PlayingSong(
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.Start
 		) {
-			Column(modifier = Modifier.fillMaxWidth(0.85f).padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
+			Column(modifier = Modifier
+				.fillMaxWidth(0.85f)
+				.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
 				Text(text = playingSong.songTitle, color = Color.White, overflow = TextOverflow.Ellipsis)
 				Text(text = playingSong.songArtist, color = Color.White)
 			}
@@ -358,6 +361,7 @@ fun QueuedSongs(
 				var isSongUpvoted by remember {
 					mutableStateOf(false)
 				}
+				DragSongButton(song = song)
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,
@@ -536,6 +540,20 @@ fun HostSongItem(
 		Text(text = song.songArtist, color = Color.LightGray)
 		Text(text = "Upvotes: " + song.votes, color = Color.LightGray)
 	}
+}
+
+@Composable
+fun DragSongButton(
+	song: Song
+) {
+	Image(
+		modifier = Modifier
+			.size(20.dp)
+			.clickable {  },
+		painter = painterResource(id = R.drawable.drag_song_icon),
+		contentDescription = null
+	)
+	//	TODO: change clickable image to draggable
 }
 
 @Preview
