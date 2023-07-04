@@ -55,7 +55,7 @@ class SettingsActivity : ComponentActivity() {
         getMaxUpvotes(roomCode, maxUpvotes)
         getMaxSuggestions(roomCode, maxSuggestions)
         setContent {
-            JukeboxTheme() {
+            JukeboxTheme {
                 ScreenContent(
                     dispatcher = dispatcher,
                     roomCode = roomCode,
@@ -239,7 +239,7 @@ private fun ChangeMaxUpvotes(
     var MaxUpvotes by remember { mutableStateOf("") }
 
     Text(
-        modifier = Modifier.padding(vertical = 40.dp).fillMaxWidth().padding(start = 60.dp),
+        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
         text = "Change Maximum Upvotes:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
@@ -301,7 +301,7 @@ private fun ChangeMaxSuggestions(
     var MaxSuggestions by remember { mutableStateOf("") }
 
     Text(
-        modifier = Modifier.padding(vertical = 60.dp).fillMaxWidth().padding(start = 60.dp),
+        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
         text = "Change Maximum Suggestions:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
@@ -356,7 +356,7 @@ private fun ChangeMaxSuggestions(
 @Composable
 @Preview
 private fun PreviewScreenContent() {
-    JukeboxTheme() {
+    JukeboxTheme {
         ScreenContent(
             dispatcher = null,
             roomCode = "ABCDE",
