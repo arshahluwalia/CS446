@@ -3,6 +3,7 @@ package com.example.jukebox.spotify
 import com.example.jukebox.spotify.models.AccessToken
 import com.example.jukebox.spotify.models.RequestStatus
 import com.example.jukebox.spotify.models.SpotifySearchResponse
+import com.example.jukebox.spotify.models.SpotifyPlaybackState
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Field
@@ -11,9 +12,8 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
-import retrofit2.http.Path
 import retrofit2.http.Query
-import com.example.jukebox.spotify.models.ContextUri
+import com.example.jukebox.spotify.models.SpotifyPlayBody
 
 
 interface SpotifyApi {
@@ -42,8 +42,20 @@ interface SpotifyApi {
 	suspend fun playSong(
 		@Header("Authorization") auth: String,
 		@Header("Content-Type") content: String,
-		@Body contextUri: ContextUri
+		@Body spotifyPlayBody: SpotifyPlayBody
 	): Response<RequestStatus>
+
+	@PUT("me/player/pause")
+	suspend fun pauseSong(
+		@Header("Authorization") auth: String,
+		@Header("Content-Type") content: String
+	): Response<RequestStatus>
+
+	@GET("me/player")
+	suspend fun getPlaybackState(
+		@Header("Authorization") auth: String,
+		@Header("Content-Type") content: String
+	) : Response<SpotifyPlaybackState>
 
 	@POST("me/player/next")
 	suspend fun skipToNext(
