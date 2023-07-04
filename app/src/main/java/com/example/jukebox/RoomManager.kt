@@ -117,6 +117,36 @@ class RoomManager {
         })
     }
 
+    fun downvoteSong(roomCode: String, songId: String) {
+        val voteRef = database.child("$roomCode/queue/$songId/votes")
+
+        // Transaction code based on: https://stackoverflow.com/a/76369990
+        voteRef.runTransaction(object : Transaction.Handler {
+
+            override fun doTransaction(mutableData: MutableData): Transaction.Result {
+
+                val value = mutableData.getValue(Int::class.java)
+
+                if (value == null) {
+                    mutableData.value = 0
+                } else {
+                    mutableData.value = value - 1
+                }
+
+                return Transaction.success(mutableData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                if (error != null) {
+                    println("transaction-onCompleteError: ${error.message}")
+                }
+
+                val currentCount = currentData?.getValue(Long::class.java) ?: 0L
+                println("currentCount: $currentCount")
+            }
+        })
+    }
+
     fun setHostToken(roomCode: String, hostToken: String) {
         val hostTokenRef = database.child("$roomCode/hostToken")
         hostTokenRef.setValue(hostToken)

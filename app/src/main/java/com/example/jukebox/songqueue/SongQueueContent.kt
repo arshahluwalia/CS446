@@ -260,7 +260,9 @@ fun SongQueue(
 		QueuedSongs(
 			queuedSongList = queuedSongList,
 			isHost = isHost, removeSong = removeSong,
-			setApprovalStatus = setApprovalStatus
+			setApprovalStatus = setApprovalStatus,
+			roomManager = roomManager,
+			roomCode = roomCode
 		)
 	}
 }
@@ -342,6 +344,8 @@ fun QueuedSongs(
 	queuedSongList: List<Song>,
 	isHost: Boolean,
 	removeSong: (Song) -> Unit = { },
+	roomManager: RoomManager?,
+	roomCode: String,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
 ) {
 	if (isHost) {
@@ -351,12 +355,18 @@ fun QueuedSongs(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
+				var isSongUpvoted by remember {
+					mutableStateOf(false)
+				}
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,
 					removeSong = removeSong,
 					setApprovalStatus = setApprovalStatus
 				)
+				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+					isSongUpvoted = !isSongUpvoted
+				}, roomManager = roomManager, roomCode = roomCode)
 			}
 		}
 	} else {
@@ -370,9 +380,9 @@ fun QueuedSongs(
 					mutableStateOf(false)
 				}
 				GuestSongItem(song = song)
-				UpvoteButton(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
-				})
+				}, roomManager = roomManager, roomCode = roomCode)
 			}
 		}
 	}
@@ -408,15 +418,15 @@ fun GuestSongItem(
 }
 
 @Composable
-fun UpvoteButton(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit) {
+fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomManager: RoomManager?, roomCode: String) {
 	val expanded = remember { mutableStateOf(false) }
 	Image(
 		modifier = Modifier
 			.clickable { /*If the user hasn't upvoted, increment upvotes by one*/
 				if (!isUpvoted) {
-					song.upvote()
+					roomManager?.upvoteSong(roomCode, song.context_uri)
 				} else { /*If user has upvoted: undo the upvote*/
-					song.downvote()
+					roomManager?.downvoteSong(roomCode, song.context_uri)
 				}
 				onVoteClick()
 			}
