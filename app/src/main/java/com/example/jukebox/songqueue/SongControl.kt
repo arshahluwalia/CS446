@@ -26,8 +26,8 @@ private fun getHostToken(
     hostToken: MutableStateFlow<String>,
     roomManager: RoomManager?
 ) {
-    roomManager?.getHostToken(roomCode) { name ->
-        hostToken.value = name
+    roomManager?.getHostToken(roomCode) { token ->
+        hostToken.value = token
     }
 }
 
