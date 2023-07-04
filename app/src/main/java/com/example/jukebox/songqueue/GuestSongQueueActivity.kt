@@ -15,6 +15,7 @@ import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
+import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -29,6 +30,8 @@ class GuestSongQueueActivity  : ComponentActivity(){
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
         val roomManager = RoomManager()
+        val maxSongUpvotes = MutableStateFlow(0)
+        getMaxUpvotes(roomCode, maxSongUpvotes)
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
         setContent {
@@ -42,7 +45,8 @@ class GuestSongQueueActivity  : ComponentActivity(){
                     queuedSongList = songQueue.collectAsState().value,
                     roomCode = roomCode,
                     roomManager = roomManager,
-                    appContext = appContext
+                    appContext = appContext,
+                    maxSongUpvotes = maxSongUpvotes.collectAsState().value
                 )
             }
         }
@@ -59,6 +63,13 @@ class GuestSongQueueActivity  : ComponentActivity(){
         val roomManager = RoomManager()
         roomManager.getHostName(roomCode) { name ->
             hostName.value = name
+        }
+    }
+
+    private fun getMaxUpvotes(roomCode: String, maxUpvotes: MutableStateFlow<Int>) {
+        val roomManager = RoomManager()
+        roomManager.getMaxUpvotes(roomCode) { max ->
+            maxUpvotes.value = max
         }
     }
 }
@@ -85,7 +96,8 @@ private fun PreviewScreenContent() {
                 ),
                 roomCode = "ABCDE",
                 roomManager = null,
-                appContext = LocalContext.current
+                appContext = LocalContext.current,
+                maxSongUpvotes = 10
             )
         }
     }

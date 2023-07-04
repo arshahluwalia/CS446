@@ -277,6 +277,22 @@ class RoomManager {
         })
     }
 
+    fun getCurrentUpvotes(roomCode: String, userToken: String, callback: (Int) -> Unit) {
+        val userRef = database.child("$roomCode/users/$userToken/numUpvotes")
+
+        userRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val currentUpvotes = dataSnapshot.getValue(Int::class.java)
+                callback(currentUpvotes ?: 0)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(0)
+            }
+        })
+    }
+
     fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
         var roomCodeExists = false
 

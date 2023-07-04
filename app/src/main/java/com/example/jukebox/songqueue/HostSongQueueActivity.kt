@@ -256,7 +256,8 @@ private fun SongQueue(
                 removeSong = removeSong,
                 roomManager = roomManager,
                 appContext = appContext,
-                setApprovalStatus = setApprovalStatus
+                setApprovalStatus = setApprovalStatus,
+                maxSongUpvotes = 999999
             )
         }
     }
@@ -294,7 +295,8 @@ private fun PreviewHostQueueScreenContent() {
                 ),
                 roomCode = "ABCDE",
                 roomManager = null,
-                appContext = LocalContext.current
+                appContext = LocalContext.current,
+                maxSongUpvotes = 999999
             )
         }
     }

@@ -62,6 +62,7 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.SettingsActivity
 import com.example.jukebox.Song
+import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
@@ -80,7 +81,8 @@ fun SongQueueScreenContent(
 	removeSong: (Song) -> Unit = { },
 	roomManager: RoomManager?,
 	appContext: Context,
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
+	maxSongUpvotes: Int
 ) {
 	val context = LocalContext.current
 	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -117,6 +119,9 @@ fun SongQueueScreenContent(
 			}
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
+			if(!isHost){
+				Text(text = "You have: " + maxSongUpvotes.toString() + " upvotes remaining", color = Color.White)
+			}
 			SongQueue(
 				isHost = isHost,
 				playingSong = playingSong,
@@ -124,7 +129,8 @@ fun SongQueueScreenContent(
 				removeSong = removeSong,
 				roomCode = roomCode,
 				roomManager = roomManager,
-				setApprovalStatus = setApprovalStatus
+				setApprovalStatus = setApprovalStatus,
+				maxSongUpvotes = maxSongUpvotes
 			)
 		}
 	}
@@ -240,6 +246,7 @@ fun RoomCode(
 	}
 }
 
+
 @Composable
 fun SongQueue(
 	isHost: Boolean,
@@ -248,7 +255,8 @@ fun SongQueue(
 	removeSong: (Song) -> Unit = {},
 	roomCode: String,
 	roomManager: RoomManager?,
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
+	maxSongUpvotes: Int
 ) {
 	Column(
 		modifier = Modifier
@@ -262,7 +270,8 @@ fun SongQueue(
 			isHost = isHost, removeSong = removeSong,
 			setApprovalStatus = setApprovalStatus,
 			roomManager = roomManager,
-			roomCode = roomCode
+			roomCode = roomCode,
+			maxSongUpvotes = maxSongUpvotes
 		)
 	}
 }
@@ -285,7 +294,9 @@ fun PlayingSong(
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.Start
 		) {
-			Column(modifier = Modifier.fillMaxWidth(0.85f).padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
+			Column(modifier = Modifier
+				.fillMaxWidth(0.85f)
+				.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
 				Text(text = playingSong.songTitle, color = Color.White, overflow = TextOverflow.Ellipsis)
 				Text(text = playingSong.songArtist, color = Color.White)
 			}
@@ -346,18 +357,19 @@ fun QueuedSongs(
 	removeSong: (Song) -> Unit = { },
 	roomManager: RoomManager?,
 	roomCode: String,
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> }
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
+	maxSongUpvotes: Int
 ) {
 	if (isHost) {
 		queuedSongList.forEach { song ->
+			var isSongUpvoted by remember {
+				mutableStateOf(false)
+			}
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				var isSongUpvoted by remember {
-					mutableStateOf(false)
-				}
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,
@@ -366,23 +378,25 @@ fun QueuedSongs(
 				)
 				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
-				}, roomManager = roomManager, roomCode = roomCode)
+				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+				maxSongUpvotes = maxSongUpvotes)
 			}
 		}
 	} else {
 		queuedSongList.forEach { song ->
+			var isSongUpvoted by remember {
+				mutableStateOf(false)
+			}
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				var isSongUpvoted by remember {
-					mutableStateOf(false)
-				}
 				GuestSongItem(song = song)
 				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
-				}, roomManager = roomManager, roomCode = roomCode)
+				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+				maxSongUpvotes = maxSongUpvotes)
 			}
 		}
 	}
@@ -418,17 +432,36 @@ fun GuestSongItem(
 }
 
 @Composable
-fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomManager: RoomManager?, roomCode: String) {
+fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomManager: RoomManager?, roomCode: String, maxSongUpvotes: Int, isHost: Boolean) {
 	val expanded = remember { mutableStateOf(false) }
 	Image(
 		modifier = Modifier
-			.clickable { /*If the user hasn't upvoted, increment upvotes by one*/
-				if (!isUpvoted) {
-					roomManager?.upvoteSong(roomCode, song.context_uri)
-				} else { /*If user has upvoted: undo the upvote*/
-					roomManager?.downvoteSong(roomCode, song.context_uri)
+			.clickable {
+				if(isHost){ /*Hosts get unlimited voting*/
+					/*If the user hasn't upvoted, increment upvotes by one*/
+					if (!isUpvoted) {
+						roomManager?.upvoteSong(roomCode, song.context_uri)
+					} else { /*If user has upvoted: undo the upvote*/
+						roomManager?.downvoteSong(roomCode, song.context_uri)
+					}
+					onVoteClick()
 				}
-				onVoteClick()
+				else{ /*Guest voting is rate limited*/
+					// TODO: check if guest hasn't exceeded max upvotes.
+//					val currentUpvotes : Int = roomManager.getCurrentUpvotes(roomCode, SpotifyUserToken.getToken()){currentVotes ->
+//							return currentVotes
+//					}
+//					if(1 == maxSongUpvotes){
+//
+//					}
+					/*If the user hasn't upvoted, increment upvotes by one*/
+					if (!isUpvoted) {
+						roomManager?.upvoteSong(roomCode, song.context_uri)
+					} else { /*If user has upvoted: undo the upvote*/
+						roomManager?.downvoteSong(roomCode, song.context_uri)
+					}
+					onVoteClick()
+				}
 			}
 			.alpha(if (isUpvoted) 0.5f else 1.0f),
 		painter = painterResource(id = R.drawable.upvote_arrow),
@@ -560,7 +593,8 @@ private fun PreviewScreenContent() {
 				),
 				roomCode = "ABCDE",
 				roomManager = null,
-				appContext = LocalContext.current
+				appContext = LocalContext.current,
+				maxSongUpvotes = 10
 			)
 		}
 	}
