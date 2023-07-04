@@ -2,7 +2,6 @@ package com.example.jukebox
 
 import android.app.Activity
 import android.os.Bundle
-import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,6 +49,11 @@ class SettingsActivity : ComponentActivity() {
         val roomManager = RoomManager()
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
+
+        val maxUpvotes = MutableStateFlow(1)
+        val maxSuggestions = MutableStateFlow(1)
+        getMaxUpvotes(roomCode, maxUpvotes)
+        getMaxSuggestions(roomCode, maxSuggestions)
         setContent {
             JukeboxTheme() {
                 ScreenContent(
@@ -58,6 +61,8 @@ class SettingsActivity : ComponentActivity() {
                     roomCode = roomCode,
                     roomManager = roomManager,
                     hostName = hostName,
+                    maxUpvotes = maxUpvotes,
+                    maxSuggestions = maxSuggestions,
                     activity = this
                 )
             }
@@ -70,6 +75,20 @@ class SettingsActivity : ComponentActivity() {
             hostName.value = name
         }
     }
+
+    private fun getMaxUpvotes(roomCode: String, maxUpvotes: MutableStateFlow<Int>) {
+        val roomManager = RoomManager()
+        roomManager.getMaxUpvotes(roomCode) { max ->
+            maxUpvotes.value = max
+        }
+    }
+
+    private fun getMaxSuggestions(roomCode: String, maxSuggestions: MutableStateFlow<Int>) {
+        val roomManager = RoomManager()
+        roomManager.getMaxSuggestions(roomCode) { max ->
+            maxSuggestions.value = max
+        }
+    }
 }
 
 @Composable
@@ -78,6 +97,8 @@ private fun ScreenContent(
     roomCode: String,
     roomManager: RoomManager?,
     hostName: MutableStateFlow<String>,
+    maxUpvotes: MutableStateFlow<Int>,
+    maxSuggestions: MutableStateFlow<Int>,
     activity: Activity?
 ) {
     Box {
@@ -91,6 +112,18 @@ private fun ScreenContent(
                 roomCode = roomCode,
                 roomManager = roomManager,
                 currentHostName = hostName,
+                activity = activity
+            )
+            ChangeMaxSuggestions(
+                roomCode = roomCode,
+                roomManager = roomManager,
+                maxSuggestions = maxSuggestions,
+                activity = activity
+            )
+            ChangeMaxUpvotes(
+                roomCode = roomCode,
+                roomManager = roomManager,
+                maxUpvotes = maxUpvotes,
                 activity = activity
             )
         }
@@ -149,7 +182,7 @@ private fun ChangeNameField(
 
     Text(
         modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
-        text = "Change name:",
+        text = "Change Name:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
         textAlign = TextAlign.Start
@@ -197,6 +230,130 @@ private fun ChangeNameField(
 }
 
 @Composable
+private fun ChangeMaxUpvotes(
+    roomCode: String,
+    roomManager: RoomManager?,
+    maxUpvotes: MutableStateFlow<Int>,
+    activity: Activity?
+) {
+    var MaxUpvotes by remember { mutableStateOf("") }
+
+    Text(
+        modifier = Modifier.padding(vertical = 40.dp).fillMaxWidth().padding(start = 60.dp),
+        text = "Change Maximum Upvotes:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Start
+    )
+    TextField(
+        modifier = Modifier.padding(vertical = 0.dp),
+        value = MaxUpvotes,
+        onValueChange = {
+            MaxUpvotes = it
+        },
+        placeholder = {
+            Text(
+                text = maxUpvotes.collectAsState().value.toString(),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        shape = RoundedCornerShape(20),
+        singleLine = true,
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                if (activity != null) {
+                    HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+                }
+                if (MaxUpvotes.isDigitsOnly() && !MaxUpvotes.equals("")) {
+                    roomManager?.setMaxUpvotes(roomCode, MaxUpvotes.toInt())
+                }
+            }
+        )
+    )
+    Button(
+        onClick = {
+            if (activity != null) {
+                HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+            }
+            if (MaxUpvotes.isDigitsOnly() && !MaxUpvotes.equals("")) {
+                roomManager?.setMaxUpvotes(roomCode, MaxUpvotes.toInt())
+            }
+        },
+        enabled = MaxUpvotes.isNotEmpty()
+    ) {
+        Text(text = "Save")
+    }
+}
+
+@Composable
+private fun ChangeMaxSuggestions(
+    roomCode: String,
+    roomManager: RoomManager?,
+    maxSuggestions: MutableStateFlow<Int>,
+    activity: Activity?
+) {
+    var MaxSuggestions by remember { mutableStateOf("") }
+
+    Text(
+        modifier = Modifier.padding(vertical = 60.dp).fillMaxWidth().padding(start = 60.dp),
+        text = "Change Maximum Suggestions:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Start
+    )
+    TextField(
+        modifier = Modifier.padding(vertical = 0.dp),
+        value = MaxSuggestions,
+        onValueChange = {
+            MaxSuggestions = it
+        },
+        placeholder = {
+            Text(
+                text = maxSuggestions.collectAsState().value.toString(),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        shape = RoundedCornerShape(20),
+        singleLine = true,
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                if (activity != null) {
+                    HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+                }
+                if (MaxSuggestions.isDigitsOnly() && !MaxSuggestions.equals("")) {
+                    roomManager?.setMaxSuggestions(roomCode, MaxSuggestions.toInt())
+                }
+            }
+        )
+    )
+    Button(
+        onClick = {
+            if (activity != null) {
+                HideSoftKeyboard.hideSoftKeyboard(activity = activity)
+            }
+            if (MaxSuggestions.isDigitsOnly() && !MaxSuggestions.equals("")) {
+                roomManager?.setMaxSuggestions(roomCode, MaxSuggestions.toInt())
+            }
+        },
+        enabled = MaxSuggestions.isNotEmpty()
+    ) {
+        Text(text = "Save")
+    }
+}
+
+@Composable
 @Preview
 private fun PreviewScreenContent() {
     JukeboxTheme() {
@@ -205,6 +362,8 @@ private fun PreviewScreenContent() {
             roomCode = "ABCDE",
             hostName = MutableStateFlow("Lucas"),
             roomManager = null,
+            maxUpvotes = MutableStateFlow(1),
+            maxSuggestions = MutableStateFlow(1),
             activity = null
         )
     }

@@ -159,6 +159,48 @@ class RoomManager {
         })
     }
 
+    fun setMaxUpvotes(roomCode: String, maxUpvotes: Int) {
+        val maxUpvotesRef = database.child("$roomCode/maxUpvotes")
+        maxUpvotesRef.setValue(maxUpvotes)
+    }
+
+    fun getMaxUpvotes(roomCode: String, callback: (Int) -> Unit) {
+        val maxUpvotesRef = database.child("$roomCode/maxUpvotes")
+
+        maxUpvotesRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val maxUpvotes = dataSnapshot.getValue(Int::class.java)
+                callback(maxUpvotes ?: 5)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(5)
+            }
+        })
+    }
+
+    fun setMaxSuggestions(roomCode: String, maxSuggestions: Int) {
+        val maxSuggestionsRef = database.child("$roomCode/maxSuggestions")
+        maxSuggestionsRef.setValue(maxSuggestions)
+    }
+
+    fun getMaxSuggestions(roomCode: String, callback: (Int) -> Unit) {
+        val maxSuggestionsRef = database.child("$roomCode/maxSuggestions")
+
+        maxSuggestionsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val maxSuggestions = dataSnapshot.getValue(Int::class.java)
+                callback(maxSuggestions ?: 5)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(5)
+            }
+        })
+    }
+
     fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
         var roomCodeExists = false
 

@@ -4,8 +4,11 @@ class Room (
     val roomCode: String,
     val hostToken: String = "",
     val userTokens: MutableList<String> = mutableListOf<String>(),
-    val queue: SongQueue = SongQueue()
-) {
+    val queue: SongQueue = SongQueue(),
+    val maxUpvotes: Int = 5,
+    val maxSuggestions: Int = 5,
+    val hostName: String = ""
+    ) {
 
     private fun isHostInitialized(): Boolean {
         return hostToken != ""
