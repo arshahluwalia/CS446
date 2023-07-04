@@ -30,7 +30,6 @@ interface SpotifyApi {
 	) : Response<SpotifySearchResponse>
 
 	@POST("me/player/previous")
-	@FormUrlEncoded
 	suspend fun skipToPrevious(
 		@Header("Authorization") auth: String,
 		@Header("Content-Type") content: String

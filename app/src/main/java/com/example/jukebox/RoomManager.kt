@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -127,7 +128,7 @@ class RoomManager {
         userTokensRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val hostToken = dataSnapshot.getValue(String::class.java)
-                callback(hostToken ?: "")
+                callback(hostToken ?: "none")
             }
 
             override fun onCancelled(databaseError: DatabaseError) {

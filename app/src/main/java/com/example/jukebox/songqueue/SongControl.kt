@@ -49,8 +49,8 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
     getHostToken(roomCode, hostToken, roomManager)
     var userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
     getUserTokens(roomCode, userTokens, roomManager)
-    var userList = userTokens.collectAsState().value
-    userList.add(hostToken.collectAsState().value)
+    var userTokenList = userTokens.collectAsState().value
+    userTokenList.add(hostToken.collectAsState().value)
 
     Row(
         modifier = Modifier
@@ -61,9 +61,9 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
     ) {
         Button(
             onClick = {
+                    Log.d("spotify control: token list", userTokenList.toString())
                     scope.launch {
-                        Log.d("spotify control: ", "play prev button")
-                        playPreviousSong(userList)
+                        playPreviousSong(userTokenList)
                     }
             }
         ) {
