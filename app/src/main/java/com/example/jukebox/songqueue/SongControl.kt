@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.jukebox.R
 import com.example.jukebox.RoomManager
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playPreviousSong
+import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -62,8 +64,10 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
         Button(
             onClick = {
                     Log.d("spotify control: token list", userTokenList.toString())
+                    Log.d("spotify control: token list", hostToken.toString())
                     scope.launch {
-                        playPreviousSong(userTokenList)
+                       // playPreviousSong(userTokenList)
+                        playSong("spotify:album:5ht7ItJgpBH7W6vJ5BqpPr", userTokenList)
                     }
             }
         ) {
