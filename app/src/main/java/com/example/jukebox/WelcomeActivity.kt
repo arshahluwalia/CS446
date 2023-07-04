@@ -12,9 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,12 +23,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -305,10 +306,10 @@ private fun testRoomManager() {
     val roomCode = generateRoomCode()
     val room = Room(roomCode)
     roomManager.createRoom(roomCode, room)
-    roomManager.addUserTokenToRoom(roomCode, "newUserToken")
-    roomManager.addUserTokenToRoom(roomCode, "newUserToken1")
-    roomManager.addUserTokenToRoom(roomCode, "newUserToken2")
-    roomManager.addUserTokenToRoom(roomCode, "newUserToken23")
+    roomManager.addUserToRoom(roomCode, User("newUserToken"))
+    roomManager.addUserToRoom(roomCode, User("newUserToken1"))
+    roomManager.addUserToRoom(roomCode, User("newUserToken2"))
+    roomManager.addUserToRoom(roomCode, User("newUserToken23"))
     roomManager.removeUserFromRoom(roomCode, "newUserToken2")
     roomManager.addSongToQueue(roomCode, Song("testSong"))
     roomManager.addSongToQueue(roomCode, Song("testSong2"))
@@ -318,10 +319,10 @@ private fun testRoomManager() {
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
-    roomManager.getUserTokens(roomCode) {userTokens ->
-          if (userTokens.isNotEmpty()) {
-                for (token in userTokens) {
-                    Log.d("Room Manager", "Fetched user token: $token")
+    roomManager.getUsers(roomCode) { users ->
+          if (users.isNotEmpty()) {
+                for (user in users) {
+                    Log.d("Room Manager", "Fetched user token: ${user.userToken}")
                 }
           }
     }

@@ -3,22 +3,22 @@ package com.example.jukebox
 class Room (
     val roomCode: String,
     val hostToken: String = "",
-    val userTokens: MutableList<String> = mutableListOf<String>(),
+    val users: MutableList<User> = mutableListOf(),
     val queue: SongQueue = SongQueue(),
     val maxUpvotes: Int = 5,
     val maxSuggestions: Int = 5,
     val hostName: String = ""
-    ) {
+) {
 
     private fun isHostInitialized(): Boolean {
         return hostToken != ""
     }
-    fun addUser(userToken: String) {
-        userTokens.add(userToken)
+    fun addUser(user: User) {
+        users.add(user)
     }
 
-    fun removeUser(userToken: String) {
-        userTokens.remove(userToken)
+    fun removeUser(user: User) {
+        users.remove(user)
     }
 
     fun addSongToQueue(song: Song) {

@@ -1,6 +1,7 @@
 package com.example.jukebox
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -22,8 +23,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,11 +41,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.spotify.task.SpotifySearchTask.requestTrackID
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
@@ -57,8 +61,11 @@ class AddSongActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val roomCode = intent.getStringExtra("roomCode").toString()
+        val isHost = intent.getBooleanExtra("isHost", false)
         val dispatcher = onBackPressedDispatcher
         val roomManager = RoomManager()
+        val maxSongRequests = MutableStateFlow(0)
+        getMaxSongRequests(roomCode, roomManager, maxSongRequests)
         setContent {
             val songName = MutableStateFlow("")
             val songList = MutableStateFlow<List<Song>>(emptyList())
@@ -70,7 +77,9 @@ class AddSongActivity : ComponentActivity() {
                     songName = songName,
                     songList = songList,
                     activity = this,
-                    roomManager = roomManager
+                    roomManager = roomManager,
+                    isHost = isHost,
+                    remainingRequests = maxSongRequests.collectAsState().value
                 )
             }
         }
@@ -79,6 +88,22 @@ class AddSongActivity : ComponentActivity() {
     private suspend fun addToQueue(songName: String, mutableSongList: MutableStateFlow<List<Song>>) {
         val songList = requestTrackID(songName)
         mutableSongList.value = songList
+    }
+
+    private fun getMaxSongRequests(
+        roomCode: String,
+        roomManager: RoomManager?,
+        maxSongRequests: MutableStateFlow<Int>
+    ) {
+        roomManager?.getMaxSuggestions(roomCode) { maxRequests ->
+            roomManager.getCurrentSuggestions(roomCode, SpotifyUserToken.getToken()) { currentRequests ->
+                if (maxRequests - currentRequests < 0) {
+                    maxSongRequests.value = 0
+                } else {
+                    maxSongRequests.value = maxRequests - currentRequests
+                }
+            }
+        }
     }
 }
 
@@ -90,7 +115,9 @@ private fun ScreenContent(
     songName: MutableStateFlow<String>,
     songList: MutableStateFlow<List<Song>>,
     activity: Activity?,
-    roomManager: RoomManager?
+    roomManager: RoomManager?,
+    isHost: Boolean,
+    remainingRequests: Int
 ) {
     Box {
         SecondaryBackground()
@@ -99,13 +126,18 @@ private fun ScreenContent(
                 BackToQueueButton(dispatcher)
             }
             AddSongTitle()
+            if (!isHost) {
+                SongRequestsRemaining(remainingRequests)
+            }
             AddSongBox(
                 roomCode = roomCode,
                 addToQueue = addToQueue,
                 songName = songName,
                 songList = songList,
                 activity = activity,
-                roomManager = roomManager
+                roomManager = roomManager,
+                isHost = isHost,
+                remainingRequests = remainingRequests
             )
         }
     }
@@ -144,13 +176,32 @@ private fun AddSongTitle() {
 }
 
 @Composable
+private fun SongRequestsRemaining(remainingRequests: Int) {
+    Text(
+        modifier = Modifier.padding(top = 20.dp),
+        text = buildAnnotatedString {
+            append("You have ")
+            withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                append(remainingRequests.toString())
+            }
+            append(" song requests remaining")
+        },
+        color = Color.White,
+        style = MaterialTheme.typography.headlineSmall,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
 private fun AddSongBox(
     roomCode: String,
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
     songList: MutableStateFlow<List<Song>>,
     activity: Activity?,
-    roomManager: RoomManager?
+    roomManager: RoomManager?,
+    isHost: Boolean,
+    remainingRequests: Int
 ) {
     val scope = rememberCoroutineScope()
 
@@ -167,7 +218,9 @@ private fun AddSongBox(
                 .background(color = Color.Black.copy(alpha = 0.4f))
         ){
             Row(
-                modifier = Modifier.padding(top = 30.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(top = 30.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SearchBox(
@@ -192,7 +245,9 @@ private fun AddSongBox(
                 SearchSongQueue(
                     queuedSongList = songList.collectAsState().value,
                     roomCode = roomCode,
-                    roomManager = roomManager
+                    roomManager = roomManager,
+                    isHost = isHost,
+                    remainingRequests = remainingRequests
                 )
             }
         }
@@ -236,8 +291,11 @@ private fun SearchBox(
 private fun SearchSongQueue(
     queuedSongList: List<Song>,
     roomCode: String,
-    roomManager: RoomManager?
+    roomManager: RoomManager?,
+    isHost: Boolean,
+    remainingRequests: Int
 ) {
+    val context = LocalContext.current
     Log.d("Display: ", "Songs to add: $queuedSongList")
     queuedSongList.forEach { song ->
         var isClicked by remember { mutableStateOf(false) }
@@ -250,8 +308,17 @@ private fun SearchSongQueue(
             // TODO: Reset the button to add when a new search is made
             IconButton(
                 onClick = {
-                    roomManager?.addSongToQueue(roomCode, song)
-                    isClicked = true
+                    if (remainingRequests > 0) {
+                        roomManager?.addSongToQueue(roomCode, song)
+                        isClicked = true
+                        if (!isHost) roomManager?.suggestSong(roomCode, SpotifyUserToken.getToken())
+                    } else {
+                        AlertDialog.Builder(context)
+                            .setTitle("You have exceeded the max amount of song requests")
+                            .setMessage("Please try again later")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
                 }) {
                 Icon(
                     imageVector = if (isClicked) Icons.Filled.Check else Icons.Filled.Add,
@@ -296,7 +363,9 @@ private fun PreviewScreenContent() {
                 Song(songArtist = "Adele", songTitle = "Hello"),
             )),
             activity = null,
-            roomManager = null
+            roomManager = null,
+            isHost = false,
+            remainingRequests = 5
         )
     }
 }

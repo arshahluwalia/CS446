@@ -42,14 +42,14 @@ class RoomManager {
         })
     }
 
-    fun addUserTokenToRoom(roomCode: String, userToken: String) {
-        val userTokensRef = database.child("$roomCode/userTokens")
-        userTokensRef.child(userToken).setValue(userToken)
+    fun addUserToRoom(roomCode: String, user: User) {
+        val userRef = database.child("$roomCode/users")
+        userRef.child(user.userToken).setValue(user)
     }
 
     fun removeUserFromRoom(roomCode: String, userToken: String) {
-        val userTokensRef = database.child("$roomCode/userTokens")
-        userTokensRef.child(userToken).removeValue()
+        val userRef = database.child("$roomCode/users")
+        userRef.child(userToken).removeValue()
     }
 
     fun addSongToQueue(roomCode: String, song: Song) {
@@ -122,9 +122,9 @@ class RoomManager {
     }
 
     fun getHostToken(roomCode: String, callback: (String) -> Unit) {
-        val userTokensRef = database.child("$roomCode/hostToken")
+        val hostTokenRef = database.child("$roomCode/hostToken")
 
-        userTokensRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        hostTokenRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val hostToken = dataSnapshot.getValue(String::class.java)
                 callback(hostToken ?: "")
@@ -201,6 +201,51 @@ class RoomManager {
         })
     }
 
+    fun suggestSong(roomCode: String, userToken: String) {
+        val userRef = database.child("$roomCode/users/$userToken/numSuggestions")
+
+        userRef.runTransaction(object : Transaction.Handler {
+
+            override fun doTransaction(mutableData: MutableData): Transaction.Result {
+
+                val value = mutableData.getValue(Int::class.java)
+
+                if (value == null) {
+                    mutableData.value = 0
+                } else {
+                    mutableData.value = value + 1
+                }
+
+                return Transaction.success(mutableData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                if (error != null) {
+                    println("transaction-onCompleteError: ${error.message}")
+                }
+
+                val currentCount = currentData?.getValue(Long::class.java) ?: 0L
+                println("currentCount: $currentCount")
+            }
+        })
+    }
+
+    fun getCurrentSuggestions(roomCode: String, userToken: String, callback: (Int) -> Unit) {
+        val userRef = database.child("$roomCode/users/$userToken/numSuggestions")
+
+        userRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val currentSuggestions = dataSnapshot.getValue(Int::class.java)
+                callback(currentSuggestions ?: 0)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(0)
+            }
+        })
+    }
+
     fun checkRoomExists(inputRoom: String, callback: (Boolean) -> Unit) {
         var roomCodeExists = false
 
@@ -242,17 +287,17 @@ class RoomManager {
         })
     }
 
-    fun getUserTokens(roomCode: String, callback: (List<String>) -> Unit) {
-        val userTokensRef = database.child("$roomCode/userTokens")
+    fun getUsers(roomCode: String, callback: (List<User>) -> Unit) {
+        val userRef = database.child("$roomCode/users")
 
-        userTokensRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val userTokensList = mutableListOf<String>()
+                val userList = mutableListOf<User>()
                 for (snapshot in dataSnapshot.children) {
-                    val userToken = snapshot.getValue(String::class.java)
-                    userToken?.let { userTokensList.add(it) }
+                    val user = snapshot.getValue(User::class.java)
+                    user?.let { userList.add(it) }
                 }
-                callback(userTokensList)
+                callback(userList)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {

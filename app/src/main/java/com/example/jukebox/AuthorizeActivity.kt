@@ -45,10 +45,10 @@ import com.spotify.sdk.android.auth.AuthorizationResponse
 
 class AuthorizeActivity : ComponentActivity() {
 
-    private val clientID = BuildConfig.SPOTIFY_CLIENT_ID;
+    private val clientID = BuildConfig.SPOTIFY_CLIENT_ID
     // Request code will be used to verify if result comes from the login activity. Can be set to any integer.
-    private val requestCode = 1335; // Could be any we choose
-    private val redirectUri = "jukebox://callback"; //the one we registered with Spotify
+    private val requestCode = 1335 // Could be any we choose
+    private val redirectUri = "jukebox://callback" //the one we registered with Spotify
     private var userAccessToken = ""
 
     private var showSpotifyButton by mutableStateOf(true)
@@ -60,7 +60,7 @@ class AuthorizeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val dispatcher = onBackPressedDispatcher
         setContent {
-            JukeboxTheme() {
+            JukeboxTheme {
                 roomCode = intent.getStringExtra("roomCode").toString()
                 isHost = intent.getBooleanExtra("isHost", false) //defaults to false if not passed
                 Log.d("Authorization", "roomCode: $roomCode")
@@ -83,7 +83,7 @@ class AuthorizeActivity : ComponentActivity() {
     private fun getAuthenticationRequest(type: AuthorizationResponse.Type): AuthorizationRequest? {
         return AuthorizationRequest.Builder(clientID, type, getRedirectUri().toString())
             .setShowDialog(false)
-            .setScopes(arrayOf<String>("user-read-playback-state", "user-modify-playback-state",
+            .setScopes(arrayOf("user-read-playback-state", "user-modify-playback-state",
                 "user-read-currently-playing",
                 "app-remote-control",
                 "streaming",
@@ -112,7 +112,7 @@ class AuthorizeActivity : ComponentActivity() {
                     if(isHost) {
                         roomManager.setHostToken(roomCode, userAccessToken)
                     } else{
-                        roomManager.addUserTokenToRoom(roomCode, userAccessToken)
+                        roomManager.addUserToRoom(roomCode, User(userAccessToken))
                     }
                     // TODO: open song queue screen
                 }
@@ -145,7 +145,7 @@ private fun ScreenContent(
                 BackButton(dispatcher)
             }
             AuthorizeTitle()
-            roleText(isHost)
+            RoleText(isHost)
             ContinueButton(roomCode, isHost)
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton(onRequestTokenClicked)
@@ -189,7 +189,7 @@ private fun AuthorizeTitle() {
 }
 
 @Composable
-private fun roleText(isHost: Boolean) {
+private fun RoleText(isHost: Boolean) {
     Text(
         text = if (isHost) "Creating a room as a host" else "Entering a room as a guest",
         style = MaterialTheme.typography.bodyMedium,

@@ -36,8 +36,10 @@ private fun getUserTokens(
     userTokens: MutableStateFlow<MutableList<String>>,
     roomManager: RoomManager?
 ) {
-    roomManager?.getUserTokens(roomCode) { name ->
-        userTokens.value = name as MutableList<String>
+    roomManager?.getUsers(roomCode) { users ->
+        val tokens = mutableListOf<String>()
+        users.forEach { tokens.add(it.userToken) }
+        userTokens.value = tokens
     }
 }
 
