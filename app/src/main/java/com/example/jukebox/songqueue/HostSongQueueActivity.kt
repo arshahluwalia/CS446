@@ -11,13 +11,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -32,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -73,7 +77,9 @@ class HostSongQueueActivity : ComponentActivity(){
                 startDestination = if (isReturning) "songqueue/$hostName" else "entername"
             ) {
                 composable("entername") {
-                    EnterName(navController = navController,
+                    EnterName(
+                        dispatcher = dispatcher,
+                        navController = navController,
                         activity = this@HostSongQueueActivity,
                         roomManager = roomManager
                     )
@@ -123,6 +129,7 @@ class HostSongQueueActivity : ComponentActivity(){
 
 @Composable
 private fun EnterName(
+    dispatcher: OnBackPressedDispatcher? = null,
     navController: NavController?,
     activity: Activity?,
     roomManager: RoomManager?
@@ -135,8 +142,14 @@ private fun EnterName(
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+//                verticalArrangement = Arrangement.Center,
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 200.dp),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    BackButton(dispatcher)
+                }
                 Text(
                     textAlign = TextAlign.Center,
                     text = "Enter your name here! This is what the guests will see.",
@@ -189,6 +202,31 @@ private fun EnterName(
         }
     }
 }
+
+@Composable
+private fun BackButton(dispatcher: OnBackPressedDispatcher? = null) {
+    TextButton(
+        onClick = { dispatcher?.onBackPressed() }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                modifier = Modifier.padding(end = 10.dp),
+                painter = painterResource(
+                    id = R.drawable.arrow_back
+                ),
+                contentDescription = null
+            )
+            Text(
+                text = "Back",
+                color = Color.White,
+                textDecoration = TextDecoration.Underline
+            )
+        }
+    }
+}
+
 @Composable
 private fun SongQueue(
     dispatcher: OnBackPressedDispatcher? = null,

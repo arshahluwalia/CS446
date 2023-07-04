@@ -2,6 +2,7 @@ package com.example.jukebox
 
 import android.app.Activity
 import android.os.Bundle
+import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -128,6 +130,7 @@ private fun BackToQueueButton(dispatcher: OnBackPressedDispatcher? = null) {
 @Composable
 private fun SettingsTitle() {
     Text(
+        modifier = Modifier.padding(bottom = 20.dp),
         text = "Session Settings",
         style = MaterialTheme.typography.titleSmall,
         color = Color.White,
@@ -145,14 +148,14 @@ private fun ChangeNameField(
     var hostName by remember { mutableStateOf("") }
 
     Text(
-        modifier = Modifier.padding(vertical = 20.dp),
+        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
         text = "Change name:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Start
     )
     TextField(
-        modifier = Modifier.padding(vertical = 20.dp),
+        modifier = Modifier.padding(vertical = 0.dp),
         value = hostName,
         onValueChange = {
             hostName = it
