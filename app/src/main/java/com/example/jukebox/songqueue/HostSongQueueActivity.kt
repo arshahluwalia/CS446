@@ -70,6 +70,10 @@ class HostSongQueueActivity : ComponentActivity(){
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
         RoomStore.setMostRecentRoom(Room(roomCode = roomCode))
+        val hostToken = MutableStateFlow("")
+        val userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
+        getHostToken(roomCode, hostToken, userTokens, roomManager)
+        getUserTokens(roomCode, userTokens, roomManager, hostToken)
         setContent {
             val navController = rememberNavController()
             NavHost(
@@ -95,7 +99,9 @@ class HostSongQueueActivity : ComponentActivity(){
                         removeSong = ::removeSong,
                         roomManager = roomManager,
                         appContext = appContext,
-                        setApprovalStatus = ::setApprovalStatus
+                        setApprovalStatus = ::setApprovalStatus,
+                        hostToken = hostToken,
+                        userTokens = userTokens
                     )
                 }
             }
@@ -125,6 +131,32 @@ class HostSongQueueActivity : ComponentActivity(){
         val roomManager = RoomManager()
         roomManager.setSongApprovalStatus(roomCode, song, approvalStatus)
     }
+
+    private fun getHostToken(
+        roomCode: String,
+        hostToken: MutableStateFlow<String>,
+        userTokens: MutableStateFlow<MutableList<String>>,
+        roomManager: RoomManager?
+    ) {
+        roomManager?.getHostToken(roomCode) { token ->
+            hostToken.value = token
+            //getUserTokens(roomCode, userTokens, roomManager, hostToken)
+        }
+    }
+
+    private fun getUserTokens(
+        roomCode: String,
+        userTokens: MutableStateFlow<MutableList<String>>,
+        roomManager: RoomManager?,
+        hostToken: MutableStateFlow<String>
+    ) {
+        roomManager?.getUsers(roomCode) { users ->
+            val tokens = mutableListOf<String>()
+            users.forEach { tokens.add(it.userToken) }
+            userTokens.value = tokens
+            userTokens.value.add(hostToken.value)
+        }
+    }
 }
 
 @Composable
@@ -145,7 +177,9 @@ private fun EnterName(
 //                verticalArrangement = Arrangement.Center,
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 200.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 200.dp),
                     horizontalArrangement = Arrangement.Start
                 ) {
                     BackButton(dispatcher)
@@ -235,7 +269,9 @@ private fun SongQueue(
     removeSong: (Song) -> Unit = { },
     roomManager: RoomManager,
     appContext: Context,
-    setApprovalStatus: (Song, ApprovalStatus) -> Unit
+    setApprovalStatus: (Song, ApprovalStatus) -> Unit,
+    hostToken: MutableStateFlow<String>,
+    userTokens: MutableStateFlow<MutableList<String>>
 ) {
     JukeboxTheme {
         Box(modifier = Modifier
@@ -257,7 +293,9 @@ private fun SongQueue(
                 roomManager = roomManager,
                 appContext = appContext,
                 setApprovalStatus = setApprovalStatus,
-                maxSongUpvotes = 999999
+                maxSongUpvotes = 999999,
+                hostToken = hostToken,
+                userTokens = userTokens
             )
         }
     }

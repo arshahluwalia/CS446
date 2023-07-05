@@ -62,11 +62,11 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.SettingsActivity
 import com.example.jukebox.Song
-import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -82,7 +82,9 @@ fun SongQueueScreenContent(
 	roomManager: RoomManager?,
 	appContext: Context,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	maxSongUpvotes: Int
+	maxSongUpvotes: Int,
+	hostToken: MutableStateFlow<String> = MutableStateFlow(""),
+	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList())
 ) {
 	val context = LocalContext.current
 	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -130,7 +132,9 @@ fun SongQueueScreenContent(
 				roomCode = roomCode,
 				roomManager = roomManager,
 				setApprovalStatus = setApprovalStatus,
-				maxSongUpvotes = maxSongUpvotes
+				maxSongUpvotes = maxSongUpvotes,
+				hostToken = hostToken,
+				userTokens = userTokens
 			)
 		}
 	}
@@ -246,7 +250,6 @@ fun RoomCode(
 	}
 }
 
-
 @Composable
 fun SongQueue(
 	isHost: Boolean,
@@ -256,7 +259,9 @@ fun SongQueue(
 	roomCode: String,
 	roomManager: RoomManager?,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	maxSongUpvotes: Int
+	maxSongUpvotes: Int,
+	hostToken: MutableStateFlow<String>,
+	userTokens: MutableStateFlow<MutableList<String>>
 ) {
 	Column(
 		modifier = Modifier
@@ -264,7 +269,14 @@ fun SongQueue(
 			.padding(start = 40.dp, end = 30.dp),
 		horizontalAlignment = Alignment.End
 	) {
-		PlayingSong(playingSong = playingSong, isHost = isHost, roomCode= roomCode, roomManager)
+		PlayingSong(
+			playingSong = playingSong,
+			isHost = isHost,
+			roomCode = roomCode,
+			roomManager = roomManager,
+			hostToken = hostToken,
+			userTokens = userTokens
+		)
 		QueuedSongs(
 			queuedSongList = queuedSongList,
 			isHost = isHost,
@@ -282,7 +294,9 @@ fun PlayingSong(
 	playingSong: Song,
 	isHost: Boolean,
 	roomCode: String,
-	roomManager: RoomManager?
+	roomManager: RoomManager?,
+	hostToken: MutableStateFlow<String>,
+	userTokens: MutableStateFlow<MutableList<String>>
 ) {
 	val expanded = remember { mutableStateOf(false) }
 	Column(
@@ -320,10 +334,12 @@ fun PlayingSong(
 				}
 			}
 		}
-
 		SongProgressBar()
 		if (isHost) {
-			SongControl(roomCode, roomManager)
+			SongControl(
+				hostToken = hostToken,
+				userTokens = userTokens
+			)
 		}
 	}
 }

@@ -59,6 +59,7 @@ class AuthorizeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val dispatcher = onBackPressedDispatcher
+        val roomManager = RoomManager()
         setContent {
             JukeboxTheme {
                 roomCode = intent.getStringExtra("roomCode").toString()
@@ -69,7 +70,8 @@ class AuthorizeActivity : ComponentActivity() {
                     showSpotifyButton = showSpotifyButton,
                     roomCode = roomCode,
                     onRequestTokenClicked = { onRequestTokenClicked() },
-                    isHost = isHost
+                    isHost = isHost,
+                    roomManager = roomManager
                 )
             }
         }
@@ -129,7 +131,8 @@ private fun ScreenContent(
     showSpotifyButton: Boolean,
     roomCode: String,
     onRequestTokenClicked: () -> Unit,
-    isHost: Boolean
+    isHost: Boolean,
+    roomManager: RoomManager?
 ) {
     Box {
         SecondaryBackground()
@@ -146,7 +149,7 @@ private fun ScreenContent(
             }
             AuthorizeTitle()
             RoleText(isHost)
-            ContinueButton(roomCode, isHost)
+            ContinueButton(roomCode, isHost, roomManager)
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton(onRequestTokenClicked)
             }
@@ -219,16 +222,18 @@ private fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
     }
 }
 @Composable
-private fun ContinueButton(roomCode: String, isHost: Boolean) {
+private fun ContinueButton(roomCode: String, isHost: Boolean, roomManager: RoomManager?) {
     val context = LocalContext.current
     Button(
         modifier = Modifier.padding(vertical = 30.dp),
         onClick = {
             if(isHost){
+                roomManager?.setHostToken(roomCode, SpotifyUserToken.getToken())
                 val intent = Intent(context, HostSongQueueActivity::class.java)
                 intent.putExtra("roomCode", roomCode)
                 context.startActivity(intent)
             } else {
+                roomManager?.addUserToRoom(roomCode, User(SpotifyUserToken.getToken()))
                 val intent = Intent(context, GuestSongQueueActivity::class.java)
                 intent.putExtra("roomCode", roomCode)
                 context.startActivity(intent)
