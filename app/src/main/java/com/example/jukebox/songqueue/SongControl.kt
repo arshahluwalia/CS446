@@ -70,7 +70,6 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
                     Log.d("spotify control: token list", userTokenList.toString())
                     Log.d("spotify control: host token", hostToken.value)
                     scope.launch {
-                       // playPreviousSong(userTokenList)
                         playSong("spotify:album:5ht7ItJgpBH7W6vJ5BqpPr", 0, userTokenList)
                     }
             }
@@ -88,13 +87,9 @@ fun SongControl(roomCode: String, roomManager: RoomManager?) {
         }
         Button(
             onClick = {
-                //TODO: https://api.spotify.com/v1/me/player/next
                 Log.d("spotify fetch state: host token", hostToken.value)
                 scope.launch {
-                   // playPreviousSong(userTokenList)
-                    val playBackState = getPlaybackState(hostToken.value)
-                    playBackState.first?.let { Log.d("spotify fetch state: context_uri", it) }
-                    Log.d("spotify fetch state: offset", playBackState.second.toString())
+
                 }
             }
         ) {
