@@ -476,6 +476,21 @@ class RoomManager {
             null
         }
     }
+    suspend fun getNextSong(roomCode: String): Song? {
+        val queueRef = database.child("$roomCode/approvedQueue")
+        return try {
+            val dataSnapshot = queueRef.get().await()
+            val songs = mutableListOf<Song>()
+            for (snapshot in dataSnapshot.children) {
+                val song = snapshot.getValue(Song::class.java)
+                song?.let { songs.add(it) }
+            }
+            songs.elementAtOrNull(1)
+        } catch (e: Exception) {
+            // Handle the error
+            null
+        }
+    }
     suspend fun getPrevSong(roomCode: String): Song? {
         val queueRef = database.child("$roomCode/approvedQueue")
         return try {
@@ -503,6 +518,24 @@ class RoomManager {
             if (songs.isNotEmpty()) {
                 val firstSong = songs.removeAt(0)
                 songs.add(firstSong)
+            }
+            queueRef.setValue(songs)
+        } catch (e: Exception) {
+
+        }
+    }
+    suspend fun moveBackSong(roomCode: String) {
+        val queueRef = database.child("$roomCode/approvedQueue")
+        try {
+            val dataSnapshot = queueRef.get().await()
+            val songs = mutableListOf<Song>()
+            for (snapshot in dataSnapshot.children) {
+                val song = snapshot.getValue(Song::class.java)
+                song?.let { songs.add(it) }
+            }
+            if (songs.isNotEmpty()) {
+                val lastSong = songs.removeAt(songs.size - 1)
+                songs.add(0, lastSong)
             }
             queueRef.setValue(songs)
         } catch (e: Exception) {

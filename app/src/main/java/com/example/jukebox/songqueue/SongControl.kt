@@ -60,6 +60,7 @@ fun SongControl(
                         } else {
                             Log.d("SongControl", "prev Song is null")
                         }
+                        runBlocking { roomManager.moveBackSong(roomCode) }
                         if (prevSong != null) {
                             playSong(
                                 prevSong.context_uri,
@@ -93,7 +94,7 @@ fun SongControl(
                 Log.d("spotify fetch state: host token", hToken)
                 scope.launch {
                     val nextSong = runBlocking {
-                        roomManager.getCurrentSong(roomCode)
+                        roomManager.getNextSong(roomCode)
                     }
                     if (nextSong != null) {
                         Log.d("SongControl", "next Song: ${nextSong.context_uri}")
