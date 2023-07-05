@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -20,6 +24,7 @@ import com.example.jukebox.spotify.task.SpotifySongControlTask.getPlaybackState
 import com.example.jukebox.spotify.task.SpotifySongControlTask.pauseSong
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playPreviousSong
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
+import com.example.jukebox.spotify.task.SpotifySongControlTask.resumeSong
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -32,6 +37,7 @@ fun SongControl(
     val scope = rememberCoroutineScope()
     val hToken = hostToken.collectAsState().value
     val uTokens = userTokens.collectAsState().value
+    var isPaused by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -59,7 +65,13 @@ fun SongControl(
         Button(
             onClick = {
                 scope.launch {
-                    pauseSong(uTokens)
+                    if (isPaused) {
+                        resumeSong(uTokens)
+                        isPaused = false
+                    } else {
+                        pauseSong(uTokens)
+                        isPaused = true
+                    }
                 }
             }
         ) {
