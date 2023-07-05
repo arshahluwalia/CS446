@@ -51,6 +51,12 @@ interface SpotifyApi {
 		@Header("Content-Type") content: String
 	): Response<RequestStatus>
 
+	@PUT("me/player/play")
+	suspend fun resumeSong(
+		@Header("Authorization") auth: String,
+		@Header("Content-Type") content: String
+	): Response<RequestStatus>
+
 	@GET("me/player")
 	suspend fun getPlaybackState(
 		@Header("Authorization") auth: String,
