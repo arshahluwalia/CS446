@@ -49,7 +49,8 @@ fun SongControl(
                         playSong(
                             "spotify:album:5ht7ItJgpBH7W6vJ5BqpPr",
                             0,
-                            uTokens)
+                            uTokens
+                        )
                     }
             }
         ) {
@@ -73,6 +74,7 @@ fun SongControl(
                     val playBackState = getPlaybackState(hToken)
                     playBackState.first?.let { Log.d("spotify fetch state: context_uri", it) }
                     Log.d("spotify fetch state: offset", playBackState.second.toString())
+                    Log.d("spotify fetch state: host token", hToken)
                 }
             }
         ) {
