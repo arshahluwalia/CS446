@@ -46,6 +46,7 @@ import com.example.jukebox.songqueue.HostSongQueueActivity
 import com.example.jukebox.spotify.task.SpotifyAccessTokenTask.requestAccessToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 
@@ -321,6 +322,9 @@ private fun testRoomManager() {
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.setSongApprovalStatus(roomCode, Song("testSong3"), ApprovalStatus.APPROVED)
+    roomManager.addSongToApprovedQueue(roomCode, Song("testSong"))
+    roomManager.addSongToApprovedQueue(roomCode, Song("testSong2"))
+    roomManager.addSongToApprovedQueue(roomCode, Song("testSong3"))
     roomManager.getUsers(roomCode) { users ->
           if (users.isNotEmpty()) {
                 for (user in users) {
@@ -331,10 +335,51 @@ private fun testRoomManager() {
     roomManager.getPendingQueue(roomCode) { queue ->
         if (!queue.checkEmpty()) {
             for (song in queue.queue) {
-                Log.d("Room Manager", "Fetched song: context_uri: ${song.context_uri}, " +
+                Log.d("Room Manager", "Pending Queue: Fetched song: context_uri: ${song.context_uri}, " +
                         "Title: ${song.songTitle}, Artist: ${song.songArtist}, " +
                         "approved: ${song.approvalStatus}, votes: ${song.votes}")
             }
         }
+    }
+    val queue = runBlocking {
+        roomManager.getApprovedQueue(roomCode)
+    }
+    if (queue != null) {
+        for (song in queue.queue) {
+            Log.d("Room Manager", "Approved Queue: Fetched song: context_uri: ${song.context_uri}, " +
+                    "Title: ${song.songTitle}, Artist: ${song.songArtist}, " +
+                    "approved: ${song.approvalStatus}, votes: ${song.votes}")
+        }
+    }
+    val nextSong = runBlocking {
+        roomManager.getCurrentSong(roomCode)
+    }
+    if (nextSong != null) {
+        Log.d(
+            "Room Manager", "Next Song: context_uri: ${nextSong.context_uri}, " +
+                    "Title: ${nextSong.songTitle}, Artist: ${nextSong.songArtist}, " +
+                    "approved: ${nextSong.approvalStatus}, votes: ${nextSong.votes}"
+        )
+    }
+    val prevSong = runBlocking {
+        roomManager.getPrevSong(roomCode)
+    }
+    if (prevSong != null) {
+        Log.d(
+            "Room Manager", "Prev Song: context_uri: ${prevSong.context_uri}, " +
+                    "Title: ${prevSong.songTitle}, Artist: ${prevSong.songArtist}, " +
+                    "approved: ${prevSong.approvalStatus}, votes: ${prevSong.votes}"
+        )
+    }
+    runBlocking { roomManager.advanceSong(roomCode) }
+    val newNextSong = runBlocking {
+        roomManager.getCurrentSong(roomCode)
+    }
+    if (newNextSong != null) {
+        Log.d(
+            "Room Manager", "Next Song after move: context_uri: ${newNextSong.context_uri}, " +
+                    "Title: ${newNextSong.songTitle}, Artist: ${newNextSong.songArtist}, " +
+                    "approved: ${newNextSong.approvalStatus}, votes: ${newNextSong.votes}"
+        )
     }
 }

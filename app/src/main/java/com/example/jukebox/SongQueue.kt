@@ -31,11 +31,4 @@ class SongQueue (public val queue: MutableList<Song> = mutableListOf()) {
     fun clearQueue() {
         queue.clear()
     }
-    fun getPrev(): Song{
-        var last = queue.size
-        return queue.get(last-1)
-    }
-    fun getNext(): Song{
-        return queue.get(0)
-    }
 }

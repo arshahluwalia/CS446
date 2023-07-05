@@ -338,7 +338,8 @@ fun PlayingSong(
 		if (isHost) {
 			SongControl(
 				hostToken = hostToken,
-				userTokens = userTokens
+				userTokens = userTokens,
+				roomCode = roomCode
 			)
 		}
 	}

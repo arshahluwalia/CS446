@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.R
+import com.example.jukebox.RoomManager
 import com.example.jukebox.spotify.task.SpotifySongControlTask.getPlaybackState
 import com.example.jukebox.spotify.task.SpotifySongControlTask.pauseSong
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playPreviousSong
@@ -27,18 +28,20 @@ import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
 import com.example.jukebox.spotify.task.SpotifySongControlTask.resumeSong
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @SuppressLint("FlowOperatorInvokedInComposition")
 @Composable
 fun SongControl(
     hostToken: MutableStateFlow<String>,
-    userTokens: MutableStateFlow<MutableList<String>>
+    userTokens: MutableStateFlow<MutableList<String>>,
+    roomCode: String
 ) {
     val scope = rememberCoroutineScope()
     val hToken = hostToken.collectAsState().value
     val uTokens = userTokens.collectAsState().value
     var isPaused by remember { mutableStateOf(false) }
-
+    val roomManager = RoomManager()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,12 +54,19 @@ fun SongControl(
                     Log.d("spotify control: token list", uTokens.toString())
                     Log.d("spotify control: host token", hToken)
                     scope.launch {
-                        playPreviousSong(uTokens)
-                        playSong(
-                            "spotify:album:5ht7ItJgpBH7W6vJ5BqpPr",
-                            0,
-                            uTokens
-                        )
+                        val prevSong = runBlocking { roomManager.getPrevSong(roomCode) }
+                        if (prevSong != null) {
+                            Log.d("SongControl", "prev Song: ${prevSong.context_uri}")
+                        } else {
+                            Log.d("SongControl", "prev Song is null")
+                        }
+                        if (prevSong != null) {
+                            playSong(
+                                prevSong.context_uri,
+                                0,
+                                uTokens
+                            )
+                        }
                     }
             }
         ) {
@@ -82,11 +92,22 @@ fun SongControl(
                 //TODO: https://api.spotify.com/v1/me/player/next
                 Log.d("spotify fetch state: host token", hToken)
                 scope.launch {
-                    playPreviousSong(uTokens)
-                    val playBackState = getPlaybackState(hToken)
-                    playBackState.first?.let { Log.d("spotify fetch state: context_uri", it) }
-                    Log.d("spotify fetch state: offset", playBackState.second.toString())
-                    Log.d("spotify fetch state: host token", hToken)
+                    val nextSong = runBlocking {
+                        roomManager.getCurrentSong(roomCode)
+                    }
+                    if (nextSong != null) {
+                        Log.d("SongControl", "next Song: ${nextSong.context_uri}")
+                    } else {
+                        Log.d("SongControl", "next Song is null")
+                    }
+                    runBlocking { roomManager.advanceSong(roomCode) }
+                    if (nextSong != null) {
+                        playSong(
+                            nextSong.context_uri,
+                            0,
+                            uTokens
+                        )
+                    }
                 }
             }
         ) {
