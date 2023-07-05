@@ -240,6 +240,7 @@ private fun StartARoomButton(
             intent.putExtra("roomCode", roomCode)
             intent.putExtra("isHost", true)
             context.startActivity(intent)
+//                  testRoomManager()
         },
         colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
     ) {
@@ -311,14 +312,15 @@ private fun testRoomManager() {
     roomManager.addUserToRoom(roomCode, User("newUserToken2"))
     roomManager.addUserToRoom(roomCode, User("newUserToken23"))
     roomManager.removeUserFromRoom(roomCode, "newUserToken2")
-    roomManager.addSongToQueue(roomCode, Song("testSong"))
-    roomManager.addSongToQueue(roomCode, Song("testSong2"))
-    roomManager.addSongToQueue(roomCode, Song("testSong3"))
-    roomManager.removeSongFromQueue(roomCode, "testSong2")
-    roomManager.removeSongFromQueue(roomCode, "testSong2")
+    roomManager.addSongToPendingQueue(roomCode, Song("testSong"))
+    roomManager.addSongToPendingQueue(roomCode, Song("testSong2"))
+    roomManager.addSongToPendingQueue(roomCode, Song("testSong3"))
+    roomManager.removeSongFromPendingQueue(roomCode, "testSong2")
+    roomManager.removeSongFromPendingQueue(roomCode, "testSong2")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
+    roomManager.setSongApprovalStatus(roomCode, Song("testSong3"), ApprovalStatus.APPROVED)
     roomManager.getUsers(roomCode) { users ->
           if (users.isNotEmpty()) {
                 for (user in users) {
@@ -326,7 +328,7 @@ private fun testRoomManager() {
                 }
           }
     }
-    roomManager.getQueue(roomCode) {queue ->
+    roomManager.getPendingQueue(roomCode) { queue ->
         if (!queue.checkEmpty()) {
             for (song in queue.queue) {
                 Log.d("Room Manager", "Fetched song: context_uri: ${song.context_uri}, " +

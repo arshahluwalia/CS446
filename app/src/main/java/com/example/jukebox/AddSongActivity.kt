@@ -309,7 +309,7 @@ private fun SearchSongQueue(
             IconButton(
                 onClick = {
                     if (remainingRequests > 0) {
-                        roomManager?.addSongToQueue(roomCode, song)
+                        roomManager?.addSongToPendingQueue(roomCode, song)
                         isClicked = true
                         if (!isHost) roomManager?.suggestSong(roomCode, SpotifyUserToken.getToken())
                     } else {

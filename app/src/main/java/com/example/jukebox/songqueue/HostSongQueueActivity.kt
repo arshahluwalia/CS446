@@ -104,14 +104,14 @@ class HostSongQueueActivity : ComponentActivity(){
 
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
-        roomManager.getQueue(roomCode) { queue ->
+        roomManager.getPendingQueue(roomCode) { queue ->
             songQueue.value = queue.queue
         }
     }
 
     private fun removeSong(song: Song) {
         val roomManager = RoomManager()
-        roomManager.removeSongFromQueue(roomCode, song.context_uri)
+        roomManager.removeSongFromPendingQueue(roomCode, song.context_uri)
     }
 
     private fun getHostName(roomCode: String, hostName: MutableStateFlow<String>) {

@@ -4,7 +4,9 @@ class Room (
     val roomCode: String,
     val hostToken: String = "",
     val users: MutableList<User> = mutableListOf(),
-    val queue: SongQueue = SongQueue(),
+    val pendingQueue: SongQueue = SongQueue(),
+    val approvedQueue: SongQueue = SongQueue(),
+    val deniedQueue: SongQueue = SongQueue(),
     val maxUpvotes: Int = 5,
     val maxSuggestions: Int = 5,
     val hostName: String = ""
@@ -21,12 +23,28 @@ class Room (
         users.remove(user)
     }
 
-    fun addSongToQueue(song: Song) {
-        queue.addSong(song)
+    fun addSongToApprovedQueue(song: Song) {
+        approvedQueue.addSong(song)
     }
 
-    fun addSongToQueueByContextUri(contextUri: String) {
-        queue.addSongByContextUri(contextUri)
+    fun addSongToPendingQueue(song: Song) {
+        pendingQueue.addSong(song)
+    }
+
+    fun addSongToDeniedQueue(song: Song) {
+        deniedQueue.addSong(song)
+    }
+
+    fun addSongToPendingQueueByContextUri(contextUri: String) {
+        pendingQueue.addSongByContextUri(contextUri)
+    }
+
+    fun addSongToApprovedQueueByContextUri(contextUri: String) {
+        approvedQueue.addSongByContextUri(contextUri)
+    }
+
+    fun addSongToDeniedQueueByContextUri(contextUri: String) {
+        deniedQueue.addSongByContextUri(contextUri)
     }
 }
 

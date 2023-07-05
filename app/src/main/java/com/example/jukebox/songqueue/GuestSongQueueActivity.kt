@@ -15,7 +15,6 @@ import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
-import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -54,7 +53,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
 
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
-        roomManager.getQueue(roomCode) { queue ->
+        roomManager.getPendingQueue(roomCode) { queue ->
             songQueue.value = queue.queue
         }
     }

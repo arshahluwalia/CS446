@@ -1,6 +1,5 @@
 package com.example.jukebox
 
-import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -9,6 +8,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 
 class RoomManager {
     private val database = Firebase.database.reference
@@ -53,18 +54,66 @@ class RoomManager {
         userRef.child(userToken).removeValue()
     }
 
-    fun addSongToQueue(roomCode: String, song: Song) {
-        val queueRef = database.child("$roomCode/queue")
+    fun addSongToPendingQueue(roomCode: String, song: Song) {
+        val queueRef = database.child("$roomCode/pendingQueue")
+        queueRef.child(song.context_uri).setValue(song)
+    }
+    fun addSongToApprovedQueue(roomCode: String, song: Song) {
+        val queueRef = database.child("$roomCode/approvedQueue")
         queueRef.child(song.context_uri).setValue(song)
     }
 
-    fun removeSongFromQueue(roomCode: String, songId: String) {
-        val queueRef = database.child("$roomCode/queue")
+    fun addSongToDeniedQueue(roomCode: String, song: Song) {
+        val queueRef = database.child("$roomCode/deniedQueue")
+        queueRef.child(song.context_uri).setValue(song)
+    }
+
+    fun removeSongFromPendingQueue(roomCode: String, songId: String) {
+        val queueRef = database.child("$roomCode/pendingQueue")
+        queueRef.child(songId).removeValue()
+    }
+
+    fun removeSongFromApprovedQueue(roomCode: String, songId: String) {
+        val queueRef = database.child("$roomCode/approvedQueue")
+        queueRef.child(songId).removeValue()
+    }
+
+    fun removeSongFromDeniedQueue(roomCode: String, songId: String) {
+        val queueRef = database.child("$roomCode/deniedQueue")
         queueRef.child(songId).removeValue()
     }
 
     fun setSongApprovalStatus(roomCode: String, song: Song, approvalStatus: ApprovalStatus) {
-        val approvalRef = database.child("$roomCode/queue/${song.context_uri}/approvalStatus")
+        val context_uri = song.context_uri
+        var approvalRef = when(approvalStatus) {
+            ApprovalStatus.APPROVED -> {
+                database.child("$roomCode/approvedQueue/${song.context_uri}/approvalStatus")
+            }
+            ApprovalStatus.PENDING_APPROVAL -> {
+                database.child("$roomCode/pendingQueue/${song.context_uri}/approvalStatus")
+            }
+            ApprovalStatus.DENIED -> {
+                database.child("$roomCode/deniedQueue/${song.context_uri}/approvalStatus")
+            }
+        }
+
+        val votes = runBlocking { fetchVotes(roomCode, context_uri) }
+        if (votes != null) {
+            song.votes = votes
+        }
+        if (approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
+            removeSongFromApprovedQueue(roomCode, context_uri)
+            removeSongFromDeniedQueue(roomCode, context_uri)
+            addSongToPendingQueue(roomCode, song)
+        } else if (approvalStatus == ApprovalStatus.APPROVED) {
+            removeSongFromDeniedQueue(roomCode, context_uri)
+            removeSongFromPendingQueue(roomCode, context_uri)
+            addSongToApprovedQueue(roomCode, song)
+        } else {
+            removeSongFromApprovedQueue(roomCode, context_uri)
+            removeSongFromPendingQueue(roomCode, context_uri)
+            addSongToDeniedQueue(roomCode, song)
+        }
 
         approvalRef.runTransaction(
             object : Transaction.Handler {
@@ -88,7 +137,7 @@ class RoomManager {
     }
 
     fun upvoteSong(roomCode: String, songId: String) {
-        val voteRef = database.child("$roomCode/queue/$songId/votes")
+        val voteRef = database.child("$roomCode/pendingQueue/$songId/votes")
 
         // Transaction code based on: https://stackoverflow.com/a/76369990
         voteRef.runTransaction(object : Transaction.Handler {
@@ -118,7 +167,7 @@ class RoomManager {
     }
 
     fun downvoteSong(roomCode: String, songId: String) {
-        val voteRef = database.child("$roomCode/queue/$songId/votes")
+        val voteRef = database.child("$roomCode/pendingQueue/$songId/votes")
 
         // Transaction code based on: https://stackoverflow.com/a/76369990
         voteRef.runTransaction(object : Transaction.Handler {
@@ -147,6 +196,27 @@ class RoomManager {
         })
     }
 
+    suspend fun fetchVotes(roomCode: String, songId: String): Int? {
+        val queues = listOf("pendingQueue", "deniedQueue", "approvedQueue")
+        for (queue in queues) {
+            val voteRef = database.child("$roomCode/$queue/$songId/votes")
+
+            try {
+                val snapshot = voteRef.get().await()
+                val votes = snapshot.getValue(Int::class.java)
+                // Handle the retrieved votes value
+                if (votes != null && votes != 0) {
+                    // Votes found, return the value
+                    return votes
+                }
+            } catch (exception: Exception) {
+                // Handle any error that occurred while fetching the votes
+            }
+        }
+
+        return 0
+    }
+
     fun setHostToken(roomCode: String, hostToken: String) {
         val hostTokenRef = database.child("$roomCode/hostToken")
         hostTokenRef.setValue(hostToken)
@@ -167,7 +237,6 @@ class RoomManager {
             }
         })
     }
-
 
     fun setHostName(roomCode: String, name: String) {
         val hostNameRef = database.child("$roomCode/hostName")
@@ -313,8 +382,50 @@ class RoomManager {
         })
     }
 
-    fun getQueue(roomCode: String, callback: (SongQueue) -> Unit) {
-        val queueRef = database.child("$roomCode/queue")
+    fun getPendingQueue(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/pendingQueue")
+
+        queueRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val songs = mutableListOf<Song>()
+                for (snapshot in dataSnapshot.children) {
+                    val song = snapshot.getValue(Song::class.java)
+                    song?.let { songs.add(it) }
+                }
+                val songQueue = SongQueue(songs)
+                callback(songQueue)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(SongQueue()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
+    fun getApprovedQueue(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/approvedQueue")
+
+        queueRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val songs = mutableListOf<Song>()
+                for (snapshot in dataSnapshot.children) {
+                    val song = snapshot.getValue(Song::class.java)
+                    song?.let { songs.add(it) }
+                }
+                val songQueue = SongQueue(songs)
+                callback(songQueue)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(SongQueue()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
+    fun getDeniedQueue(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/deniedQueue")
 
         queueRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
