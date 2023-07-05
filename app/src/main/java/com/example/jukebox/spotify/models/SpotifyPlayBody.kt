@@ -1,6 +1,6 @@
 package com.example.jukebox.spotify.models
 
 data class SpotifyPlayBody(
-    val context_uri: String,
+    val uris: List<String>,
     val position_ms: Int
 )

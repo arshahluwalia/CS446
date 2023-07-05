@@ -35,7 +35,7 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
 
     suspend fun playSong(context_uri: String, position: Int, userTokensList: MutableList<String>) {
         val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
-        val spotifyPlayBody = SpotifyPlayBody(context_uri, position)
+        val spotifyPlayBody = SpotifyPlayBody(listOf(context_uri), position)
 
         for (accessToken in userTokensList){
             Log.d("spotify control task: Token", accessToken)
