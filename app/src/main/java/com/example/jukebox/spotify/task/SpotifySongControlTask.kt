@@ -111,5 +111,4 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
         job.await()
         return Pair(fetchedContextUri, fetchedOffset)
     }
-
 }

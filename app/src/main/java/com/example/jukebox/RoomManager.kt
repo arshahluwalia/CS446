@@ -225,7 +225,7 @@ class RoomManager {
     fun getHostToken(roomCode: String, callback: (String) -> Unit) {
         val hostTokenRef = database.child("$roomCode/hostToken")
 
-        hostTokenRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        hostTokenRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val hostToken = dataSnapshot.getValue(String::class.java)
                 callback(hostToken ?: "none")
@@ -448,7 +448,7 @@ class RoomManager {
     fun getUsers(roomCode: String, callback: (List<User>) -> Unit) {
         val userRef = database.child("$roomCode/users")
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        userRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val userList = mutableListOf<User>()
                 for (snapshot in dataSnapshot.children) {
