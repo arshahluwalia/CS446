@@ -222,19 +222,20 @@ class RoomManager {
         hostTokenRef.setValue(hostToken)
     }
 
-    suspend fun getHostToken(roomCode: String): String? {
+    fun getHostToken(roomCode: String, callback: (String) -> Unit) {
         val hostTokenRef = database.child("$roomCode/hostToken")
 
-        try {
-            val snapshot = hostTokenRef.get().await()
-            val token = snapshot.getValue(String::class.java)
-            if (token != null) {
-                return token
+        hostTokenRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val hostToken = dataSnapshot.getValue(String::class.java)
+                callback(hostToken ?: "none")
             }
-        } catch (exception: Exception) {
-            // Handle any error that occurred while fetching the votes
-        }
-        return "none"
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(String()) // Invoke the callback with an empty list to indicate an error or cancellation
+            }
+        })
     }
 
     fun setHostName(roomCode: String, name: String) {
@@ -443,21 +444,24 @@ class RoomManager {
             }
         })
     }
-    suspend fun getUsers(roomCode: String): List<User> {
+
+    fun getUsers(roomCode: String, callback: (List<User>) -> Unit) {
         val userRef = database.child("$roomCode/users")
 
-        return try {
-            val dataSnapshot = userRef.get().await()
-            val userList = mutableListOf<User>()
-            for (snapshot in dataSnapshot.children) {
-                val user = snapshot.getValue(User::class.java)
-                user?.let { userList.add(it) }
+        userRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val userList = mutableListOf<User>()
+                for (snapshot in dataSnapshot.children) {
+                    val user = snapshot.getValue(User::class.java)
+                    user?.let { userList.add(it) }
+                }
+                callback(userList)
             }
-            userList
-        } catch (exception: Exception) {
-            // Handle the error
-            emptyList()
-        }
-    }
 
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(emptyList()) // Invoke the callback with an empty list to indicate an error or cancellation
+            }
+        })
+    }
 }
