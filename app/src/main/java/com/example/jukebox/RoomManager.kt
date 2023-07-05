@@ -58,7 +58,7 @@ class RoomManager {
         val queueRef = database.child("$roomCode/pendingQueue")
         queueRef.child(song.context_uri).setValue(song)
     }
-    fun addSongToApprovedQueue(roomCode: String, song: Song) {
+    fun addSongToApprovedQueue(roomCode: String, song: Song, priority: Number = 0) {
         val queueRef = database.child("$roomCode/approvedQueue")
         queueRef.child(song.context_uri).setValue(song)
     }
