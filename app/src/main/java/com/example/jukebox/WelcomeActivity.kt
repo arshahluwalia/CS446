@@ -46,6 +46,7 @@ import com.example.jukebox.songqueue.HostSongQueueActivity
 import com.example.jukebox.spotify.task.SpotifyAccessTokenTask.requestAccessToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.LightPurple
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 
@@ -321,12 +322,11 @@ private fun testRoomManager() {
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.upvoteSong(roomCode, "testSong3")
     roomManager.setSongApprovalStatus(roomCode, Song("testSong3"), ApprovalStatus.APPROVED)
-    roomManager.getUsers(roomCode) { users ->
-          if (users.isNotEmpty()) {
-                for (user in users) {
-                    Log.d("Room Manager", "Fetched user token: ${user.userToken}")
-                }
-          }
+    val users = runBlocking { roomManager?.getUsers(roomCode) }
+    if (users != null) {
+        for (user in users) {
+            Log.d("Room Manager", "Fetched user token: ${user.userToken}")
+        }
     }
     roomManager.getPendingQueue(roomCode) { queue ->
         if (!queue.checkEmpty()) {

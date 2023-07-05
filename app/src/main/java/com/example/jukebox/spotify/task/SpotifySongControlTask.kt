@@ -82,10 +82,33 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
         }
     }
 
-    suspend fun getPlaybackState(token: String): Pair<String?, Long?> {
+    suspend fun resumeSong(userTokensList : MutableList<String>) {
+        val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
+        for (accessToken in userTokensList){
+            Log.d("spotify control task: Token", accessToken)
+            val job = async {
+                val executeJob: suspend (accessToken: String) -> Unit = { token ->
+                    val result = api.resumeSong(
+                        "Bearer $accessToken",
+                        "application/json",
+                    )
+
+                    if (result.body() != null) {
+                        Log.d("spotify control: ", result.body().toString())
+                    } else {
+                        Log.d("spotify control: ", "null response")
+                    }
+                }
+                executeJob(accessToken)
+            }
+            job.await()
+        }
+    }
+
+    suspend fun getPlaybackState(token: String): Pair<String?, Int?> {
         val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
         var fetchedContextUri = ""
-        var fetchedOffset : Long = 0
+        var fetchedOffset : Int = 0
         val job = async {
             val executeJob: suspend (accessToken: String) -> Unit = { token ->
                 val result = api.getPlaybackState("Bearer $token", "application/json")
@@ -100,7 +123,7 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
                         fetchedContextUri = contextUri
                     }
                     if (offset != null) {
-                        fetchedOffset = offset
+                        fetchedOffset = offset.toInt()
                     }
                 } else {
                     Log.d("spotify fetch state: ", "null response")
