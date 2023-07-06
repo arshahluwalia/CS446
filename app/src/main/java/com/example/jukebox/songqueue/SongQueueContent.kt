@@ -392,9 +392,10 @@ fun QueuedSongs(
 	maxSongUpvotes: Int,
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
+	val data = MutableStateFlow(queuedSongList)
 	if (isHost) {
 		val state = rememberReorderableLazyListState(onMove = { from, to ->
-			mutableSongList.value = mutableSongList.value.toMutableList().apply {
+			data.value = data.value.toMutableList().apply {
 				add(to.index, removeAt(from.index))
 			}
 		})
@@ -405,16 +406,33 @@ fun QueuedSongs(
 				.reorderable(state)
 				.detectReorderAfterLongPress(state)
 		) {
-
-			items(mutableSongList.value, { it }) {item ->
-				ReorderableItem(state, key = item) { isDragging ->
+			items(data.value, { it.context_uri }) {item ->
+				ReorderableItem(state, key = item.context_uri) { isDragging ->
 					val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
 					Column(
 						modifier = Modifier
 							.shadow(elevation.value)
-							.background(Color.Black)
 					) {
-
+						var isSongUpvoted by remember {
+							mutableStateOf(false)
+						}
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.Start
+						) {
+							DragSongButton(song = item)
+							HostSongItem(song = item)
+							ApproveDenyButtons(
+								song = item,
+								removeSong = removeSong,
+								setApprovalStatus = setApprovalStatus,
+							)
+							SongActions(song = item, isUpvoted = isSongUpvoted, onVoteClick = {
+								isSongUpvoted = !isSongUpvoted
+							}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+							maxSongUpvotes = maxSongUpvotes)
+						}
 					}
 				}
 			}
