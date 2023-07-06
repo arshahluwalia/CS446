@@ -190,19 +190,6 @@ class HostSongQueueActivity : ComponentActivity(){
             userTokens.value.add(hostToken.value)
         }
     }
-
-    private fun startFirstPlayback(
-        roomCode: String,
-        roomManager: RoomManager?,
-        queue: MutableStateFlow<List<Song>>
-    ) {
-        var hasChanged = false
-        if (queue.value.isEmpty()) {
-            
-        } else {
-
-        }
-    }
 }
 
 @Composable

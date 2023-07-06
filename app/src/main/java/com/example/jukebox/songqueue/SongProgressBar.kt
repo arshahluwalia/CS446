@@ -6,45 +6,35 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Slider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.jukebox.RoomManager
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.example.jukebox.Song
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.runBlocking
-
+import kotlinx.coroutines.launch
 
 @Composable
 fun SongProgressBar(
     isHost: Boolean,
     userTokens: MutableStateFlow<MutableList<String>>,
-    roomCode: String){
+    currentSong: Song
+) {
     val uTokens = userTokens.collectAsState().value
-    var roomManager = RoomManager()
-    var currentSong = runBlocking{ roomManager.getCurrentSong(roomCode) }
-    if (currentSong == null){
-        currentSong = Song(
-            context_uri = "spotify:track:5jzKL4BDMClWqRguW5qZvh",
-            songArtist = "Katy Perry",
-            duration = 227741
-        )
-    }
-    Log.d("playing song", currentSong?.duration.toString())
-//    var duration = currentSong?.duration
     var duration = 50000
     var sliderValue by remember { mutableStateOf(0f) }
+    val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -56,14 +46,10 @@ fun SongProgressBar(
             value = sliderValue,
             onValueChange = { newValue ->
                 sliderValue = newValue
-                /*if (isHost) {
-                    Log.d("play seek: ", isHost.toString())
-                    sliderValue = newValue
-                }*/
             },
             onValueChangeFinished = {
-                runBlocking {
-                    if (currentSong != null && isHost) {
+                scope.launch {
+                    if (currentSong.songTitle != "" && isHost) {
                         Log.d("play seek: ", currentSong.context_uri)
                         playSong(currentSong.context_uri, sliderValue.toInt(), uTokens)
                     }
@@ -86,7 +72,6 @@ fun SongProgressBar(
             } else {
                 Text(text = "0:00", style = MaterialTheme.typography.bodySmall)
             }
-
         }
     }
 }
