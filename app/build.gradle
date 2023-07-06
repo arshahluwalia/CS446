@@ -89,6 +89,7 @@ dependencies {
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.30.1"
     implementation 'androidx.navigation:navigation-runtime-ktx:2.6.0'
     implementation "androidx.compose.material3:material3:1.1.1"
+    implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
 
 
     testImplementation 'junit:junit:4.13.2'

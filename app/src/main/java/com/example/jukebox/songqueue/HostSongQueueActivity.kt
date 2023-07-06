@@ -323,6 +323,8 @@ private fun SongQueue(
 ) {
     val concatSongQueue =
         approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
+
+    val mutableSongQueue = MutableStateFlow(concatSongQueue)
     JukeboxTheme {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -343,7 +345,8 @@ private fun SongQueue(
                 setApprovalStatus = setApprovalStatus,
                 maxSongUpvotes = 999999,
                 hostToken = hostToken,
-                userTokens = userTokens
+                userTokens = userTokens,
+                mutableSongList = mutableSongQueue
             )
         }
     }
