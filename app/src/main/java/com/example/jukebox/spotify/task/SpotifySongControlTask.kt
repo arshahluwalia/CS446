@@ -10,29 +10,6 @@ import kotlinx.coroutines.async
 
 object SpotifySongControlTask : CoroutineScope by MainScope()  {
 
-    suspend fun playPreviousSong(userTokensList : MutableList<String>) {
-        val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
-        for (accessToken in userTokensList){
-            Log.d("spotify control task: Token", accessToken)
-            val job = async {
-                val executeJob: suspend (accessToken: String) -> Unit = { token ->
-                    val result = api.skipToPrevious(
-                        "Bearer $accessToken",
-                        "application/json",
-                    )
-
-                    if (result.body() != null) {
-                        Log.d("spotify control: ", result.body().toString())
-                    } else {
-                        Log.d("spotify control: ", "null response")
-                    }
-                }
-                executeJob(accessToken)
-            }
-            job.await()
-        }
-    }
-
     suspend fun playSong(context_uri: String, position: Int, userTokensList: MutableList<String>) {
         val api = RetrofitHelper.getAPIUrlInstance().create(SpotifyApi::class.java)
         val spotifyPlayBody = SpotifyPlayBody(listOf(context_uri), position)

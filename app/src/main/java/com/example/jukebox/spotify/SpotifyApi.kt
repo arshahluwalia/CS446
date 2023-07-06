@@ -32,12 +32,6 @@ interface SpotifyApi {
 		@Query("q") songName: String,
 	) : Response<SpotifySearchResponse>
 
-	@POST("me/player/previous")
-	suspend fun skipToPrevious(
-		@Header("Authorization") auth: String,
-		@Header("Content-Type") content: String
-	): Response<RequestStatus>
-
 	@PUT("me/player/play")
 	suspend fun playSong(
 		@Header("Authorization") auth: String,
@@ -63,10 +57,11 @@ interface SpotifyApi {
 		@Header("Content-Type") content: String
 	) : Response<SpotifyPlaybackState>
 
-	@POST("me/player/next")
-	suspend fun skipToNext(
+	@PUT("me/player/seek")
+	suspend fun seekToTimestamp(
 		@Header("Authorization") auth: String,
-		@Header("Content-Type") content: String
+		@Header("Content-Type") content: String,
+		@Body timeStamp: Number
 	): Response<RequestStatus>
 
 }
