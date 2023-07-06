@@ -29,12 +29,9 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun SongProgressBar(
     isHost: Boolean,
-    hostToken: MutableStateFlow<String>,
     userTokens: MutableStateFlow<MutableList<String>>,
     roomCode: String){
-    val hToken = hostToken.collectAsState().value
     val uTokens = userTokens.collectAsState().value
-    uTokens.add(hToken)
     var roomManager = RoomManager()
 //    var currentSong = runBlocking{ roomManager.getCurrentSong(roomCode) }
     var currentSong = Song(

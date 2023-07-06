@@ -32,16 +32,13 @@ import kotlinx.coroutines.runBlocking
 @SuppressLint("FlowOperatorInvokedInComposition")
 @Composable
 fun SongControl(
-    hostToken: MutableStateFlow<String>,
     userTokens: MutableStateFlow<MutableList<String>>,
     roomCode: String,
     roomManager: RoomManager?
 ) {
     val scope = rememberCoroutineScope()
-    val hToken = hostToken.collectAsState().value
     val uTokens = userTokens.collectAsState().value
     var isPaused by remember { mutableStateOf(false) }
-    uTokens.add(hToken)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,7 +96,6 @@ fun SongControl(
             onClick = {
                 isPaused = false
                 //TODO: https://api.spotify.com/v1/me/player/next
-                Log.d("spotify fetch state: host token", hToken)
                 scope.launch {
                     val nextSong = runBlocking {
                         roomManager?.getNextSong(roomCode)
