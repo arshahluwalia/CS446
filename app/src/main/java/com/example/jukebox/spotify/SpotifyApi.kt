@@ -56,13 +56,5 @@ interface SpotifyApi {
 		@Header("Authorization") auth: String,
 		@Header("Content-Type") content: String
 	) : Response<SpotifyPlaybackState>
-
-	@PUT("me/player/seek")
-	suspend fun seekToTimestamp(
-		@Header("Authorization") auth: String,
-		@Header("Content-Type") content: String,
-		@Body timeStamp: Number
-	): Response<RequestStatus>
-
 }
 

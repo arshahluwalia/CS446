@@ -16,6 +16,7 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
 
         for (accessToken in userTokensList){
             Log.d("spotify control task: Token", accessToken)
+            Log.d("spotify control seek in loop: ", spotifyPlayBody.position_ms.toString())
             val job = async {
                 val executeJob: suspend (accessToken: String) -> Unit = { token ->
                     val result = api.playSong(
@@ -23,7 +24,6 @@ object SpotifySongControlTask : CoroutineScope by MainScope()  {
                         "application/json",
                         spotifyPlayBody
                     )
-
                     if (result.body() != null) {
                         Log.d("spotify control: ", result.body().toString())
                     } else {

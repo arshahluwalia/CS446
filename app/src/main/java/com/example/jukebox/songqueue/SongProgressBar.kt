@@ -33,15 +33,17 @@ fun SongProgressBar(
     roomCode: String){
     val uTokens = userTokens.collectAsState().value
     var roomManager = RoomManager()
-//    var currentSong = runBlocking{ roomManager.getCurrentSong(roomCode) }
-    var currentSong = Song(
-        context_uri = "spotify:track:5jzKL4BDMClWqRguW5qZvh",
-        songArtist = "Katy Perry",
-        duration = 227741
-    )
+    var currentSong = runBlocking{ roomManager.getCurrentSong(roomCode) }
+    if (currentSong == null){
+        currentSong = Song(
+            context_uri = "spotify:track:5jzKL4BDMClWqRguW5qZvh",
+            songArtist = "Katy Perry",
+            duration = 227741
+        )
+    }
     Log.d("playing song", currentSong?.duration.toString())
-    var duration = currentSong?.duration
-//    var duration = 100
+//    var duration = currentSong?.duration
+    var duration = 50000
     var sliderValue by remember { mutableStateOf(0f) }
 
     Column(modifier = Modifier
@@ -53,13 +55,16 @@ fun SongProgressBar(
                 .fillMaxWidth(),
             value = sliderValue,
             onValueChange = { newValue ->
-                if (isHost) {
+                sliderValue = newValue
+                /*if (isHost) {
+                    Log.d("play seek: ", isHost.toString())
                     sliderValue = newValue
-                }
+                }*/
             },
             onValueChangeFinished = {
                 runBlocking {
                     if (currentSong != null && isHost) {
+                        Log.d("play seek: ", currentSong.context_uri)
                         playSong(currentSong.context_uri, sliderValue.toInt(), uTokens)
                     }
                 }
