@@ -27,7 +27,6 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.PlainTooltipState
@@ -62,7 +61,6 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.SettingsActivity
 import com.example.jukebox.Song
-import com.example.jukebox.ui.theme.DarkPurple
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
@@ -334,7 +332,12 @@ fun PlayingSong(
 				}
 			}
 		}
-		SongProgressBar()
+		SongProgressBar(
+			isHost = isHost,
+			hostToken = hostToken,
+			userTokens = userTokens,
+			roomCode = roomCode
+		)
 		if (isHost) {
 			SongControl(
 				hostToken = hostToken,
@@ -342,29 +345,6 @@ fun PlayingSong(
 				roomCode = roomCode,
 				roomManager = roomManager
 			)
-		}
-	}
-}
-
-@Composable
-fun SongProgressBar(){
-	Column(modifier = Modifier
-		.fillMaxWidth()
-		.padding(horizontal = 20.dp, vertical = 10.dp)
-	) {
-		LinearProgressIndicator(
-			modifier = Modifier
-				.fillMaxWidth(),
-			trackColor = Color.LightGray,
-			color = DarkPurple,
-			progress = 0.3f
-		)
-		Row(
-			modifier = Modifier.fillMaxWidth(),
-			horizontalArrangement = Arrangement.SpaceBetween
-		) {
-			Text(text = "0:00", style = MaterialTheme.typography.bodySmall)
-			Text(text = "3:00", style = MaterialTheme.typography.bodySmall)
 		}
 	}
 }
