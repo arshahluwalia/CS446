@@ -60,10 +60,14 @@ private lateinit var roomCode : String
 class HostSongQueueActivity : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val songQueue = MutableStateFlow<List<Song>>(emptyList())
         roomCode = intent.getStringExtra("roomCode").toString()
         val isReturning = intent.getBooleanExtra("isReturning", false)
+        val songQueue = MutableStateFlow<List<Song>>(emptyList())
+        val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
+        val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         getSongQueue(roomCode, songQueue)
+        getApprovedSongQueue(roomCode, approvedSongQueue)
+        getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
         val roomManager = RoomManager()
@@ -96,6 +100,8 @@ class HostSongQueueActivity : ComponentActivity(){
                         dispatcher = dispatcher,
                         hostName = hostName.collectAsState().value,
                         songQueue = songQueue,
+                        approvedSongQueue = approvedSongQueue,
+                        deniedSongQueue = deniedSongQueue,
                         removeSong = ::removeSong,
                         roomManager = roomManager,
                         appContext = appContext,
@@ -111,6 +117,20 @@ class HostSongQueueActivity : ComponentActivity(){
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
         roomManager.getPendingQueue(roomCode) { queue ->
+            songQueue.value = queue.queue
+        }
+    }
+
+    private fun getApprovedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        roomManager.getApprovedQueueCallback(roomCode) { queue ->
+            songQueue.value = queue.queue
+        }
+    }
+
+    private fun getDeniedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        roomManager.getDeniedQueueCallback(roomCode) { queue ->
             songQueue.value = queue.queue
         }
     }
@@ -156,6 +176,10 @@ class HostSongQueueActivity : ComponentActivity(){
             userTokens.value = tokens
             userTokens.value.add(hostToken.value)
         }
+    }
+
+    private fun startFirstPlayback() {
+
     }
 }
 
@@ -266,6 +290,8 @@ private fun SongQueue(
     dispatcher: OnBackPressedDispatcher? = null,
     hostName: String?,
     songQueue: MutableStateFlow<List<Song>>,
+    approvedSongQueue: MutableStateFlow<List<Song>>,
+    deniedSongQueue: MutableStateFlow<List<Song>>,
     removeSong: (Song) -> Unit = { },
     roomManager: RoomManager,
     appContext: Context,
@@ -273,6 +299,8 @@ private fun SongQueue(
     hostToken: MutableStateFlow<String>,
     userTokens: MutableStateFlow<MutableList<String>>
 ) {
+    val concatSongQueue =
+        approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
     JukeboxTheme {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -282,12 +310,10 @@ private fun SongQueue(
                 dispatcher = dispatcher,
                 hostName = hostName ?: "You",
                 isHost = true,
-                playingSong = Song(
-                    songTitle = "Hips Don't Lie",
-                    songArtist = "Shakira",
-                    approvalStatus = ApprovalStatus.APPROVED
-                ),
-                queuedSongList = songQueue.collectAsState().value,
+                playingSong =
+                    if (approvedSongQueue.collectAsState().value.isEmpty()) Song()
+                    else approvedSongQueue.collectAsState().value[0],
+                queuedSongList = concatSongQueue,
                 roomCode = roomCode,
                 removeSong = removeSong,
                 roomManager = roomManager,

@@ -25,7 +25,11 @@ class GuestSongQueueActivity  : ComponentActivity(){
         super.onCreate(savedInstanceState)
         roomCode = intent.getStringExtra("roomCode").toString()
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
+        val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
+        val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         getSongQueue(roomCode, songQueue)
+        getApprovedSongQueue(roomCode, approvedSongQueue)
+        getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
         val roomManager = RoomManager()
@@ -33,15 +37,20 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getMaxUpvotes(roomCode, maxSongUpvotes)
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
+
         setContent {
             // TODO: need to retrieve current song instead of hardcoding
+            val concatSongQueue =
+                approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
             JukeboxTheme() {
                 SongQueueScreenContent(
                     dispatcher = dispatcher,
                     hostName = hostName.collectAsState().value,
                     isHost = false,
-                    playingSong = Song(songTitle = "Hips Don't Lie", songArtist = "Shakira", approvalStatus = ApprovalStatus.PENDING_APPROVAL),
-                    queuedSongList = songQueue.collectAsState().value,
+                    playingSong =
+                        if (approvedSongQueue.collectAsState().value.isEmpty()) Song()
+                        else approvedSongQueue.collectAsState().value[0],
+                    queuedSongList = concatSongQueue,
                     roomCode = roomCode,
                     roomManager = roomManager,
                     appContext = appContext,
@@ -54,6 +63,20 @@ class GuestSongQueueActivity  : ComponentActivity(){
     private fun getSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
         roomManager.getPendingQueue(roomCode) { queue ->
+            songQueue.value = queue.queue
+        }
+    }
+
+    private fun getApprovedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        roomManager.getApprovedQueueCallback(roomCode) { queue ->
+            songQueue.value = queue.queue
+        }
+    }
+
+    private fun getDeniedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        roomManager.getDeniedQueueCallback(roomCode) { queue ->
             songQueue.value = queue.queue
         }
     }

@@ -403,6 +403,48 @@ class RoomManager {
         })
     }
 
+    fun getApprovedQueueCallback(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/approvedQueue")
+
+        queueRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val songs = mutableListOf<Song>()
+                for (snapshot in dataSnapshot.children) {
+                    val song = snapshot.getValue(Song::class.java)
+                    song?.let { songs.add(it) }
+                }
+                val songQueue = SongQueue(songs)
+                callback(songQueue)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(SongQueue()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
+    fun getDeniedQueueCallback(roomCode: String, callback: (SongQueue) -> Unit) {
+        val queueRef = database.child("$roomCode/deniedQueue")
+
+        queueRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val songs = mutableListOf<Song>()
+                for (snapshot in dataSnapshot.children) {
+                    val song = snapshot.getValue(Song::class.java)
+                    song?.let { songs.add(it) }
+                }
+                val songQueue = SongQueue(songs)
+                callback(songQueue)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(SongQueue()) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
     suspend fun getApprovedQueue(roomCode: String): SongQueue? {
         val queueRef = database.child("$roomCode/approvedQueue")
         return try {

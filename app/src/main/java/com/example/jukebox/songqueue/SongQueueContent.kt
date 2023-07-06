@@ -122,7 +122,7 @@ fun SongQueueScreenContent(
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
 			if(!isHost){
-				Text(text = "You have: " + maxSongUpvotes.toString() + " upvotes remaining", color = Color.White)
+				Text(text = "You have: $maxSongUpvotes upvotes remaining", color = Color.White)
 			}
 			SongQueue(
 				isHost = isHost,
@@ -284,7 +284,7 @@ fun SongQueue(
 			setApprovalStatus = setApprovalStatus,
 			roomManager = roomManager,
 			roomCode = roomCode,
-			maxSongUpvotes = maxSongUpvotes
+			maxSongUpvotes = maxSongUpvotes,
 		)
 	}
 }
@@ -339,7 +339,8 @@ fun PlayingSong(
 			SongControl(
 				hostToken = hostToken,
 				userTokens = userTokens,
-				roomCode = roomCode
+				roomCode = roomCode,
+				roomManager = roomManager
 			)
 		}
 	}
@@ -376,7 +377,7 @@ fun QueuedSongs(
 	roomManager: RoomManager?,
 	roomCode: String,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	maxSongUpvotes: Int
+	maxSongUpvotes: Int,
 ) {
 	if (isHost) {
 		queuedSongList.forEach { song ->
@@ -393,7 +394,7 @@ fun QueuedSongs(
 				ApproveDenyButtons(
 					song = song,
 					removeSong = removeSong,
-					setApprovalStatus = setApprovalStatus
+					setApprovalStatus = setApprovalStatus,
 				)
 				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
@@ -510,9 +511,10 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 fun ApproveDenyButtons(
 	song : Song,
 	removeSong: (Song) -> Unit = { },
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit
+	setApprovalStatus: (Song, ApprovalStatus) -> Unit,
 ) {
 	val expanded = remember { mutableStateOf(false) }
+
 	Row(verticalAlignment = Alignment.CenterVertically) {
 		Image(
 			modifier = Modifier
