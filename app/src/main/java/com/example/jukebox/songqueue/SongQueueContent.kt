@@ -394,72 +394,72 @@ fun QueuedSongs(
 ) {
 	val data = MutableStateFlow(queuedSongList)
 	if (isHost) {
-		val state = rememberReorderableLazyListState(onMove = { from, to ->
-			data.value = data.value.toMutableList().apply {
-				add(to.index, removeAt(from.index))
-			}
-		})
-
-		LazyColumn(
-			state = state.listState,
-			modifier = Modifier
-				.reorderable(state)
-				.detectReorderAfterLongPress(state)
-		) {
-			items(data.value, { it.context_uri }) {item ->
-				ReorderableItem(state, key = item.context_uri) { isDragging ->
-					val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
-					Column(
-						modifier = Modifier
-							.shadow(elevation.value)
-					) {
-						var isSongUpvoted by remember {
-							mutableStateOf(false)
-						}
-						Row(
-							modifier = Modifier.fillMaxWidth(),
-							verticalAlignment = Alignment.CenterVertically,
-							horizontalArrangement = Arrangement.Start
-						) {
-							DragSongButton(song = item)
-							HostSongItem(song = item)
-							ApproveDenyButtons(
-								song = item,
-								removeSong = removeSong,
-								setApprovalStatus = setApprovalStatus,
-							)
-							SongActions(song = item, isUpvoted = isSongUpvoted, onVoteClick = {
-								isSongUpvoted = !isSongUpvoted
-							}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-							maxSongUpvotes = maxSongUpvotes)
-						}
-					}
-				}
-			}
-		}
-
-//		queuedSongList.forEach { song ->
-//			var isSongUpvoted by remember {
-//				mutableStateOf(false)
+//		val state = rememberReorderableLazyListState(onMove = { from, to ->
+//			data.value = data.value.toMutableList().apply {
+//				add(to.index, removeAt(from.index))
 //			}
-//			Row(
-//				modifier = Modifier.fillMaxWidth(),
-//				verticalAlignment = Alignment.CenterVertically,
-//				horizontalArrangement = Arrangement.Start
-//			) {
-//				DragSongButton(song = song)
-//				HostSongItem(song = song)
-//				ApproveDenyButtons(
-//					song = song,
-//					removeSong = removeSong,
-//					setApprovalStatus = setApprovalStatus,
-//				)
-//				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
-//					isSongUpvoted = !isSongUpvoted
-//				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-//				maxSongUpvotes = maxSongUpvotes)
+//		})
+//
+//		LazyColumn(
+//			state = state.listState,
+//			modifier = Modifier
+//				.reorderable(state)
+//				.detectReorderAfterLongPress(state)
+//		) {
+//			items(data.value, { it.context_uri }) {item ->
+//				ReorderableItem(state, key = item.context_uri) { isDragging ->
+//					val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
+//					Column(
+//						modifier = Modifier
+//							.shadow(elevation.value)
+//					) {
+//						var isSongUpvoted by remember {
+//							mutableStateOf(false)
+//						}
+//						Row(
+//							modifier = Modifier.fillMaxWidth(),
+//							verticalAlignment = Alignment.CenterVertically,
+//							horizontalArrangement = Arrangement.Start
+//						) {
+//							DragSongButton(song = item)
+//							HostSongItem(song = item)
+//							ApproveDenyButtons(
+//								song = item,
+//								removeSong = removeSong,
+//								setApprovalStatus = setApprovalStatus,
+//							)
+//							SongActions(song = item, isUpvoted = isSongUpvoted, onVoteClick = {
+//								isSongUpvoted = !isSongUpvoted
+//							}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+//							maxSongUpvotes = maxSongUpvotes)
+//						}
+//					}
+//				}
 //			}
 //		}
+
+		queuedSongList.forEach { song ->
+			var isSongUpvoted by remember {
+				mutableStateOf(false)
+			}
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.Start
+			) {
+				DragSongButton(song = song)
+				HostSongItem(song = song)
+				ApproveDenyButtons(
+					song = song,
+					removeSong = removeSong,
+					setApprovalStatus = setApprovalStatus,
+				)
+				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+					isSongUpvoted = !isSongUpvoted
+				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+				maxSongUpvotes = maxSongUpvotes)
+			}
+		}
 	} else {
 		queuedSongList.forEach { song ->
 			var isSongUpvoted by remember {
