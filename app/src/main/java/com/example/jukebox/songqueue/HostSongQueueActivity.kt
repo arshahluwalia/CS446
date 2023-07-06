@@ -45,6 +45,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jukebox.ApprovalStatus
+import com.example.jukebox.QueueListener
 import com.example.jukebox.R
 import com.example.jukebox.Room
 import com.example.jukebox.RoomManager
@@ -53,7 +54,11 @@ import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private lateinit var roomCode : String
 
@@ -78,6 +83,14 @@ class HostSongQueueActivity : ComponentActivity(){
         val userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
         getHostToken(roomCode, hostToken, userTokens, roomManager)
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
+        QueueListener.setQueueFlow(approvedSongQueue)
+
+        val myScope = CoroutineScope(Dispatchers.Main)
+        myScope.launch {
+            withContext(Dispatchers.IO) {
+                QueueListener.onQueueChanged(roomCode, userTokens)
+            }
+        }
         setContent {
             val navController = rememberNavController()
             NavHost(
@@ -178,8 +191,17 @@ class HostSongQueueActivity : ComponentActivity(){
         }
     }
 
-    private fun startFirstPlayback() {
+    private fun startFirstPlayback(
+        roomCode: String,
+        roomManager: RoomManager?,
+        queue: MutableStateFlow<List<Song>>
+    ) {
+        var hasChanged = false
+        if (queue.value.isEmpty()) {
+            
+        } else {
 
+        }
     }
 }
 
