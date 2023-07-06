@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.activity.OnBackPressedDispatcher
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -43,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -66,6 +70,10 @@ import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.detectReorderAfterLongPress
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -82,7 +90,8 @@ fun SongQueueScreenContent(
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
 	maxSongUpvotes: Int,
 	hostToken: MutableStateFlow<String> = MutableStateFlow(""),
-	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList())
+	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList()),
+	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
 	val context = LocalContext.current
 	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -104,8 +113,8 @@ fun SongQueueScreenContent(
 		SecondaryBackground()
 		Column(
 			modifier = Modifier
-				.fillMaxSize()
-				.verticalScroll(rememberScrollState()),
+				.fillMaxSize(),
+//				.verticalScroll(rememberScrollState()),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
 			Row(
@@ -132,7 +141,8 @@ fun SongQueueScreenContent(
 				setApprovalStatus = setApprovalStatus,
 				maxSongUpvotes = maxSongUpvotes,
 				hostToken = hostToken,
-				userTokens = userTokens
+				userTokens = userTokens,
+				mutableSongList = mutableSongList
 			)
 		}
 	}
@@ -259,7 +269,8 @@ fun SongQueue(
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
 	maxSongUpvotes: Int,
 	hostToken: MutableStateFlow<String>,
-	userTokens: MutableStateFlow<MutableList<String>>
+	userTokens: MutableStateFlow<MutableList<String>>,
+	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
 	Column(
 		modifier = Modifier
@@ -283,6 +294,7 @@ fun SongQueue(
 			roomManager = roomManager,
 			roomCode = roomCode,
 			maxSongUpvotes = maxSongUpvotes,
+			mutableSongList = mutableSongList
 		)
 	}
 }
@@ -358,8 +370,54 @@ fun QueuedSongs(
 	roomCode: String,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
 	maxSongUpvotes: Int,
+	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
+	val data = MutableStateFlow(queuedSongList)
 	if (isHost) {
+//		val state = rememberReorderableLazyListState(onMove = { from, to ->
+//			data.value = data.value.toMutableList().apply {
+//				add(to.index, removeAt(from.index))
+//			}
+//		})
+//
+//		LazyColumn(
+//			state = state.listState,
+//			modifier = Modifier
+//				.reorderable(state)
+//				.detectReorderAfterLongPress(state)
+//		) {
+//			items(data.value, { it.context_uri }) {item ->
+//				ReorderableItem(state, key = item.context_uri) { isDragging ->
+//					val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
+//					Column(
+//						modifier = Modifier
+//							.shadow(elevation.value)
+//					) {
+//						var isSongUpvoted by remember {
+//							mutableStateOf(false)
+//						}
+//						Row(
+//							modifier = Modifier.fillMaxWidth(),
+//							verticalAlignment = Alignment.CenterVertically,
+//							horizontalArrangement = Arrangement.Start
+//						) {
+//							DragSongButton(song = item)
+//							HostSongItem(song = item)
+//							ApproveDenyButtons(
+//								song = item,
+//								removeSong = removeSong,
+//								setApprovalStatus = setApprovalStatus,
+//							)
+//							SongActions(song = item, isUpvoted = isSongUpvoted, onVoteClick = {
+//								isSongUpvoted = !isSongUpvoted
+//							}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+//							maxSongUpvotes = maxSongUpvotes)
+//						}
+//					}
+//				}
+//			}
+//		}
+
 		queuedSongList.forEach { song ->
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
