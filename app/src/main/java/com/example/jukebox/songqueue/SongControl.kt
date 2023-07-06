@@ -41,7 +41,7 @@ fun SongControl(
     val hToken = hostToken.collectAsState().value
     val uTokens = userTokens.collectAsState().value
     var isPaused by remember { mutableStateOf(false) }
-
+    uTokens.add(hToken)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -53,7 +53,6 @@ fun SongControl(
             onClick = {
                 isPaused = false
                 Log.d("spotify control: token list", uTokens.toString())
-                Log.d("spotify control: host token", hToken)
                 scope.launch {
                     val prevSong = runBlocking { roomManager?.getPrevSong(roomCode) }
                     if (prevSong != null) {
