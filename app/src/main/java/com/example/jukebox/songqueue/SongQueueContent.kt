@@ -109,8 +109,8 @@ fun SongQueueScreenContent(
 		SecondaryBackground()
 		Column(
 			modifier = Modifier
-				.fillMaxSize(),
-//				.verticalScroll(rememberScrollState()),
+				.fillMaxSize()
+				.verticalScroll(rememberScrollState()),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
 			Row(
@@ -421,7 +421,7 @@ fun QueuedSongs(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				DragSongButton(song = song)
+				RearrangeSongButtons(song = song, queuedSongList = queuedSongList)
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,
@@ -625,17 +625,44 @@ fun HostSongItem(
 }
 
 @Composable
-fun DragSongButton(
-	song: Song
+fun RearrangeSongButtons(
+	song: Song,
+	queuedSongList: List<Song>
 ) {
-	Image(
-		modifier = Modifier
-			.size(20.dp)
-			.clickable {  },
-		painter = painterResource(id = R.drawable.drag_song_icon),
-		contentDescription = null
-	)
-	//	TODO: change clickable image to draggable
+	val mutableSongList = queuedSongList as MutableList<Song>
+	Column(
+
+	) {
+		Image(
+			modifier = Modifier
+				.size(20.dp)
+				.padding(bottom = 5.dp)
+				.clickable {
+					if (song != mutableSongList.first()) {
+						val songIndex = mutableSongList.indexOf(song)
+						mutableSongList[songIndex] = mutableSongList[songIndex - 1]
+						mutableSongList[songIndex - 1] = song
+					}
+				},
+			painter = painterResource(id = R.drawable.arrow_up_icon),
+			contentDescription = null
+		)
+		Image(
+			modifier = Modifier
+				.size(20.dp)
+				.padding(top = 5.dp)
+				.clickable {
+					if (song != mutableSongList.last()) {
+						val songIndex = mutableSongList.indexOf(song)
+						mutableSongList[songIndex] = mutableSongList[songIndex + 1]
+						mutableSongList[songIndex + 1] = song
+					}
+				},
+			painter = painterResource(id = R.drawable.arrow_down_icon),
+			contentDescription = null
+		)
+	}
+
 }
 
 @Preview
