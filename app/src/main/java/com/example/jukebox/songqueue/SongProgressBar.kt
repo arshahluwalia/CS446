@@ -32,7 +32,7 @@ fun SongProgressBar(
     currentSong: Song
 ) {
     val uTokens = userTokens.collectAsState().value
-    var duration = 50000
+    var duration = currentSong.duration
     var sliderValue by remember { mutableStateOf(0f) }
     val scope = rememberCoroutineScope()
 
@@ -66,12 +66,17 @@ fun SongProgressBar(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "0:00", style = MaterialTheme.typography.bodySmall)
+            Text(text = "0:00", style = MaterialTheme.typography.bodySmall, color = Color.White)
             if (duration != 0){
-                Text(text = duration.toString(), style = MaterialTheme.typography.bodySmall)
+                Text(text = formatDuration(duration), style = MaterialTheme.typography.bodySmall, color = Color.White)
             } else {
-                Text(text = "0:00", style = MaterialTheme.typography.bodySmall)
+                Text(text = "0:00", style = MaterialTheme.typography.bodySmall, color = Color.White)
             }
         }
     }
+}
+fun formatDuration(durationMillis: Int): String {
+    val seconds = (durationMillis / 1000) % 60
+    val minutes = (durationMillis / 1000) / 60
+    return "%d:%02d".format(minutes, seconds)
 }
