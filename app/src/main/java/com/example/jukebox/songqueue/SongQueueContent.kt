@@ -421,7 +421,7 @@ fun QueuedSongs(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				RearrangeSongButtons(song = song, queuedSongList = queuedSongList)
+				RearrangeSongButtons(song = song, queuedSongList = queuedSongList, roomManager = roomManager, roomCode = roomCode)
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,
@@ -627,7 +627,9 @@ fun HostSongItem(
 @Composable
 fun RearrangeSongButtons(
 	song: Song,
-	queuedSongList: List<Song>
+	queuedSongList: List<Song>,
+	roomManager: RoomManager?,
+	roomCode: String
 ) {
 	val mutableSongList = queuedSongList as MutableList<Song>
 	Column(
@@ -640,8 +642,8 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song != mutableSongList.first()) {
 						val songIndex = mutableSongList.indexOf(song)
-						mutableSongList[songIndex] = mutableSongList[songIndex - 1]
-						mutableSongList[songIndex - 1] = song
+						val upperSong = mutableSongList[songIndex - 1]
+						roomManager?.swapSongs(roomCode, upperSong, song)
 					}
 				},
 			painter = painterResource(id = R.drawable.arrow_up_icon),
@@ -654,8 +656,8 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song != mutableSongList.last()) {
 						val songIndex = mutableSongList.indexOf(song)
-						mutableSongList[songIndex] = mutableSongList[songIndex + 1]
-						mutableSongList[songIndex + 1] = song
+						val lowerSong = mutableSongList[songIndex + 1]
+						roomManager?.swapSongs(roomCode, song, lowerSong)
 					}
 				},
 			painter = painterResource(id = R.drawable.arrow_down_icon),

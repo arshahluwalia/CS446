@@ -83,6 +83,12 @@ class RoomManager {
         queueRef.child(songId).removeValue()
     }
 
+    fun swapSongs(roomCode: String, upperSong: Song, lowerSong: Song) {
+        val queueRef = database.child("$roomCode/approvedQueue")
+        queueRef.child(upperSong.context_uri).setValue(lowerSong)
+        queueRef.child(lowerSong.context_uri).setValue(upperSong)
+    }
+
     fun setSongApprovalStatus(roomCode: String, song: Song, approvalStatus: ApprovalStatus) {
         val context_uri = song.context_uri
         var approvalRef = when(approvalStatus) {
