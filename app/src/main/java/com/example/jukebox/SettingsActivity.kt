@@ -2,6 +2,7 @@ package com.example.jukebox
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
@@ -36,6 +37,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -251,87 +253,67 @@ private fun ChangeMaxUpvotes(
     maxUpvotes: MutableStateFlow<Int>,
     activity: Activity?
 ) {
-    var MaxUpvotes by remember { mutableStateOf("") }
-//    val maxUpvoteOptions = (1..100).toList()
-//    var expanded by remember { mutableStateOf(false) }
-//    val interactionSource = remember { MutableInteractionSource() }
+    val maxUpvotesInt = maxUpvotes.collectAsState().value
+    var maxUpvotesString by remember { mutableStateOf(maxUpvotesInt.toString()) }
 
     Text(
-        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 60.dp),
         text = "Change Maximum Upvotes:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
         textAlign = TextAlign.Start
     )
 
-//    DropdownMenu(
-//        expanded = expanded,
-//        onDismissRequest = { expanded = false },
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(Color.White)
-//    ) {
-//        maxUpvoteOptions.forEach { option ->
-//            DropdownMenuItem(
-//                onClick = {
-//                    MaxUpvotes = option.toString()
-//                    expanded = false
-//                },
-//                interactionSource = interactionSource,
-//                text = {
-//                    Text(
-//                        text = option.toString(),
-//                        modifier = Modifier.padding(vertical = 5.dp),
-//                        style = TextStyle.Default
-//                    )
-//                },
-//            )
-//        }
-//    }
+    val lazyListState = rememberLazyListState()
+    val preselectedItem = maxUpvotesInt
 
-    TextField(
-        modifier = Modifier.padding(vertical = 0.dp),
-        value = MaxUpvotes,
-        onValueChange = {
-            MaxUpvotes = it
-        },
-        placeholder = {
+    LaunchedEffect(preselectedItem) {
+        if (preselectedItem > 0) {
+            lazyListState.scrollToItem(preselectedItem - 1)
+        } else {
+            lazyListState.scrollToItem(preselectedItem)
+        }
+    }
+
+    LazyColumn(
+        state = lazyListState,
+        modifier = Modifier.padding(bottom = 10.dp).height(70.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(101) { page ->
+            val textColor = if (page.toString() == maxUpvotesString) Color.White else Color.Gray
+
             Text(
-                text = maxUpvotes.collectAsState().value.toString(),
-                style = MaterialTheme.typography.headlineSmall
+                modifier = Modifier.clickable {
+                    maxUpvotesString = page.toString()
+                },
+                text = page.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = textColor,
+                textAlign = TextAlign.Center,
             )
-        },
-        shape = RoundedCornerShape(20),
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {
-                if (activity != null) {
-                    HideSoftKeyboard.hideSoftKeyboard(activity = activity)
-                }
-                if (MaxUpvotes.isDigitsOnly() && MaxUpvotes != "") {
-                    roomManager?.setMaxUpvotes(roomCode, MaxUpvotes.toInt())
-                }
-            }
-        )
-    )
+        }
+    }
+
     Button(
         onClick = {
             if (activity != null) {
                 HideSoftKeyboard.hideSoftKeyboard(activity = activity)
             }
-            if (MaxUpvotes.isDigitsOnly() && MaxUpvotes != "") {
-                roomManager?.setMaxUpvotes(roomCode, MaxUpvotes.toInt())
+            if (maxUpvotesString.isDigitsOnly() && maxUpvotesString != "") {
+                roomManager?.setMaxUpvotes(roomCode, maxUpvotesString.toInt())
             }
         },
-        enabled = MaxUpvotes.isNotEmpty()
+        enabled = maxUpvotesString.toInt() != maxUpvotesInt
     ) {
         Text(text = "Save")
+    }
+
+    LaunchedEffect(maxUpvotesInt) {
+        maxUpvotesString = maxUpvotesInt.toString()
     }
 }
 
@@ -342,58 +324,67 @@ private fun ChangeMaxSuggestions(
     maxSuggestions: MutableStateFlow<Int>,
     activity: Activity?
 ) {
-    var MaxSuggestions by remember { mutableStateOf("") }
+    val maxSuggestionsInt = maxSuggestions.collectAsState().value
+    var maxSuggestionsString by remember { mutableStateOf(maxSuggestionsInt.toString()) }
 
     Text(
-        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 60.dp),
         text = "Change Maximum Suggestions:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
         textAlign = TextAlign.Start
     )
-    TextField(
-        modifier = Modifier.padding(vertical = 0.dp),
-        value = MaxSuggestions,
-        onValueChange = {
-            MaxSuggestions = it
-        },
-        placeholder = {
+
+    val lazyListState = rememberLazyListState()
+    val preselectedItem = maxSuggestionsInt
+
+    LaunchedEffect(preselectedItem) {
+        if (preselectedItem > 0) {
+            lazyListState.scrollToItem(preselectedItem - 1)
+        } else {
+            lazyListState.scrollToItem(preselectedItem)
+        }
+    }
+
+    LazyColumn(
+        state = lazyListState,
+        modifier = Modifier.padding(bottom = 10.dp).height(70.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(101) { page ->
+            val textColor = if (page.toString() == maxSuggestionsString) Color.White else Color.Gray
+
             Text(
-                text = maxSuggestions.collectAsState().value.toString(),
-                style = MaterialTheme.typography.headlineSmall
+                modifier = Modifier.clickable {
+                    maxSuggestionsString = page.toString()
+                },
+                text = page.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = textColor,
+                textAlign = TextAlign.Center,
             )
-        },
-        shape = RoundedCornerShape(20),
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {
-                if (activity != null) {
-                    HideSoftKeyboard.hideSoftKeyboard(activity = activity)
-                }
-                if (MaxSuggestions.isDigitsOnly() && MaxSuggestions != "") {
-                    roomManager?.setMaxSuggestions(roomCode, MaxSuggestions.toInt())
-                }
-            }
-        )
-    )
+        }
+    }
+
     Button(
         onClick = {
             if (activity != null) {
                 HideSoftKeyboard.hideSoftKeyboard(activity = activity)
             }
-            if (MaxSuggestions.isDigitsOnly() && MaxSuggestions != "") {
-                roomManager?.setMaxSuggestions(roomCode, MaxSuggestions.toInt())
+            if (maxSuggestionsString.isDigitsOnly() && maxSuggestionsString != "") {
+                roomManager?.setMaxSuggestions(roomCode, maxSuggestionsString.toInt())
             }
         },
-        enabled = MaxSuggestions.isNotEmpty()
+        enabled = maxSuggestionsString.toInt() != maxSuggestionsInt
     ) {
         Text(text = "Save")
+    }
+
+    LaunchedEffect(maxSuggestionsInt) {
+        maxSuggestionsString = maxSuggestionsInt.toString()
     }
 }
 
