@@ -219,8 +219,14 @@ private fun EnterName(
                 }
                 Text(
                     textAlign = TextAlign.Center,
-                    text = "Enter your name here! This is what the guests will see.",
+                    text = "Enter your name here!",
                     style = MaterialTheme.typography.titleSmall,
+                    color = Color.White,
+                )
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = "This is what the guests will see.",
+                    style = MaterialTheme.typography.bodyLarge,
                     color = Color.White,
                 )
                 TextField(
