@@ -125,7 +125,17 @@ fun SongQueueScreenContent(
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
 			if(!isHost){
-				Text(text = "You have: $maxSongUpvotes upvotes remaining", color = Color.White)
+				Text(
+					modifier = Modifier.padding(bottom = 5.dp),
+					text = buildAnnotatedString {
+						append("You have ")
+						withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+							append(maxSongUpvotes.toString())
+						}
+						append(" upvotes remaining")
+					},
+					color = Color.White
+				)
 			}
 			SongQueue(
 				isHost = isHost,
