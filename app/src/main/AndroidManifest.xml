@@ -66,6 +66,12 @@
                 <data android:scheme="jukebox" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".util.OpenSpotifySongActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Jukebox">
+        </activity>
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

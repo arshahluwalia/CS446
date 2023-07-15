@@ -68,6 +68,7 @@ import com.example.jukebox.Song
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
+import com.example.jukebox.util.OpenSpotifySongActivity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -339,13 +340,18 @@ fun PlayingSong(
 					painter = painterResource(id = R.drawable.ellipsis),
 					contentDescription = null
 				)
+				val context = LocalContext.current
 				DropdownMenu(
 					expanded = expanded.value,
 					onDismissRequest = { expanded.value = !expanded.value }
 				) {
 					DropdownMenuItem(
 						text = { Text(text = "Open in Spotify") },
-						onClick = { /* TODO: open in spotify */ }
+						onClick = {
+							val intent = Intent(context, OpenSpotifySongActivity::class.java)
+							intent.putExtra("songUri", playingSong.context_uri)
+							context.startActivity(intent)
+						}
 					)
 				}
 			}
