@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -543,13 +544,18 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 			painter = painterResource(id = R.drawable.ellipsis),
 			contentDescription = null
 		)
+		val context = LocalContext.current
 		DropdownMenu(
 			expanded = expanded.value,
 			onDismissRequest = { expanded.value = !expanded.value }
 		) {
 			DropdownMenuItem(
 				text = { Text(text = "Open in Spotify") },
-				onClick = { /* TODO: open in spotify */ }
+				onClick = {
+					val intent = Intent(context, OpenSpotifySongActivity::class.java)
+					intent.putExtra("songUri", song.context_uri)
+					context.startActivity(intent)
+				}
 			)
 		}
 	}
@@ -616,9 +622,14 @@ fun ApproveDenyButtons(
 					text = { Text(text = "Remove Song") },
 					onClick = { removeSong(song) }
 				)
+				val context = LocalContext.current
 				DropdownMenuItem(
 					text = { Text(text = "Open in Spotify") },
-					onClick = { /* TODO: open in spotify */ }
+					onClick = {
+						val intent = Intent(context, OpenSpotifySongActivity::class.java)
+						intent.putExtra("songUri", song.context_uri)
+						context.startActivity(intent)
+					}
 				)
 			}
 		}
