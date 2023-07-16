@@ -45,7 +45,7 @@ fun SongProgressBar(
         .fillMaxWidth()
         .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
-/*        LaunchedEffect(Unit) {
+       LaunchedEffect(Unit) {
             // Start a coroutine that fetches the API and updates the position every second
             while (true) {
                 // Pass host token to get position
@@ -53,7 +53,7 @@ fun SongProgressBar(
                 sliderValue = (playBackState.second as? Int)?.toFloat() ?: 0f
                 delay(1000) // Delay for 1 second before fetching again
             }
-}*/
+        }
         Slider(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -80,7 +80,7 @@ fun SongProgressBar(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "0:00", style = MaterialTheme.typography.bodySmall, color = Color.White)
+            Text(text = formatDuration(sliderValue.toInt()), style = MaterialTheme.typography.bodySmall, color = Color.White)
             if (duration != 0){
                 Text(text = formatDuration(duration), style = MaterialTheme.typography.bodySmall, color = Color.White)
             } else {
