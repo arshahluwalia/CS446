@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.os.Looper
 import com.example.jukebox.spotify.task.SpotifySongControlTask
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -9,7 +10,6 @@ class QueueListener {
 
 	companion object {
 		private var previousQueue: List<Song> = emptyList()
-		private var currentQueue: List<Song> = emptyList()
 		private var queue: MutableStateFlow<List<Song>> = MutableStateFlow(emptyList())
 		private val roomManager = RoomManager()
 
@@ -29,12 +29,14 @@ class QueueListener {
 								0,
 								uTokens.value
 							)
+							if (Looper.myLooper() == null) {
+								Looper.prepare()
+							}
+							CurrentSong.setDuration(currentSong.duration)
 						}
 					}
 				}
-				val tempQueue = currentQueue
-				currentQueue = it
-				previousQueue = tempQueue
+				previousQueue = queue.value
 			}
 		}
 	}

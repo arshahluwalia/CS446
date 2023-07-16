@@ -45,6 +45,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jukebox.ApprovalStatus
+import com.example.jukebox.CurrentSong
 import com.example.jukebox.QueueListener
 import com.example.jukebox.R
 import com.example.jukebox.Room
@@ -58,7 +59,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private lateinit var roomCode : String
 
@@ -84,12 +84,17 @@ class HostSongQueueActivity : ComponentActivity(){
         getHostToken(roomCode, hostToken, userTokens, roomManager)
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
         QueueListener.setQueueFlow(approvedSongQueue)
+        CurrentSong.setInitialVars(roomCode, userTokens)
 
         val myScope = CoroutineScope(Dispatchers.Main)
         myScope.launch {
-            withContext(Dispatchers.IO) {
-                QueueListener.onQueueChanged(roomCode, userTokens)
-            }
+            QueueListener.onQueueChanged(roomCode, userTokens)
+        }
+        myScope.launch {
+            CurrentSong.onDurationChanged()
+        }
+        myScope.launch {
+            CurrentSong.onTimerFinishes()
         }
         setContent {
             val navController = rememberNavController()

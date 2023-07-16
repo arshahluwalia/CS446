@@ -11,7 +11,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,11 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.Song
-import com.example.jukebox.spotify.task.SpotifySongControlTask.getPlaybackState
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Composable
@@ -36,8 +32,7 @@ fun SongProgressBar(
     currentSong: Song
 ) {
     val uTokens = userTokens.collectAsState().value
-    val hTokens = userTokens.collectAsState().value.first()
-    var duration = currentSong.duration
+    val duration = currentSong.duration
     var sliderValue by remember { mutableStateOf(0f) }
     val scope = rememberCoroutineScope()
 
@@ -66,6 +61,7 @@ fun SongProgressBar(
                     if (currentSong.songTitle != "" && isHost) {
                         Log.d("play seek: ", currentSong.context_uri)
                         playSong(currentSong.context_uri, sliderValue.toInt(), uTokens)
+                        // TODO: set timer to a new timer with a new countdown
                     }
                 }
             },
@@ -80,7 +76,7 @@ fun SongProgressBar(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "0:00", style = MaterialTheme.typography.bodySmall, color = Color.White)
+            Text(text = formatDuration(sliderValue.toInt()), style = MaterialTheme.typography.bodySmall, color = Color.White)
             if (duration != 0){
                 Text(text = formatDuration(duration), style = MaterialTheme.typography.bodySmall, color = Color.White)
             } else {
