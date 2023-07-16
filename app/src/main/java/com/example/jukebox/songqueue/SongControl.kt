@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.CurrentSong
 import com.example.jukebox.R
 import com.example.jukebox.RoomManager
 import com.example.jukebox.spotify.task.SpotifySongControlTask.pauseSong
@@ -64,6 +65,7 @@ fun SongControl(
                             0,
                             uTokens
                         )
+                        CurrentSong.setDuration(prevSong.duration)
                     }
                 }
             }
@@ -75,9 +77,11 @@ fun SongControl(
                 scope.launch {
                     isPaused = if (isPaused) {
                         resumeSong(uTokens)
+                        CurrentSong.resumeTimer()
                         false
                     } else {
                         pauseSong(uTokens)
+                        CurrentSong.pauseTimer()
                         true
                     }
                 }
@@ -112,6 +116,7 @@ fun SongControl(
                             0,
                             uTokens
                         )
+                        CurrentSong.setDuration(nextSong.duration)
                     }
                 }
             }
