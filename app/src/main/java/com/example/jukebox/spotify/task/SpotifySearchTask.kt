@@ -32,7 +32,8 @@ object SpotifySearchTask : CoroutineScope by MainScope() {
                         val songTitle = item.name
                         val songUri = item.uri
                         val duration = item.duration_ms
-                        val newSong = Song(songUri, songTitle, songArtist, duration= duration)
+                        val timeStamp = System.currentTimeMillis()
+                        val newSong = Song(songUri, songTitle, songArtist, duration= duration, timeStampAdded = timeStamp)
                         listOfSongs.add(newSong)
                         Log.d("spotify logging: ", "added new song: artist: ${newSong.songArtist}, title: ${newSong.songTitle}, uri: ${newSong.context_uri}")
                     }

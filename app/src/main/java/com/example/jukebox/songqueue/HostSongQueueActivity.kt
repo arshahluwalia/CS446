@@ -139,6 +139,14 @@ class HostSongQueueActivity : ComponentActivity(){
         }
     }
 
+    private fun getSongQueueByOrderAdded(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        // update the songqueue, ordered by the timestamp by which it was added
+        roomManager.getPendingQueue(roomCode) { queue ->
+            songQueue.value = queue.queue.sortedBy { it.timeStampAdded }
+        }
+    }
+
     private fun getApprovedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
         roomManager.getApprovedQueueCallback(roomCode) { queue ->
