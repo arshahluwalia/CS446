@@ -1,5 +1,6 @@
 package com.example.jukebox.songqueue
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.jukebox.CurrentSong
 import com.example.jukebox.Song
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
 import kotlinx.coroutines.delay
@@ -51,6 +53,8 @@ fun SongProgressBar(
 //                delay(1000) // Delay for 1 second before fetching again
 //            }
 //        }
+        sliderValue = CurrentSong.currentTime.collectAsState().value.toFloat()
+        Log.d("slider value", sliderValue.toString())
         Slider(
             modifier = Modifier
                 .fillMaxWidth(),
