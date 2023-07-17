@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -429,7 +430,7 @@ fun QueuedSongs(
 //			}
 //		}
 
-		queuedSongList.forEach { song ->
+		queuedSongList.reversed().forEach { song ->
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
 			}
@@ -452,6 +453,43 @@ fun QueuedSongs(
 			}
 		}
 	} else {
+//		var items by remember {
+//			mutableStateOf(
+//				queuedSongList.map {
+//					Song(
+//						context_uri = it.context_uri,
+//						songTitle = it.songTitle,
+//						songArtist = it.songArtist,
+//						approvalStatus = it.approvalStatus,
+//						votes = it.votes,
+//						duration = it.duration,
+//						timeStampAdded = it.timeStampAdded
+//					)
+//				}
+//			)
+//		}
+//		LazyColumn(
+//			modifier = Modifier.fillMaxSize(),
+//			reverseLayout = true
+//		){
+//			items(items) {
+//				Row(
+//				modifier = Modifier.fillMaxWidth(),
+//				verticalAlignment = Alignment.CenterVertically,
+//				horizontalArrangement = Arrangement.Start
+//				) {
+////					var isSongUpvoted by remember {
+////						mutableStateOf(false)
+////					}
+//					var isSongUpvoted = false
+//					GuestSongItem(song = it)
+//					SongActions(song = it, isUpvoted = isSongUpvoted, onVoteClick = {
+//						isSongUpvoted = !isSongUpvoted
+//					}, roomManager = roomManager, roomCode = roomCode, isHost = false,
+//					maxSongUpvotes = maxSongUpvotes)
+//				}
+//			}
+//		}
 		queuedSongList.forEach { song ->
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
@@ -506,7 +544,7 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 	Image(
 		modifier = Modifier
 			.clickable {
-				if(isHost){ /*Hosts get unlimited voting*/
+				if (isHost) { /*Hosts get unlimited voting*/
 					/*If the user hasn't upvoted, increment upvotes by one*/
 					if (!isUpvoted) {
 						roomManager?.upvoteSong(roomCode, song.context_uri)
@@ -514,8 +552,7 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 						roomManager?.downvoteSong(roomCode, song.context_uri)
 					}
 					onVoteClick()
-				}
-				else{ /*Guest voting is rate limited*/
+				} else { /*Guest voting is rate limited*/
 					// TODO: check if guest hasn't exceeded max upvotes.
 //					val currentUpvotes : Int = roomManager.getCurrentUpvotes(roomCode, SpotifyUserToken.getToken()){currentVotes ->
 //							return currentVotes
