@@ -43,14 +43,15 @@ class GuestSongQueueActivity  : ComponentActivity(){
             // TODO: need to retrieve current song instead of hardcoding
             val concatSongQueue =
                 approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
+            val currentApprovedSongs: List<Song> = approvedSongQueue.collectAsState().value
             JukeboxTheme() {
                 SongQueueScreenContent(
                     dispatcher = dispatcher,
                     hostName = hostName.collectAsState().value,
                     isHost = false,
                     playingSong =
-                        if (approvedSongQueue.collectAsState().value.isEmpty()) Song()
-                        else approvedSongQueue.collectAsState().value[0],
+                        if (currentApprovedSongs.isEmpty()) Song()
+                        else currentApprovedSongs[0],
                     queuedSongList = concatSongQueue,
                     roomCode = roomCode,
                     roomManager = roomManager,
