@@ -142,7 +142,9 @@ class RoomManager {
         )
     }
 
-    fun upvoteSong(roomCode: String, songId: String) {
+    fun upvoteSong(roomCode: String, songId: String, userToken: String = "") {
+        // null string userToken indicates that host has upvoted
+        // Change number of votes for a particular song
         val voteRef = database.child("$roomCode/pendingQueue/$songId/votes")
 
         // Transaction code based on: https://stackoverflow.com/a/76369990
@@ -170,6 +172,36 @@ class RoomManager {
                 println("currentCount: $currentCount")
             }
         })
+
+        if(userToken != ""){ // guest is upvoting
+            val userVoteRef = database.child("$roomCode/users/$userToken/numUpvotes")
+
+            userVoteRef.runTransaction(object : Transaction.Handler {
+
+                override fun doTransaction(mutableData: MutableData): Transaction.Result {
+
+                    val value = mutableData.getValue(Int::class.java)
+
+                    if (value == null) {
+                        mutableData.value = 0
+                    } else {
+                        mutableData.value = value + 1
+                    }
+
+                    return Transaction.success(mutableData)
+                }
+
+                override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                    if (error != null) {
+                        println("transaction-onCompleteError: ${error.message}")
+                    }
+
+                    val currentCount = currentData?.getValue(Long::class.java) ?: 0L
+                    println("currentCount: $currentCount")
+                }
+            })
+
+        }
     }
 
     fun downvoteSong(roomCode: String, songId: String) {
@@ -200,6 +232,34 @@ class RoomManager {
                 println("currentCount: $currentCount")
             }
         })
+
+        if(userToken != ""){ // guest is undoing upvote
+            val userVoteRef = database.child("$roomCode/users/$userToken/numUpvotes")
+
+            userVoteRef.runTransaction(object : Transaction.Handler {
+
+                override fun doTransaction(mutableData: MutableData): Transaction.Result {
+
+                    val value = mutableData.getValue(Int::class.java)
+
+                    if (value == null) {
+                        mutableData.value = 0
+                    } else {
+                        mutableData.value = value - 1
+                    }
+
+                    return Transaction.success(mutableData)
+                }
+
+                override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                    if (error != null) {
+                        println("transaction-onCompleteError: ${error.message}")
+                    }
+
+                    val currentCount = currentData?.getValue(Long::class.java) ?: 0L
+                    println("currentCount: $currentCount")
+                }
+            })
     }
 
     suspend fun fetchVotes(roomCode: String, songId: String): Int? {
@@ -352,6 +412,7 @@ class RoomManager {
         })
     }
 
+    // get how many times user has upvoted
     fun getCurrentUpvotes(roomCode: String, userToken: String, callback: (Int) -> Unit) {
         val userRef = database.child("$roomCode/users/$userToken/numUpvotes")
 
