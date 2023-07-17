@@ -331,6 +331,8 @@ private fun SongQueue(
         approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
 
     val mutableSongQueue = MutableStateFlow(concatSongQueue)
+
+    val currentApprovedSongs: List<Song> = approvedSongQueue.collectAsState().value
     JukeboxTheme {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -341,8 +343,8 @@ private fun SongQueue(
                 hostName = hostName ?: "You",
                 isHost = true,
                 playingSong =
-                    if (approvedSongQueue.collectAsState().value.isEmpty()) Song()
-                    else approvedSongQueue.collectAsState().value[0],
+                    if (currentApprovedSongs.isEmpty()) Song()
+                    else currentApprovedSongs[0],
                 queuedSongList = concatSongQueue,
                 roomCode = roomCode,
                 removeSong = removeSong,
