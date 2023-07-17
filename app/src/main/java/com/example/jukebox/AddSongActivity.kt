@@ -31,8 +31,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -296,9 +298,10 @@ private fun SearchSongQueue(
     remainingRequests: Int
 ) {
     val context = LocalContext.current
+    val clickedStateMap = remember { mutableStateMapOf<String, Boolean>() }
+
     Log.d("Display: ", "Songs to add: $queuedSongList")
     queuedSongList.forEach { song ->
-        var isClicked by remember { mutableStateOf(false) }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -310,7 +313,7 @@ private fun SearchSongQueue(
                 onClick = {
                     if (remainingRequests > 0) {
                         roomManager?.addSongToPendingQueue(roomCode, song)
-                        isClicked = true
+                        clickedStateMap[song.context_uri] = true
                         if (!isHost) roomManager?.suggestSong(roomCode, SpotifyUserToken.getToken())
                     } else {
                         AlertDialog.Builder(context)
@@ -321,7 +324,7 @@ private fun SearchSongQueue(
                     }
                 }) {
                 Icon(
-                    imageVector = if (isClicked) Icons.Filled.Check else Icons.Filled.Add,
+                    imageVector = if (clickedStateMap[song.context_uri] == true) Icons.Filled.Check else Icons.Filled.Add,
                     contentDescription = null,
                     tint = Color.White
                 )
