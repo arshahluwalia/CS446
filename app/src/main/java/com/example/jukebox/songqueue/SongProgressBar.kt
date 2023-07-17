@@ -53,14 +53,14 @@ fun SongProgressBar(
 //                delay(1000) // Delay for 1 second before fetching again
 //            }
 //        }
-        sliderValue = CurrentSong.currentTime.collectAsState().value.toFloat()
+        sliderValue = duration - CurrentSong.currentTime.collectAsState().value.toFloat() * 1000
         Log.d("slider value", sliderValue.toString())
         Slider(
             modifier = Modifier
                 .fillMaxWidth(),
             value = sliderValue,
             onValueChange = { newValue ->
-                sliderValue = newValue
+//                sliderValue = newValue
             },
             onValueChangeFinished = {
                 scope.launch {
