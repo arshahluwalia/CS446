@@ -8,7 +8,8 @@ class Song(
 	val songArtist: String = "",
 	val approvalStatus: ApprovalStatus = ApprovalStatus.PENDING_APPROVAL,
 	var votes: Int = 0,
-	var duration: Int = 0
+	var duration: Int = 0,
+	var timeStampAdded: Long = 0
 ) {
 //	init {
 //		// TODO: Populate songTitle, Artist and duration from context_uri
