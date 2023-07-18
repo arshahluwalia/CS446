@@ -204,7 +204,7 @@ class RoomManager {
         }
     }
 
-    fun downvoteSong(roomCode: String, songId: String) {
+    fun downvoteSong(roomCode: String, songId: String, userToken: String = "") {
         val voteRef = database.child("$roomCode/pendingQueue/$songId/votes")
 
         // Transaction code based on: https://stackoverflow.com/a/76369990
@@ -260,6 +260,7 @@ class RoomManager {
                     println("currentCount: $currentCount")
                 }
             })
+        }
     }
 
     suspend fun fetchVotes(roomCode: String, songId: String): Int? {

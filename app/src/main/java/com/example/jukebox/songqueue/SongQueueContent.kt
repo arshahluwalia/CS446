@@ -67,6 +67,7 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.SettingsActivity
 import com.example.jukebox.Song
+import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
@@ -553,11 +554,10 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 					}
 					onVoteClick()
 				} else { /*Guest voting is rate limited*/
-					val currentUpvotes : Int = roomManager.getCurrentUpvotes(roomCode, SpotifyUserToken.getToken()){currentVotes ->
-							return currentVotes
-					}
+					val currentUpvotes = MutableStateFlow(0)
+					getCurrentUpvotes(roomCode, SpotifyUserToken.getToken(), currentUpvotes)
 					if(!isUpvoted){
-						if(currentUpvotes < maxSongUpvotes){
+						if(currentUpvotes.value < maxSongUpvotes){
 							// if user hasn't exceeded max upvotes,
 							// and user hasn't voted -> increment upvotes by one
 							roomManager?.upvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
@@ -597,6 +597,13 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 				}
 			)
 		}
+	}
+}
+
+private fun getCurrentUpvotes(roomCode: String, userToken: String, upvotes: MutableStateFlow<Int>) {
+	val roomManager = RoomManager()
+	roomManager.getCurrentUpvotes(roomCode, userToken) { it ->
+		upvotes.value = it
 	}
 }
 
