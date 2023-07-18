@@ -351,7 +351,7 @@ private fun SongQueue(
                 roomManager = roomManager,
                 appContext = appContext,
                 setApprovalStatus = setApprovalStatus,
-                maxSongUpvotes = 999999,
+                remainingUpvotes = 999999,
                 hostToken = hostToken,
                 userTokens = userTokens,
                 mutableSongList = mutableSongQueue
@@ -393,7 +393,7 @@ private fun PreviewHostQueueScreenContent() {
                 roomCode = "ABCDE",
                 roomManager = null,
                 appContext = LocalContext.current,
-                maxSongUpvotes = 999999
+                remainingUpvotes = 999999
             )
         }
     }

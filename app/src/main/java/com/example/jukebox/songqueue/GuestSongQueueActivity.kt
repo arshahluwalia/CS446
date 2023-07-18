@@ -15,6 +15,7 @@ import com.example.jukebox.ApprovalStatus
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
+import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -35,7 +36,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getHostName(roomCode, hostName)
         val roomManager = RoomManager()
         val maxSongUpvotes = MutableStateFlow(0)
-        getMaxUpvotes(roomCode, maxSongUpvotes)
+        getMaxUpvotesAllowed(roomCode, roomManager, maxSongUpvotes)
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
 
@@ -56,7 +57,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
                     roomCode = roomCode,
                     roomManager = roomManager,
                     appContext = appContext,
-                    maxSongUpvotes = maxSongUpvotes.collectAsState().value
+                    remainingUpvotes = maxSongUpvotes.collectAsState().value
                 )
             }
         }
@@ -120,6 +121,22 @@ class GuestSongQueueActivity  : ComponentActivity(){
             maxUpvotes.value = max
         }
     }
+
+    private fun getMaxUpvotesAllowed(
+        roomCode: String,
+        roomManager: RoomManager?,
+        maxUpvotesAllowed: MutableStateFlow<Int>
+    ) {
+        roomManager?.getMaxUpvotes(roomCode) { maxUpvotes ->
+            roomManager.getCurrentUpvotes(roomCode, SpotifyUserToken.getToken()) { currentUpvotes ->
+                if (maxUpvotes - currentUpvotes < 0) {
+                    maxUpvotesAllowed.value = 0
+                } else {
+                    maxUpvotesAllowed.value = maxUpvotes - currentUpvotes
+                }
+            }
+        }
+    }
 }
 
 @Preview
@@ -145,7 +162,7 @@ private fun PreviewScreenContent() {
                 roomCode = "ABCDE",
                 roomManager = null,
                 appContext = LocalContext.current,
-                maxSongUpvotes = 10
+                remainingUpvotes = 10
             )
         }
     }

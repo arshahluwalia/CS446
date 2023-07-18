@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import com.example.jukebox.spotify.SpotifyUserToken
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.MutableData
@@ -8,6 +9,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
@@ -346,6 +348,7 @@ class RoomManager {
             }
         })
     }
+
 
     fun setMaxSuggestions(roomCode: String, maxSuggestions: Int) {
         val maxSuggestionsRef = database.child("$roomCode/maxSuggestions")

@@ -1,8 +1,10 @@
 package com.example.jukebox.songqueue
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
@@ -72,6 +74,7 @@ import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.example.jukebox.util.CopyToClipboard
 import com.example.jukebox.util.OpenSpotifySongActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -88,7 +91,7 @@ fun SongQueueScreenContent(
 	roomManager: RoomManager?,
 	appContext: Context,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	maxSongUpvotes: Int,
+	remainingUpvotes: Int,
 	hostToken: MutableStateFlow<String> = MutableStateFlow(""),
 	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList()),
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
@@ -134,7 +137,7 @@ fun SongQueueScreenContent(
 					text = buildAnnotatedString {
 						append("You have ")
 						withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-							append(maxSongUpvotes.toString())
+							append(remainingUpvotes.toString())
 						}
 						append(" upvotes remaining")
 					},
@@ -149,7 +152,7 @@ fun SongQueueScreenContent(
 				roomCode = roomCode,
 				roomManager = roomManager,
 				setApprovalStatus = setApprovalStatus,
-				maxSongUpvotes = maxSongUpvotes,
+				remainingUpvotes = remainingUpvotes,
 				hostToken = hostToken,
 				userTokens = userTokens,
 				mutableSongList = mutableSongList
@@ -157,6 +160,7 @@ fun SongQueueScreenContent(
 		}
 	}
 }
+
 @Composable
 private fun BackButton(dispatcher: OnBackPressedDispatcher? = null) {
 	TextButton(
@@ -277,7 +281,7 @@ fun SongQueue(
 	roomCode: String,
 	roomManager: RoomManager?,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	maxSongUpvotes: Int,
+	remainingUpvotes: Int,
 	hostToken: MutableStateFlow<String>,
 	userTokens: MutableStateFlow<MutableList<String>>,
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
@@ -303,7 +307,7 @@ fun SongQueue(
 			setApprovalStatus = setApprovalStatus,
 			roomManager = roomManager,
 			roomCode = roomCode,
-			maxSongUpvotes = maxSongUpvotes,
+			remainingUpvotes = remainingUpvotes,
 			mutableSongList = mutableSongList
 		)
 	}
@@ -382,7 +386,7 @@ fun QueuedSongs(
 	roomManager: RoomManager?,
 	roomCode: String,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	maxSongUpvotes: Int,
+	remainingUpvotes: Int,
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
 	val data = MutableStateFlow(queuedSongList)
@@ -450,7 +454,7 @@ fun QueuedSongs(
 				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
 				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-				maxSongUpvotes = maxSongUpvotes)
+				remainingUpvotes = remainingUpvotes)
 			}
 		}
 	} else {
@@ -504,7 +508,7 @@ fun QueuedSongs(
 				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
 				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-				maxSongUpvotes = maxSongUpvotes)
+				remainingUpvotes = remainingUpvotes)
 			}
 		}
 	}
@@ -540,8 +544,9 @@ fun GuestSongItem(
 }
 
 @Composable
-fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomManager: RoomManager?, roomCode: String, maxSongUpvotes: Int, isHost: Boolean) {
+fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomManager: RoomManager?, roomCode: String, remainingUpvotes: Int, isHost: Boolean) {
 	val expanded = remember { mutableStateOf(false) }
+	val context = LocalContext.current
 	Image(
 		modifier = Modifier
 			.clickable {
@@ -557,18 +562,24 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 					val currentUpvotes = MutableStateFlow(0)
 					getCurrentUpvotes(roomCode, SpotifyUserToken.getToken(), currentUpvotes)
 					if(!isUpvoted){
-						if(currentUpvotes.value < maxSongUpvotes){
+						if(remainingUpvotes > 0){
 							// if user hasn't exceeded max upvotes,
 							// and user hasn't voted -> increment upvotes by one
 							roomManager?.upvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
+							onVoteClick()
 						} else{
 							// TODO: figure out what happens if user exceeds max upvotes
+							AlertDialog.Builder(context)
+								.setTitle("You have exceeded the max amount of allowable upvotes")
+								.setMessage("You can undo an upvote to upvote this song")
+								.setPositiveButton("OK", null)
+								.show()
 						}
 					}
 					else{ // user downvotes a song
 						roomManager?.downvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
+						onVoteClick()
 					}
-					onVoteClick()
 				}
 			}
 			.alpha(if (isUpvoted) 0.5f else 1.0f),
@@ -763,7 +774,7 @@ private fun PreviewScreenContent() {
 				roomCode = "ABCDE",
 				roomManager = null,
 				appContext = LocalContext.current,
-				maxSongUpvotes = 10
+				remainingUpvotes = 10
 			)
 		}
 	}
