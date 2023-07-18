@@ -68,9 +68,21 @@ class AddSongActivity : ComponentActivity() {
         val roomManager = RoomManager()
         val maxSongRequests = MutableStateFlow(0)
         getMaxSongRequests(roomCode, roomManager, maxSongRequests)
+
+        val songQueue = MutableStateFlow<List<Song>>(emptyList())
+        val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
+        val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
+        getSongQueueByOrderAdded(roomCode, songQueue)
+        getApprovedSongQueue(roomCode, approvedSongQueue)
+        getDeniedSongQueue(roomCode, deniedSongQueue)
+
         setContent {
             val songName = MutableStateFlow("")
             val songList = MutableStateFlow<List<Song>>(emptyList())
+
+            val concatSongQueue =
+                approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
+
             JukeboxTheme {
                 ScreenContent(
                     dispatcher = dispatcher,
@@ -78,12 +90,35 @@ class AddSongActivity : ComponentActivity() {
                     addToQueue = { addToQueue(songName.value, songList) },
                     songName = songName,
                     songList = songList,
+                    queuedSongList = concatSongQueue,
                     activity = this,
                     roomManager = roomManager,
                     isHost = isHost,
                     remainingRequests = maxSongRequests.collectAsState().value
                 )
             }
+        }
+    }
+
+    private fun getSongQueueByOrderAdded(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        // update the songqueue, ordered by the timestamp by which it was added
+        roomManager.getPendingQueue(roomCode) { queue ->
+            songQueue.value = queue.queue.sortedBy { it.timeStampAdded }
+        }
+    }
+
+    private fun getApprovedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        roomManager.getApprovedQueueCallback(roomCode) { queue ->
+            songQueue.value = queue.queue
+        }
+    }
+
+    private fun getDeniedSongQueue(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        roomManager.getDeniedQueueCallback(roomCode) { queue ->
+            songQueue.value = queue.queue
         }
     }
 
@@ -116,6 +151,7 @@ private fun ScreenContent(
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
     songList: MutableStateFlow<List<Song>>,
+    queuedSongList: List<Song>,
     activity: Activity?,
     roomManager: RoomManager?,
     isHost: Boolean,
@@ -136,6 +172,7 @@ private fun ScreenContent(
                 addToQueue = addToQueue,
                 songName = songName,
                 songList = songList,
+                queuedSongList = queuedSongList,
                 activity = activity,
                 roomManager = roomManager,
                 isHost = isHost,
@@ -200,6 +237,7 @@ private fun AddSongBox(
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
     songList: MutableStateFlow<List<Song>>,
+    queuedSongList: List<Song>,
     activity: Activity?,
     roomManager: RoomManager?,
     isHost: Boolean,
@@ -245,7 +283,8 @@ private fun AddSongBox(
                 .verticalScroll(rememberScrollState())
                 .padding(top = 20.dp)) {
                 SearchSongQueue(
-                    queuedSongList = songList.collectAsState().value,
+                    queuedSongList = queuedSongList,
+                    songList = songList.collectAsState().value,
                     roomCode = roomCode,
                     roomManager = roomManager,
                     isHost = isHost,
@@ -292,6 +331,7 @@ private fun SearchBox(
 @Composable
 private fun SearchSongQueue(
     queuedSongList: List<Song>,
+    songList: List<Song>,
     roomCode: String,
     roomManager: RoomManager?,
     isHost: Boolean,
@@ -300,15 +340,15 @@ private fun SearchSongQueue(
     val context = LocalContext.current
     val clickedStateMap = remember { mutableStateMapOf<String, Boolean>() }
 
-    Log.d("Display: ", "Songs to add: $queuedSongList")
-    queuedSongList.forEach { song ->
+    Log.d("Display: ", "Songs to add: $songList")
+    songList.forEach { song ->
+        queuedSongList.forEach{ if (it.context_uri == song.context_uri) clickedStateMap[song.context_uri] = true }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
             SearchSongItem(song = song)
-            // TODO: Reset the button to add when a new search is made
             IconButton(
                 onClick = {
                     if (remainingRequests > 0) {
@@ -322,7 +362,8 @@ private fun SearchSongQueue(
                             .setPositiveButton("OK", null)
                             .show()
                     }
-                }) {
+                }
+            ) {
                 Icon(
                     imageVector = if (clickedStateMap[song.context_uri] == true) Icons.Filled.Check else Icons.Filled.Add,
                     contentDescription = null,
@@ -351,24 +392,24 @@ private fun SearchSongItem(song: Song) {
     }
 }
 
-@Composable
-@Preview
-private fun PreviewScreenContent() {
-    JukeboxTheme {
-        ScreenContent(
-            dispatcher = null,
-            roomCode = "ABCDE",
-            addToQueue = {  },
-            songName = MutableStateFlow("Hello"),
-            songList = MutableStateFlow(listOf(
-                Song(songArtist = "Adele", songTitle = "Hello"),
-                Song(songArtist = "Adele", songTitle = "Hello"),
-                Song(songArtist = "Adele", songTitle = "Hello"),
-            )),
-            activity = null,
-            roomManager = null,
-            isHost = false,
-            remainingRequests = 5
-        )
-    }
-}
+//@Composable
+//@Preview
+//private fun PreviewScreenContent() {
+//    JukeboxTheme {
+//        ScreenContent(
+//            dispatcher = null,
+//            roomCode = "ABCDE",
+//            addToQueue = {  },
+//            songName = MutableStateFlow("Hello"),
+//            songList = MutableStateFlow(listOf(
+//                Song(songArtist = "Adele", songTitle = "Hello"),
+//                Song(songArtist = "Adele", songTitle = "Hello"),
+//                Song(songArtist = "Adele", songTitle = "Hello"),
+//            )),
+//            activity = null,
+//            roomManager = null,
+//            isHost = false,
+//            remainingRequests = 5
+//        )
+//    }
+//}
