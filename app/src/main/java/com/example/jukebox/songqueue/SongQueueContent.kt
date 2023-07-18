@@ -430,7 +430,7 @@ fun QueuedSongs(
 //			}
 //		}
 
-		queuedSongList.reversed().forEach { song ->
+		queuedSongList.forEach { song ->
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
 			}
@@ -553,18 +553,20 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 					}
 					onVoteClick()
 				} else { /*Guest voting is rate limited*/
-					// TODO: check if guest hasn't exceeded max upvotes.
-//					val currentUpvotes : Int = roomManager.getCurrentUpvotes(roomCode, SpotifyUserToken.getToken()){currentVotes ->
-//							return currentVotes
-//					}
-//					if(1 == maxSongUpvotes){
-//
-//					}
-					/*If the user hasn't upvoted, increment upvotes by one*/
-					if (!isUpvoted) {
-						roomManager?.upvoteSong(roomCode, song.context_uri)
-					} else { /*If user has upvoted: undo the upvote*/
-						roomManager?.downvoteSong(roomCode, song.context_uri)
+					val currentUpvotes : Int = roomManager.getCurrentUpvotes(roomCode, SpotifyUserToken.getToken()){currentVotes ->
+							return currentVotes
+					}
+					if(!isUpvoted){
+						if(currentUpvotes < maxSongUpvotes){
+							// if user hasn't exceeded max upvotes,
+							// and user hasn't voted -> increment upvotes by one
+							roomManager?.upvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
+						} else{
+							// TODO: figure out what happens if user exceeds max upvotes
+						}
+					}
+					else{ // user downvotes a song
+						roomManager?.downvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
 					}
 					onVoteClick()
 				}

@@ -154,7 +154,7 @@ private fun RoomCodeTextField(
             },
             shape = RoundedCornerShape(20),
             singleLine = true,
-            trailingIcon = { QRCode() },
+            //trailingIcon = { QRCode() },
             modifier = Modifier.onKeyEvent {
                 if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
                     roomManager?.checkRoomExists(roomCode) { exists ->
@@ -201,27 +201,6 @@ private fun RoomCodeTextField(
                 disabledIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent,
             )
-        )
-    }
-}
-
-@Composable
-private fun QRCode() {
-    val context = LocalContext.current
-    Box(
-        modifier = Modifier
-            .clickable {
-                val intent = Intent(context, QRActivity::class.java)
-                context.startActivity(intent)
-            }
-            .size(30.dp)
-    ) {
-        Image(
-            painterResource(id = R.drawable.qr_icon),
-            contentDescription = "QR Icon",
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Color.White)
         )
     }
 }
