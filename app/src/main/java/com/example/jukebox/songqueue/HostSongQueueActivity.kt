@@ -81,7 +81,7 @@ class HostSongQueueActivity : ComponentActivity(){
         RoomStore.setMostRecentRoom(Room(roomCode = roomCode))
         val hostToken = MutableStateFlow("")
         val userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
-        getHostToken(roomCode, hostToken, userTokens, roomManager)
+        getHostToken(roomCode, hostToken, roomManager)
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
         QueueListener.setQueueFlow(approvedSongQueue)
         CurrentSong.setInitialVars(roomCode, userTokens)
@@ -181,12 +181,10 @@ class HostSongQueueActivity : ComponentActivity(){
     private fun getHostToken(
         roomCode: String,
         hostToken: MutableStateFlow<String>,
-        userTokens: MutableStateFlow<MutableList<String>>,
         roomManager: RoomManager?
     ) {
         roomManager?.getHostToken(roomCode) { token ->
             hostToken.value = token
-            //getUserTokens(roomCode, userTokens, roomManager, hostToken)
         }
     }
 
