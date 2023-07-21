@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,11 +76,10 @@ class AddSongActivity : ComponentActivity() {
         getSongQueueByOrderAdded(roomCode, songQueue)
         getApprovedSongQueue(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)
+        val songName = MutableStateFlow("")
+        val searchSongList = MutableStateFlow<List<Song>>(emptyList())
 
         setContent {
-            val songName = MutableStateFlow("")
-            val songList = MutableStateFlow<List<Song>>(emptyList())
-
             val concatSongQueue =
                 approvedSongQueue.collectAsState().value + songQueue.collectAsState().value + deniedSongQueue.collectAsState().value
 
@@ -87,9 +87,9 @@ class AddSongActivity : ComponentActivity() {
                 ScreenContent(
                     dispatcher = dispatcher,
                     roomCode = roomCode,
-                    addToQueue = { addToQueue(songName.value, songList) },
+                    addToQueue = { addToQueue(songName.value, searchSongList) },
                     songName = songName,
-                    songList = songList,
+                    searchSongList = searchSongList,
                     queuedSongList = concatSongQueue,
                     activity = this,
                     roomManager = roomManager,
@@ -150,7 +150,7 @@ private fun ScreenContent(
     roomCode: String,
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
-    songList: MutableStateFlow<List<Song>>,
+    searchSongList: MutableStateFlow<List<Song>>,
     queuedSongList: List<Song>,
     activity: Activity?,
     roomManager: RoomManager?,
@@ -171,7 +171,7 @@ private fun ScreenContent(
                 roomCode = roomCode,
                 addToQueue = addToQueue,
                 songName = songName,
-                songList = songList,
+                searchSongList = searchSongList,
                 queuedSongList = queuedSongList,
                 activity = activity,
                 roomManager = roomManager,
@@ -236,7 +236,7 @@ private fun AddSongBox(
     roomCode: String,
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
-    songList: MutableStateFlow<List<Song>>,
+    searchSongList: MutableStateFlow<List<Song>>,
     queuedSongList: List<Song>,
     activity: Activity?,
     roomManager: RoomManager?,
@@ -244,6 +244,7 @@ private fun AddSongBox(
     remainingRequests: Int
 ) {
     val scope = rememberCoroutineScope()
+    val clickedStateMap = remember { mutableStateMapOf<String, Boolean>() }
 
     Column(
         modifier = Modifier,
@@ -266,13 +267,15 @@ private fun AddSongBox(
                 SearchBox(
                     addToQueue = addToQueue,
                     songName = songName,
-                    activity = activity
+                    activity = activity,
+                    clickedStateMap = clickedStateMap
                 )
                 IconButton(
                     onClick = {
                         if (activity != null) {
                             HideSoftKeyboard.hideSoftKeyboard(activity)
                         }
+                        clickedStateMap.clear()
                         scope.launch { addToQueue() }
                     }
                 ) {
@@ -284,11 +287,12 @@ private fun AddSongBox(
                 .padding(top = 20.dp)) {
                 SearchSongQueue(
                     queuedSongList = queuedSongList,
-                    songList = songList.collectAsState().value,
+                    searchSongList = searchSongList.collectAsState().value,
                     roomCode = roomCode,
                     roomManager = roomManager,
                     isHost = isHost,
-                    remainingRequests = remainingRequests
+                    remainingRequests = remainingRequests,
+                    clickedStateMap = clickedStateMap
                 )
             }
         }
@@ -299,7 +303,8 @@ private fun AddSongBox(
 private fun SearchBox(
     addToQueue: suspend () -> Unit,
     songName: MutableStateFlow<String>,
-    activity: Activity?
+    activity: Activity?,
+    clickedStateMap: SnapshotStateMap<String, Boolean>
 ) {
     val scope = rememberCoroutineScope()
 
@@ -316,6 +321,7 @@ private fun SearchBox(
                 if (activity != null) {
                     HideSoftKeyboard.hideSoftKeyboard(activity)
                 }
+                clickedStateMap.clear()
                 scope.launch { addToQueue() }
             }
         ),
@@ -331,17 +337,17 @@ private fun SearchBox(
 @Composable
 private fun SearchSongQueue(
     queuedSongList: List<Song>,
-    songList: List<Song>,
+    searchSongList: List<Song>,
     roomCode: String,
     roomManager: RoomManager?,
     isHost: Boolean,
-    remainingRequests: Int
+    remainingRequests: Int,
+    clickedStateMap: SnapshotStateMap<String, Boolean>
 ) {
     val context = LocalContext.current
-    val clickedStateMap = remember { mutableStateMapOf<String, Boolean>() }
 
-    Log.d("Display: ", "Songs to add: $songList")
-    songList.forEach { song ->
+    Log.d("Display: ", "Songs to add: $searchSongList")
+    searchSongList.forEach { song ->
         queuedSongList.forEach{ if (it.context_uri == song.context_uri) clickedStateMap[song.context_uri] = true }
         Row(
             modifier = Modifier.fillMaxWidth(),
