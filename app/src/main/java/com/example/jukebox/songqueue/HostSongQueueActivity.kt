@@ -53,6 +53,7 @@ import com.example.jukebox.RoomManager
 import com.example.jukebox.RoomStore
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
+import com.example.jukebox.SongQueue
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
 import kotlinx.coroutines.CoroutineScope
@@ -70,7 +71,8 @@ class HostSongQueueActivity : ComponentActivity(){
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
-        getSongQueue(roomCode, songQueue)
+        //getSongQueue(roomCode, songQueue)
+        getSongQueueByHostOrder(roomCode, songQueue)
         getApprovedSongQueue(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
@@ -144,6 +146,14 @@ class HostSongQueueActivity : ComponentActivity(){
         // update the songqueue, ordered by the timestamp by which it was added
         roomManager.getPendingQueue(roomCode) { queue ->
             songQueue.value = queue.queue.sortedBy { it.timeStampAdded }
+        }
+    }
+
+    private fun getSongQueueByHostOrder(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+        val roomManager = RoomManager()
+        // update the songqueue, ordered by the timestamp by which it was added
+        roomManager.getPendingQueue(roomCode) { queue ->
+            songQueue.value = queue.queue.sortedBy { it.hostOrder }
         }
     }
 

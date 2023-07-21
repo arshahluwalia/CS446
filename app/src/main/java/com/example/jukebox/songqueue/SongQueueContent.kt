@@ -724,10 +724,12 @@ fun RearrangeSongButtons(
 				.size(20.dp)
 				.padding(bottom = 5.dp)
 				.clickable {
-					if (song != mutableSongList.first()) {
-						val songIndex = mutableSongList.indexOf(song)
-						val upperSong = mutableSongList[songIndex - 1]
-						roomManager?.swapSongs(roomCode, upperSong, song)
+					if (song.hostOrder != 0) {
+						val songOrder = song.hostOrder
+						val upperSong = queuedSongList.find{it.hostOrder == songOrder - 1}
+						upperSong?.hostOrder = song.hostOrder
+						song.hostOrder = song.hostOrder - 1
+						// roomManager?.swapSongs(roomCode, upperSong, song)
 					}
 				},
 			painter = painterResource(id = R.drawable.arrow_up_icon),
@@ -738,10 +740,12 @@ fun RearrangeSongButtons(
 				.size(20.dp)
 				.padding(top = 5.dp)
 				.clickable {
-					if (song != mutableSongList.last()) {
-						val songIndex = mutableSongList.indexOf(song)
-						val lowerSong = mutableSongList[songIndex + 1]
-						roomManager?.swapSongs(roomCode, song, lowerSong)
+					if (song.hostOrder != mutableSongList.size) {
+						val songOrder = song.hostOrder
+						val lowerSong = queuedSongList.find{it.hostOrder == songOrder + 1}
+						lowerSong?.hostOrder = song.hostOrder
+						song.hostOrder = song.hostOrder - 1
+						// roomManager?.swapSongs(roomCode, song, lowerSong)
 					}
 				},
 			painter = painterResource(id = R.drawable.arrow_down_icon),
