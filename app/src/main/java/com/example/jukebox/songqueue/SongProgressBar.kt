@@ -38,35 +38,26 @@ fun SongProgressBar(
     val uTokens = userTokens.collectAsState().value
     val duration = currentSong.duration
     var sliderValue by remember { mutableStateOf(0f) }
+    var userSliderValue by remember { mutableStateOf(0f) }
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
-//       LaunchedEffect(Unit) {
-//            // Start a coroutine that fetches the API and updates the position every second
-//            while (true) {
-//                // Pass host token to get position
-//                var playBackState = getPlaybackState(hTokens);
-//                sliderValue = (playBackState.second as? Int)?.toFloat() ?: 0f
-//                delay(1000) // Delay for 1 second before fetching again
-//            }
-//        }
         sliderValue = duration - CurrentSong.currentTime.collectAsState().value.toFloat() * 1000
-        Log.d("slider value", sliderValue.toString())
         Slider(
             modifier = Modifier
                 .fillMaxWidth(),
             value = sliderValue,
             onValueChange = { newValue ->
-//                sliderValue = newValue
+                userSliderValue = newValue
             },
             onValueChangeFinished = {
                 scope.launch {
                     if (currentSong.songTitle != "" && isHost) {
                         Log.d("play seek: ", currentSong.context_uri)
-                        playSong(currentSong.context_uri, sliderValue.toInt(), uTokens)
+                        playSong(currentSong.context_uri, userSliderValue.toInt(), uTokens)
                         // TODO: set timer to a new timer with a new countdown
                     }
                 }

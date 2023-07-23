@@ -74,7 +74,6 @@ class CurrentSong {
 
 		fun pauseTimer(){
 			pausedTime = currentTime.value * 1000
-			currentTime.value = -1
 			timer?.cancel()
 		}
 
