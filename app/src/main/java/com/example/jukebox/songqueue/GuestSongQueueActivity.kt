@@ -57,7 +57,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
                     roomCode = roomCode,
                     roomManager = roomManager,
                     appContext = appContext,
-                    remainingUpvotes = maxSongUpvotes.collectAsState().value
+                    remainingUpvotes = maxSongUpvotes
                 )
             }
         }
@@ -170,7 +170,7 @@ private fun PreviewScreenContent() {
                 roomCode = "ABCDE",
                 roomManager = null,
                 appContext = LocalContext.current,
-                remainingUpvotes = 10
+                remainingUpvotes = MutableStateFlow(10)
             )
         }
     }

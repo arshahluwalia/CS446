@@ -91,7 +91,7 @@ fun SongQueueScreenContent(
 	roomManager: RoomManager?,
 	appContext: Context,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	remainingUpvotes: Int,
+	remainingUpvotes: MutableStateFlow<Int>,
 	hostToken: MutableStateFlow<String> = MutableStateFlow(""),
 	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList()),
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
@@ -131,13 +131,14 @@ fun SongQueueScreenContent(
 			}
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
+			val upvotes = remainingUpvotes.collectAsState().value
 			if(!isHost){
 				Text(
 					modifier = Modifier.padding(bottom = 5.dp),
 					text = buildAnnotatedString {
 						append("You have ")
 						withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-							append(remainingUpvotes.toString())
+							append(upvotes.toString())
 						}
 						append(" upvotes remaining")
 					},
@@ -281,7 +282,7 @@ fun SongQueue(
 	roomCode: String,
 	roomManager: RoomManager?,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	remainingUpvotes: Int,
+	remainingUpvotes: MutableStateFlow<Int>,
 	hostToken: MutableStateFlow<String>,
 	userTokens: MutableStateFlow<MutableList<String>>,
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
@@ -386,7 +387,7 @@ fun QueuedSongs(
 	roomManager: RoomManager?,
 	roomCode: String,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
-	remainingUpvotes: Int,
+	remainingUpvotes: MutableStateFlow<Int>,
 	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
 	val data = MutableStateFlow(queuedSongList)
@@ -544,7 +545,15 @@ fun GuestSongItem(
 }
 
 @Composable
-fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomManager: RoomManager?, roomCode: String, remainingUpvotes: Int, isHost: Boolean) {
+fun SongActions(
+	song: Song,
+	isUpvoted: Boolean,
+	onVoteClick: () -> Unit,
+	roomManager: RoomManager?,
+	roomCode: String,
+	remainingUpvotes: MutableStateFlow<Int>,
+	isHost: Boolean
+) {
 	val expanded = remember { mutableStateOf(false) }
 	val context = LocalContext.current
 	Image(
@@ -561,24 +570,34 @@ fun SongActions(song: Song, isUpvoted: Boolean, onVoteClick: () -> Unit, roomMan
 				} else { /*Guest voting is rate limited*/
 					val currentUpvotes = MutableStateFlow(0)
 					getCurrentUpvotes(roomCode, SpotifyUserToken.getToken(), currentUpvotes)
-					if(!isUpvoted){
-						if(remainingUpvotes > 0){
+					if (!isUpvoted) {
+						if (remainingUpvotes.value > 0) {
 							// if user hasn't exceeded max upvotes,
 							// and user hasn't voted -> increment upvotes by one
-							roomManager?.upvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
+							roomManager?.upvoteSong(
+								roomCode,
+								song.context_uri,
+								SpotifyUserToken.getToken()
+							)
 							onVoteClick()
-						} else{
+							remainingUpvotes.value--
+						} else {
 							// TODO: figure out what happens if user exceeds max upvotes
-							AlertDialog.Builder(context)
+							AlertDialog
+								.Builder(context)
 								.setTitle("You have exceeded the max amount of allowable upvotes")
 								.setMessage("You can undo an upvote to upvote this song")
 								.setPositiveButton("OK", null)
 								.show()
 						}
-					}
-					else{ // user downvotes a song
-						roomManager?.downvoteSong(roomCode, song.context_uri, SpotifyUserToken.getToken())
+					} else { // user downvotes a song
+						roomManager?.downvoteSong(
+							roomCode,
+							song.context_uri,
+							SpotifyUserToken.getToken()
+						)
 						onVoteClick()
+						remainingUpvotes.value++
 					}
 				}
 			}
@@ -726,7 +745,7 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song.hostOrder != 0) {
 						val songOrder = song.hostOrder
-						val upperSong = queuedSongList.find{it.hostOrder == songOrder - 1}
+						val upperSong = queuedSongList.find { it.hostOrder == songOrder - 1 }
 						upperSong?.hostOrder = song.hostOrder
 						song.hostOrder = song.hostOrder - 1
 						// roomManager?.swapSongs(roomCode, upperSong, song)
@@ -742,7 +761,7 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song.hostOrder != mutableSongList.size) {
 						val songOrder = song.hostOrder
-						val lowerSong = queuedSongList.find{it.hostOrder == songOrder + 1}
+						val lowerSong = queuedSongList.find { it.hostOrder == songOrder + 1 }
 						lowerSong?.hostOrder = song.hostOrder
 						song.hostOrder = song.hostOrder - 1
 						// roomManager?.swapSongs(roomCode, song, lowerSong)
@@ -778,7 +797,7 @@ private fun PreviewScreenContent() {
 				roomCode = "ABCDE",
 				roomManager = null,
 				appContext = LocalContext.current,
-				remainingUpvotes = 10
+				remainingUpvotes = MutableStateFlow(10)
 			)
 		}
 	}

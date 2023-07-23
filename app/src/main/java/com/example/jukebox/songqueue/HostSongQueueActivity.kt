@@ -359,7 +359,7 @@ private fun SongQueue(
                 roomManager = roomManager,
                 appContext = appContext,
                 setApprovalStatus = setApprovalStatus,
-                remainingUpvotes = 999999,
+                remainingUpvotes = MutableStateFlow(999999),
                 hostToken = hostToken,
                 userTokens = userTokens,
                 mutableSongList = mutableSongQueue
@@ -401,7 +401,7 @@ private fun PreviewHostQueueScreenContent() {
                 roomCode = "ABCDE",
                 roomManager = null,
                 appContext = LocalContext.current,
-                remainingUpvotes = 999999
+                remainingUpvotes = MutableStateFlow(999999)
             )
         }
     }
