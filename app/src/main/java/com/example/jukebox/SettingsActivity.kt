@@ -136,17 +136,25 @@ private fun ScreenContent(
 ) {
     Box {
         SecondaryBackground()
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            BackToQueueButton(dispatcher)
+        }
+
+        Row(
+            modifier = Modifier.padding(top = 35.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            SettingsTitle()
+        }
+
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            modifier = Modifier.padding(top = 100.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                BackToQueueButton(dispatcher)
-            }
-            SettingsTitle()
             ChangeNameField(
                 roomCode = roomCode,
                 roomManager = roomManager,
@@ -229,7 +237,7 @@ private fun ChangeNameField(
             .padding(vertical = 20.dp)
             .fillMaxWidth()
             .padding(start = 60.dp),
-        text = "Change Name:",
+        text = "Name:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
         textAlign = TextAlign.Start
@@ -291,7 +299,7 @@ private fun ChangeMaxUpvotes(
             .padding(vertical = 20.dp)
             .fillMaxWidth()
             .padding(start = 60.dp),
-        text = "Change Maximum Upvotes:",
+        text = "Maximum Upvotes:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
         textAlign = TextAlign.Start
@@ -364,7 +372,7 @@ private fun ChangeMaxSuggestions(
             .padding(vertical = 20.dp)
             .fillMaxWidth()
             .padding(start = 60.dp),
-        text = "Change Maximum Suggestions:",
+        text = "Maximum Suggestions:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
         textAlign = TextAlign.Start
