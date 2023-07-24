@@ -376,7 +376,6 @@ private fun SongQueue(
                 remainingUpvotes = MutableStateFlow(999999),
                 hostToken = hostToken,
                 userTokens = userTokens,
-                mutableSongList = mutableSongQueue
             )
         }
     }

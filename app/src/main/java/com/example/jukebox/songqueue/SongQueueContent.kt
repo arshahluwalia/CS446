@@ -94,7 +94,6 @@ fun SongQueueScreenContent(
 	remainingUpvotes: MutableStateFlow<Int>,
 	hostToken: MutableStateFlow<String> = MutableStateFlow(""),
 	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList()),
-	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
 	val context = LocalContext.current
 	// TODO: handle song names that are too long (cut off and auto scroll horizontally)
@@ -158,7 +157,6 @@ fun SongQueueScreenContent(
 				remainingUpvotes = remainingUpvotes,
 				hostToken = hostToken,
 				userTokens = userTokens,
-				mutableSongList = mutableSongList
 			)
 		}
 	}
@@ -287,7 +285,6 @@ fun SongQueue(
 	remainingUpvotes: MutableStateFlow<Int>,
 	hostToken: MutableStateFlow<String>,
 	userTokens: MutableStateFlow<MutableList<String>>,
-	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
 	Column(
 		modifier = Modifier
@@ -311,7 +308,6 @@ fun SongQueue(
 			roomManager = roomManager,
 			roomCode = roomCode,
 			remainingUpvotes = remainingUpvotes,
-			mutableSongList = mutableSongList
 		)
 	}
 }
@@ -390,54 +386,8 @@ fun QueuedSongs(
 	roomCode: String,
 	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
 	remainingUpvotes: MutableStateFlow<Int>,
-	mutableSongList: MutableStateFlow<List<Song>> = MutableStateFlow(ArrayList())
 ) {
-	val data = MutableStateFlow(queuedSongList)
 	if (isHost) {
-//		val state = rememberReorderableLazyListState(onMove = { from, to ->
-//			data.value = data.value.toMutableList().apply {
-//				add(to.index, removeAt(from.index))
-//			}
-//		})
-//
-//		LazyColumn(
-//			state = state.listState,
-//			modifier = Modifier
-//				.reorderable(state)
-//				.detectReorderAfterLongPress(state)
-//		) {
-//			items(data.value, { it.context_uri }) {item ->
-//				ReorderableItem(state, key = item.context_uri) { isDragging ->
-//					val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
-//					Column(
-//						modifier = Modifier
-//							.shadow(elevation.value)
-//					) {
-//						var isSongUpvoted by remember {
-//							mutableStateOf(false)
-//						}
-//						Row(
-//							modifier = Modifier.fillMaxWidth(),
-//							verticalAlignment = Alignment.CenterVertically,
-//							horizontalArrangement = Arrangement.Start
-//						) {
-//							DragSongButton(song = item)
-//							HostSongItem(song = item)
-//							ApproveDenyButtons(
-//								song = item,
-//								removeSong = removeSong,
-//								setApprovalStatus = setApprovalStatus,
-//							)
-//							SongActions(song = item, isUpvoted = isSongUpvoted, onVoteClick = {
-//								isSongUpvoted = !isSongUpvoted
-//							}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-//							maxSongUpvotes = maxSongUpvotes)
-//						}
-//					}
-//				}
-//			}
-//		}
-
 		queuedSongList.forEach { song ->
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
@@ -460,44 +410,8 @@ fun QueuedSongs(
 				remainingUpvotes = remainingUpvotes)
 			}
 		}
-	} else {
-//		var items by remember {
-//			mutableStateOf(
-//				queuedSongList.map {
-//					Song(
-//						context_uri = it.context_uri,
-//						songTitle = it.songTitle,
-//						songArtist = it.songArtist,
-//						approvalStatus = it.approvalStatus,
-//						votes = it.votes,
-//						duration = it.duration,
-//						timeStampAdded = it.timeStampAdded
-//					)
-//				}
-//			)
-//		}
-//		LazyColumn(
-//			modifier = Modifier.fillMaxSize(),
-//			reverseLayout = true
-//		){
-//			items(items) {
-//				Row(
-//				modifier = Modifier.fillMaxWidth(),
-//				verticalAlignment = Alignment.CenterVertically,
-//				horizontalArrangement = Arrangement.Start
-//				) {
-////					var isSongUpvoted by remember {
-////						mutableStateOf(false)
-////					}
-//					var isSongUpvoted = false
-//					GuestSongItem(song = it)
-//					SongActions(song = it, isUpvoted = isSongUpvoted, onVoteClick = {
-//						isSongUpvoted = !isSongUpvoted
-//					}, roomManager = roomManager, roomCode = roomCode, isHost = false,
-//					maxSongUpvotes = maxSongUpvotes)
-//				}
-//			}
-//		}
+	}
+	else {
 		queuedSongList.forEach { song ->
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
