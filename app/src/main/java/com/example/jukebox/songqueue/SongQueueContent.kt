@@ -114,21 +114,23 @@ fun SongQueueScreenContent(
 		}
 	) {
 		SecondaryBackground()
+
+		Row(
+			modifier = Modifier.fillMaxWidth(),
+			horizontalArrangement = Arrangement.SpaceBetween
+		) {
+			BackButton(dispatcher)
+			if (isHost) {
+				SettingsButton(roomCode = roomCode)
+			}
+		}
+
 		Column(
 			modifier = Modifier
-				.fillMaxSize()
+				.padding(top = 35.dp)
 				.verticalScroll(rememberScrollState()),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.SpaceBetween
-			) {
-				BackButton(dispatcher)
-				if (isHost) {
-					SettingsButton(roomCode = roomCode)
-				}
-			}
 			SongQueueTitle(hostName = hostName)
 			RoomCode(roomCode = roomCode, appContext = appContext)
 			val upvotes = remainingUpvotes.collectAsState().value
