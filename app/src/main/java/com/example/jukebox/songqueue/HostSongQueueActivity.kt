@@ -73,7 +73,6 @@ class HostSongQueueActivity : ComponentActivity(){
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
-        //getSongQueue(roomCode, songQueue)
         getSongQueueByHostOrder(roomCode, songQueue)
         getApprovedSongQueue(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)

@@ -747,10 +747,10 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song.hostOrder != 0) {
 						val songOrder = song.hostOrder
-						val upperSong = queuedSongList.find { it.hostOrder == songOrder - 1 }
-						upperSong?.hostOrder = song.hostOrder
-						song.hostOrder = song.hostOrder - 1
-						// roomManager?.swapSongs(roomCode, upperSong, song)
+						val upperSong = queuedSongList.find { it.hostOrder == (songOrder - 1) }
+						if (upperSong != null) {
+							roomManager?.swapSongs(roomCode, upperSong, song)
+						}
 					}
 				},
 			painter = painterResource(id = R.drawable.arrow_up_icon),
@@ -763,10 +763,10 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song.hostOrder != mutableSongList.size) {
 						val songOrder = song.hostOrder
-						val lowerSong = queuedSongList.find { it.hostOrder == songOrder + 1 }
-						lowerSong?.hostOrder = song.hostOrder
-						song.hostOrder = song.hostOrder - 1
-						// roomManager?.swapSongs(roomCode, song, lowerSong)
+						val lowerSong = queuedSongList.find { it.hostOrder == (songOrder + 1) }
+						if (lowerSong != null) {
+							roomManager?.swapSongs(roomCode, song, lowerSong)
+						}
 					}
 				},
 			painter = painterResource(id = R.drawable.arrow_down_icon),
