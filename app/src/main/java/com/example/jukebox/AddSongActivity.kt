@@ -221,7 +221,7 @@ private fun SongRequestsRemaining(remainingRequests: Int) {
         text = buildAnnotatedString {
             append("You have ")
             withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                append(remainingRequests.toString())
+                append(if (remainingRequests < 101) remainingRequests.toString() else "unlimited")
             }
             append(" song requests remaining")
         },

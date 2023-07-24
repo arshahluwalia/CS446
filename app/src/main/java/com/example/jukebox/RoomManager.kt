@@ -329,6 +329,27 @@ class RoomManager {
         })
     }
 
+    fun setLimitUpvotes(roomCode: String, limitUpvotes: Boolean) {
+        val limitUpvotesRef = database.child("$roomCode/limitUpvotes")
+        limitUpvotesRef.setValue(limitUpvotes)
+    }
+
+    fun getLimitUpvotes(roomCode: String, callback: (Boolean) -> Unit) {
+        val limitUpvotesRef = database.child("$roomCode/limitUpvotes")
+
+        limitUpvotesRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val limitUpvotes = dataSnapshot.getValue(Boolean::class.java)
+                callback(limitUpvotes ?: true)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(true)
+            }
+        })
+    }
+
     fun setMaxUpvotes(roomCode: String, maxUpvotes: Int) {
         val maxUpvotesRef = database.child("$roomCode/maxUpvotes")
         maxUpvotesRef.setValue(maxUpvotes)
@@ -346,6 +367,27 @@ class RoomManager {
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle the error
                 callback(5)
+            }
+        })
+    }
+
+    fun setLimitSuggestions(roomCode: String, limitSuggestions: Boolean) {
+        val limitSuggestionsRef = database.child("$roomCode/limitSuggestions")
+        limitSuggestionsRef.setValue(limitSuggestions)
+    }
+
+    fun getLimitSuggestions(roomCode: String, callback: (Boolean) -> Unit) {
+        val limitSuggestionsRef = database.child("$roomCode/limitSuggestions")
+
+        limitSuggestionsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val limitSuggestions = dataSnapshot.getValue(Boolean::class.java)
+                callback(limitSuggestions ?: true)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(true)
             }
         })
     }

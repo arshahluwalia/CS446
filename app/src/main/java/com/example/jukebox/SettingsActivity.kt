@@ -78,6 +78,11 @@ class SettingsActivity : ComponentActivity() {
 
         val autoRemove = MutableStateFlow(false)
         getAutoRemove(roomCode, autoRemove)
+        val limitSuggestions = MutableStateFlow(true)
+        getLimitSuggestions(roomCode, limitSuggestions)
+        val limitUpvotes = MutableStateFlow(true)
+        getLimitUpvotes(roomCode, limitUpvotes)
+
         setContent {
             JukeboxTheme {
                 ScreenContent(
@@ -88,6 +93,8 @@ class SettingsActivity : ComponentActivity() {
                     maxUpvotes = maxUpvotes,
                     maxSuggestions = maxSuggestions,
                     autoRemove = autoRemove,
+                    limitSuggestions = limitSuggestions,
+                    limitUpvotes = limitUpvotes,
                     activity = this
                 )
             }
@@ -121,6 +128,20 @@ class SettingsActivity : ComponentActivity() {
             autoRemove.value = it
         }
     }
+
+    private fun getLimitSuggestions(roomCode: String, limitSuggestions: MutableStateFlow<Boolean>) {
+        val roomManager = RoomManager()
+        roomManager.getLimitSuggestions(roomCode) {
+            limitSuggestions.value = it
+        }
+    }
+
+    private fun getLimitUpvotes(roomCode: String, limitUpvotes: MutableStateFlow<Boolean>) {
+        val roomManager = RoomManager()
+        roomManager.getLimitUpvotes(roomCode) {
+            limitUpvotes.value = it
+        }
+    }
 }
 
 @Composable
@@ -132,6 +153,8 @@ private fun ScreenContent(
     maxUpvotes: MutableStateFlow<Int>,
     maxSuggestions: MutableStateFlow<Int>,
     autoRemove: MutableStateFlow<Boolean>,
+    limitSuggestions: MutableStateFlow<Boolean>,
+    limitUpvotes: MutableStateFlow<Boolean>,
     activity: Activity?
 ) {
     Box {
@@ -145,14 +168,18 @@ private fun ScreenContent(
         }
 
         Row(
-            modifier = Modifier.padding(top = 35.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(top = 35.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             SettingsTitle()
         }
 
         Column(
-            modifier = Modifier.padding(top = 100.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .padding(top = 100.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ChangeNameField(
@@ -161,15 +188,27 @@ private fun ScreenContent(
                 currentHostName = hostName,
                 activity = activity
             )
+            ToggleChangeSuggestions(
+                roomCode = roomCode,
+                roomManager = roomManager,
+                limitSuggestions = limitSuggestions
+            )
             ChangeMaxSuggestions(
                 roomCode = roomCode,
                 roomManager = roomManager,
+                limitSuggestions = limitSuggestions,
                 maxSuggestions = maxSuggestions,
                 activity = activity
+            )
+            ToggleChangeUpvotes(
+                roomCode = roomCode,
+                roomManager = roomManager,
+                limitUpvotes = limitUpvotes
             )
             ChangeMaxUpvotes(
                 roomCode = roomCode,
                 roomManager = roomManager,
+                limitUpvotes = limitUpvotes,
                 maxUpvotes = maxUpvotes,
                 activity = activity
             )
@@ -288,9 +327,11 @@ private fun ChangeNameField(
 private fun ChangeMaxUpvotes(
     roomCode: String,
     roomManager: RoomManager?,
+    limitUpvotes: MutableStateFlow<Boolean>,
     maxUpvotes: MutableStateFlow<Int>,
     activity: Activity?
 ) {
+    val limitUpvotesFlag = limitUpvotes.collectAsState().value
     val maxUpvotesInt = maxUpvotes.collectAsState().value
     var maxUpvotesString by remember { mutableStateOf(maxUpvotesInt.toString()) }
 
@@ -309,10 +350,10 @@ private fun ChangeMaxUpvotes(
     val preselectedItem = maxUpvotesInt
 
     LaunchedEffect(preselectedItem) {
-        if (preselectedItem > 0) {
+        if (limitUpvotesFlag && preselectedItem > 0) {
             lazyListState.scrollToItem(preselectedItem - 1)
         } else {
-            lazyListState.scrollToItem(preselectedItem)
+            lazyListState.scrollToItem(0)
         }
     }
 
@@ -321,14 +362,17 @@ private fun ChangeMaxUpvotes(
         modifier = Modifier
             .padding(bottom = 10.dp)
             .height(70.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        userScrollEnabled = limitUpvotesFlag
     ) {
         items(101) { page ->
-            val textColor = if (page.toString() == maxUpvotesString) Color.White else Color.Gray
+            val textColor = if (limitUpvotesFlag && page.toString() == maxUpvotesString) Color.White else Color.Gray
 
             Text(
                 modifier = Modifier.clickable {
-                    maxUpvotesString = page.toString()
+                    if (limitUpvotesFlag) {
+                        maxUpvotesString = page.toString()
+                    }
                 },
                 text = page.toString(),
                 style = MaterialTheme.typography.bodySmall,
@@ -347,7 +391,7 @@ private fun ChangeMaxUpvotes(
                 roomManager?.setMaxUpvotes(roomCode, maxUpvotesString.toInt())
             }
         },
-        enabled = maxUpvotesString.toInt() != maxUpvotesInt
+        enabled = limitUpvotes.collectAsState().value && maxUpvotesString.toInt() != maxUpvotesInt
     ) {
         Text(text = "Save")
     }
@@ -361,9 +405,11 @@ private fun ChangeMaxUpvotes(
 private fun ChangeMaxSuggestions(
     roomCode: String,
     roomManager: RoomManager?,
+    limitSuggestions: MutableStateFlow<Boolean>,
     maxSuggestions: MutableStateFlow<Int>,
     activity: Activity?
 ) {
+    val limitSuggestionsFlag = limitSuggestions.collectAsState().value
     val maxSuggestionsInt = maxSuggestions.collectAsState().value
     var maxSuggestionsString by remember { mutableStateOf(maxSuggestionsInt.toString()) }
 
@@ -382,10 +428,10 @@ private fun ChangeMaxSuggestions(
     val preselectedItem = maxSuggestionsInt
 
     LaunchedEffect(preselectedItem) {
-        if (preselectedItem > 0) {
+        if (limitSuggestionsFlag && preselectedItem > 0) {
             lazyListState.scrollToItem(preselectedItem - 1)
         } else {
-            lazyListState.scrollToItem(preselectedItem)
+            lazyListState.scrollToItem(0)
         }
     }
 
@@ -394,14 +440,17 @@ private fun ChangeMaxSuggestions(
         modifier = Modifier
             .padding(bottom = 10.dp)
             .height(70.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        userScrollEnabled = limitSuggestionsFlag
     ) {
         items(101) { page ->
-            val textColor = if (page.toString() == maxSuggestionsString) Color.White else Color.Gray
+            val textColor = if (limitSuggestionsFlag && page.toString() == maxSuggestionsString) Color.White else Color.Gray
 
             Text(
                 modifier = Modifier.clickable {
-                    maxSuggestionsString = page.toString()
+                    if (limitSuggestionsFlag) {
+                        maxSuggestionsString = page.toString()
+                    }
                 },
                 text = page.toString(),
                 style = MaterialTheme.typography.bodySmall,
@@ -420,7 +469,7 @@ private fun ChangeMaxSuggestions(
                 roomManager?.setMaxSuggestions(roomCode, maxSuggestionsString.toInt())
             }
         },
-        enabled = maxSuggestionsString.toInt() != maxSuggestionsInt
+        enabled = limitSuggestions.collectAsState().value && maxSuggestionsString.toInt() != maxSuggestionsInt
     ) {
         Text(text = "Save")
     }
@@ -472,6 +521,94 @@ private fun ToggleAutoRemove(
 }
 
 @Composable
+private fun ToggleChangeSuggestions(
+    roomCode: String,
+    roomManager: RoomManager?,
+    limitSuggestions: MutableStateFlow<Boolean>
+) {
+    val toggleValue = limitSuggestions.collectAsState().value
+    var toggleEnabled by remember { mutableStateOf(toggleValue) }
+
+    Text(
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 60.dp),
+        text = "Limit Suggestions:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Start
+    )
+
+    Switch(
+        checked = toggleEnabled,
+        onCheckedChange = {
+            toggleEnabled = it
+        }
+    )
+
+    Button(
+        onClick = {
+            roomManager?.setLimitSuggestions(roomCode, toggleEnabled)
+            if (!toggleEnabled) {
+                roomManager?.setMaxSuggestions(roomCode, 99999)
+            }
+        },
+        enabled = toggleEnabled != toggleValue
+    ) {
+        Text(text = "Save")
+    }
+
+    LaunchedEffect(toggleValue) {
+        toggleEnabled = toggleValue
+    }
+}
+
+@Composable
+private fun ToggleChangeUpvotes(
+    roomCode: String,
+    roomManager: RoomManager?,
+    limitUpvotes: MutableStateFlow<Boolean>
+) {
+    val toggleValue = limitUpvotes.collectAsState().value
+    var toggleEnabled by remember { mutableStateOf(toggleValue) }
+
+    Text(
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 60.dp),
+        text = "Limit Upvotes:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Start
+    )
+
+    Switch(
+        checked = toggleEnabled,
+        onCheckedChange = {
+            toggleEnabled = it
+        }
+    )
+
+    Button(
+        onClick = {
+            roomManager?.setLimitUpvotes(roomCode, toggleEnabled)
+            if (!toggleEnabled) {
+                roomManager?.setMaxUpvotes(roomCode, 99999)
+            }
+        },
+        enabled = toggleEnabled != toggleValue
+    ) {
+        Text(text = "Save")
+    }
+
+    LaunchedEffect(toggleValue) {
+        toggleEnabled = toggleValue
+    }
+}
+
+@Composable
 @Preview
 private fun PreviewScreenContent() {
     JukeboxTheme {
@@ -483,6 +620,8 @@ private fun PreviewScreenContent() {
             maxUpvotes = MutableStateFlow(1),
             maxSuggestions = MutableStateFlow(1),
             autoRemove = MutableStateFlow(false),
+            limitSuggestions = MutableStateFlow(true),
+            limitUpvotes = MutableStateFlow(true),
             activity = null
         )
     }

@@ -139,7 +139,7 @@ fun SongQueueScreenContent(
 					text = buildAnnotatedString {
 						append("You have ")
 						withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-							append(upvotes.toString())
+							append(if (upvotes < 101) upvotes.toString() else "unlimited")
 						}
 						append(" upvotes remaining")
 					},
