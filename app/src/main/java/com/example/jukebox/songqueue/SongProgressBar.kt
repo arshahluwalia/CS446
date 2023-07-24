@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.example.jukebox.CurrentSong
 import com.example.jukebox.Song
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
+import com.example.jukebox.util.SongTimer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -38,7 +39,7 @@ fun SongProgressBar(
     val uTokens = userTokens.collectAsState().value
     val duration = currentSong.duration
     var sliderValue by remember { mutableStateOf(0f) }
-    var userSliderValue by remember { mutableStateOf(0f) }
+    var userSliderValue: MutableStateFlow<Float> = MutableStateFlow(0f)
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier
@@ -46,19 +47,21 @@ fun SongProgressBar(
         .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
         sliderValue = duration - CurrentSong.currentTime.collectAsState().value.toFloat() * 1000
+
         Slider(
             modifier = Modifier
                 .fillMaxWidth(),
             value = sliderValue,
             onValueChange = { newValue ->
-                userSliderValue = newValue
+                userSliderValue.value = newValue
             },
             onValueChangeFinished = {
                 scope.launch {
                     if (currentSong.songTitle != "" && isHost) {
-                        Log.d("play seek: ", currentSong.context_uri)
-                        playSong(currentSong.context_uri, userSliderValue.toInt(), uTokens)
-                        // TODO: set timer to a new timer with a new countdown
+                        Log.d("play seek: ", formatDuration(userSliderValue.value.toInt()))
+                        playSong(currentSong.context_uri, userSliderValue.value.toInt(), uTokens)
+                        CurrentSong.setDuration(duration - userSliderValue.value.toInt(), sliderValue.toInt())
+                        Log.d("play seek: slider value", formatDuration(sliderValue.toInt()))
                     }
                 }
             },
