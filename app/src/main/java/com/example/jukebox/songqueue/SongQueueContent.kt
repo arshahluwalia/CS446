@@ -90,7 +90,7 @@ fun SongQueueScreenContent(
 	removeSong: (Song) -> Unit = { },
 	roomManager: RoomManager?,
 	appContext: Context,
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
+	setApprovalStatus: (Song, ApprovalStatus, List<Song>) -> Unit = { _: Song, _: ApprovalStatus, _: List<Song> -> },
 	remainingUpvotes: MutableStateFlow<Int>,
 	hostToken: MutableStateFlow<String> = MutableStateFlow(""),
 	userTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList()),
@@ -281,7 +281,7 @@ fun SongQueue(
 	removeSong: (Song) -> Unit = {},
 	roomCode: String,
 	roomManager: RoomManager?,
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
+	setApprovalStatus: (Song, ApprovalStatus, List<Song>) -> Unit = { _: Song, _: ApprovalStatus, _: List<Song> -> },
 	remainingUpvotes: MutableStateFlow<Int>,
 	hostToken: MutableStateFlow<String>,
 	userTokens: MutableStateFlow<MutableList<String>>,
@@ -384,7 +384,7 @@ fun QueuedSongs(
 	removeSong: (Song) -> Unit = { },
 	roomManager: RoomManager?,
 	roomCode: String,
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit = { _: Song, _: ApprovalStatus -> },
+	setApprovalStatus: (Song, ApprovalStatus, List<Song>) -> Unit = { _: Song, _: ApprovalStatus, _: List<Song> -> },
 	remainingUpvotes: MutableStateFlow<Int>,
 ) {
 	if (isHost) {
@@ -397,12 +397,20 @@ fun QueuedSongs(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				RearrangeSongButtons(song = song, queuedSongList = queuedSongList, roomManager = roomManager, roomCode = roomCode)
+				if (song.approvalStatus == ApprovalStatus.APPROVED) {
+					RearrangeSongButtons(
+						song = song,
+						queuedSongList = queuedSongList,
+						roomManager = roomManager,
+						roomCode = roomCode
+					)
+				}
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,
 					removeSong = removeSong,
 					setApprovalStatus = setApprovalStatus,
+					queuedSongList = queuedSongList
 				)
 				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
 					isSongUpvoted = !isSongUpvoted
@@ -549,7 +557,8 @@ private fun getCurrentUpvotes(roomCode: String, userToken: String, upvotes: Muta
 fun ApproveDenyButtons(
 	song : Song,
 	removeSong: (Song) -> Unit = { },
-	setApprovalStatus: (Song, ApprovalStatus) -> Unit,
+	setApprovalStatus: (Song, ApprovalStatus, List<Song>) -> Unit,
+	queuedSongList: List<Song>
 ) {
 	val expanded = remember { mutableStateOf(false) }
 
@@ -559,9 +568,9 @@ fun ApproveDenyButtons(
 				.size(30.dp)
 				.clickable {
 					if (song.approvalStatus == ApprovalStatus.APPROVED) {
-						setApprovalStatus(song, ApprovalStatus.PENDING_APPROVAL)
+						setApprovalStatus(song, ApprovalStatus.PENDING_APPROVAL, queuedSongList)
 					} else {
-						setApprovalStatus(song, ApprovalStatus.APPROVED)
+						setApprovalStatus(song, ApprovalStatus.APPROVED, queuedSongList)
 					}
 				}
 				.padding(start = 10.dp),
@@ -577,9 +586,9 @@ fun ApproveDenyButtons(
 				.size(30.dp)
 				.clickable {
 					if (song.approvalStatus == ApprovalStatus.DENIED) {
-						setApprovalStatus(song, ApprovalStatus.PENDING_APPROVAL)
+						setApprovalStatus(song, ApprovalStatus.PENDING_APPROVAL, queuedSongList)
 					} else {
-						setApprovalStatus(song, ApprovalStatus.DENIED)
+						setApprovalStatus(song, ApprovalStatus.DENIED, queuedSongList)
 					}
 				}
 				.padding(start = 10.dp),
@@ -642,7 +651,14 @@ fun RearrangeSongButtons(
 	roomManager: RoomManager?,
 	roomCode: String
 ) {
-	val mutableSongList = queuedSongList as MutableList<Song>
+	val approvedSongList = mutableListOf<Song>()
+
+	queuedSongList.forEach { song ->
+		if (song.approvalStatus == ApprovalStatus.APPROVED) {
+			approvedSongList.add(song)
+		}
+	}
+
 	Column(
 
 	) {
@@ -653,7 +669,7 @@ fun RearrangeSongButtons(
 				.clickable {
 					if (song.hostOrder != 0) {
 						val songOrder = song.hostOrder
-						val upperSong = queuedSongList.find { it.hostOrder == (songOrder - 1) }
+						val upperSong = approvedSongList.find { it.hostOrder == (songOrder - 1) }
 						if (upperSong != null) {
 							roomManager?.swapSongs(roomCode, upperSong, song)
 						}
@@ -667,9 +683,9 @@ fun RearrangeSongButtons(
 				.size(20.dp)
 				.padding(top = 5.dp)
 				.clickable {
-					if (song.hostOrder != mutableSongList.size) {
+					if (song.hostOrder != approvedSongList.size) {
 						val songOrder = song.hostOrder
-						val lowerSong = queuedSongList.find { it.hostOrder == (songOrder + 1) }
+						val lowerSong = approvedSongList.find { it.hostOrder == (songOrder + 1) }
 						if (lowerSong != null) {
 							roomManager?.swapSongs(roomCode, song, lowerSong)
 						}

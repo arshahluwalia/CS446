@@ -73,8 +73,8 @@ class HostSongQueueActivity : ComponentActivity(){
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
-        getSongQueueByHostOrder(roomCode, songQueue)
-        getApprovedSongQueue(roomCode, approvedSongQueue)
+        getSongQueueByOrderAdded(roomCode, songQueue)
+        getApprovedSongQueueByHostOrder(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
@@ -152,10 +152,9 @@ class HostSongQueueActivity : ComponentActivity(){
         }
     }
 
-    private fun getSongQueueByHostOrder(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+    private fun getApprovedSongQueueByHostOrder(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
-        // update the songqueue, ordered by the timestamp by which it was added
-        roomManager.getPendingQueue(roomCode) { queue ->
+        roomManager.getApprovedQueueCallback(roomCode) { queue ->
             songQueue.value = queue.queue.sortedBy { it.hostOrder }
         }
     }
@@ -193,12 +192,41 @@ class HostSongQueueActivity : ComponentActivity(){
         }
     }
 
-    private fun setApprovalStatus(song: Song, approvalStatus: ApprovalStatus) {
+    private fun setApprovalStatus(song: Song, approvalStatus: ApprovalStatus, songQueue: List<Song>) {
         if (autoRemove.value && approvalStatus == ApprovalStatus.DENIED) {
             removeSong(song)
         } else {
             val roomManager = RoomManager()
             roomManager.setSongApprovalStatus(roomCode, song, approvalStatus)
+
+            //  Everything below modifies the host order values when changing approval status
+
+            val approvedSongList = mutableListOf<Song>()
+            songQueue.forEach { currentSong ->
+                if (currentSong.approvalStatus == ApprovalStatus.APPROVED) {
+                    approvedSongList.add(currentSong)
+                }
+            }
+
+            if (approvalStatus == ApprovalStatus.APPROVED) {
+                roomManager.setSongHostOrder(roomCode, song, approvedSongList.size)
+            }
+            else {
+                val songHostOrder = song.hostOrder
+
+                for (currentSong in approvedSongList) {
+                    if (currentSong.hostOrder > songHostOrder) {
+                        roomManager.setSongHostOrder(roomCode, currentSong, currentSong.hostOrder - 1)
+                    }
+                }
+
+                if (approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
+                    roomManager.setPendingSongHostOrder(roomCode, song)
+                }
+                else {
+                    roomManager.setDeniedSongHostOrder(roomCode, song)
+                }
+            }
         }
     }
 
@@ -345,7 +373,7 @@ private fun SongQueue(
     removeSong: (Song) -> Unit = { },
     roomManager: RoomManager,
     appContext: Context,
-    setApprovalStatus: (Song, ApprovalStatus) -> Unit,
+    setApprovalStatus: (Song, ApprovalStatus, List<Song>) -> Unit,
     hostToken: MutableStateFlow<String>,
     userTokens: MutableStateFlow<MutableList<String>>
 ) {

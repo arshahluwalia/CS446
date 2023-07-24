@@ -87,9 +87,24 @@ class RoomManager {
     }
 
     fun swapSongs(roomCode: String, upperSong: Song, lowerSong: Song) {
-        val queueRef = database.child("$roomCode/pendingQueue")
+        val queueRef = database.child("$roomCode/approvedQueue")
         queueRef.child(upperSong.context_uri).child("hostOrder").setValue(lowerSong.hostOrder)
         queueRef.child(lowerSong.context_uri).child("hostOrder").setValue(upperSong.hostOrder)
+    }
+
+    fun setSongHostOrder(roomCode: String, song: Song, hostOrderValue: Int) {
+        val queueRef = database.child("$roomCode/approvedQueue/${song.context_uri}/hostOrder")
+        queueRef.setValue(hostOrderValue)
+    }
+
+    fun setPendingSongHostOrder(roomCode:String, song: Song) {
+        val queueRef = database.child("$roomCode/pendingQueue/${song.context_uri}/hostOrder")
+        queueRef.setValue(-1)
+    }
+
+    fun setDeniedSongHostOrder(roomCode:String, song: Song) {
+        val queueRef = database.child("$roomCode/deniedQueue/${song.context_uri}/hostOrder")
+        queueRef.setValue(-1)
     }
 
     fun setSongApprovalStatus(roomCode: String, song: Song, approvalStatus: ApprovalStatus) {
