@@ -28,8 +28,8 @@ class GuestSongQueueActivity  : ComponentActivity(){
         val songQueue = MutableStateFlow<List<Song>>(emptyList())
         val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
-        getSongQueueByHostOrder(roomCode, songQueue)
-        getApprovedSongQueue(roomCode, approvedSongQueue)
+        getSongQueueByOrderAdded(roomCode, songQueue)
+        getApprovedSongQueueByHostOrder(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
@@ -77,10 +77,9 @@ class GuestSongQueueActivity  : ComponentActivity(){
         }
     }
 
-    private fun getSongQueueByHostOrder(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
+    private fun getApprovedSongQueueByHostOrder(roomCode: String, songQueue: MutableStateFlow<List<Song>>) {
         val roomManager = RoomManager()
-        // update the songqueue, ordered by the timestamp by which it was added
-        roomManager.getPendingQueue(roomCode) { queue ->
+        roomManager.getApprovedQueueCallback(roomCode) { queue ->
             songQueue.value = queue.queue.sortedBy { it.hostOrder }
         }
     }
