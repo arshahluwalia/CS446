@@ -397,14 +397,14 @@ fun QueuedSongs(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.Start
 			) {
-				if (song.approvalStatus == ApprovalStatus.APPROVED) {
-					RearrangeSongButtons(
-						song = song,
-						queuedSongList = queuedSongList,
-						roomManager = roomManager,
-						roomCode = roomCode
-					)
-				}
+//				if (song.approvalStatus == ApprovalStatus.APPROVED) {
+//					RearrangeSongButtons(
+//						song = song,
+//						queuedSongList = queuedSongList,
+//						roomManager = roomManager,
+//						roomCode = roomCode
+//					)
+//				}
 				HostSongItem(song = song)
 				ApproveDenyButtons(
 					song = song,

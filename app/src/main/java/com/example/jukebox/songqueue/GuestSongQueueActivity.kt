@@ -29,7 +29,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
         val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         getSongQueueByOrderAdded(roomCode, songQueue)
-        getApprovedSongQueueByHostOrder(roomCode, approvedSongQueue)
+        getApprovedSongQueue(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)

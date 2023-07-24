@@ -74,7 +74,7 @@ class HostSongQueueActivity : ComponentActivity(){
         val approvedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         val deniedSongQueue = MutableStateFlow<List<Song>>(emptyList())
         getSongQueueByOrderAdded(roomCode, songQueue)
-        getApprovedSongQueueByHostOrder(roomCode, approvedSongQueue)
+        getApprovedSongQueue(roomCode, approvedSongQueue)
         getDeniedSongQueue(roomCode, deniedSongQueue)
         val hostName = MutableStateFlow("")
         getHostName(roomCode, hostName)
@@ -201,32 +201,32 @@ class HostSongQueueActivity : ComponentActivity(){
 
             //  Everything below modifies the host order values when changing approval status
 
-            val approvedSongList = mutableListOf<Song>()
-            songQueue.forEach { currentSong ->
-                if (currentSong.approvalStatus == ApprovalStatus.APPROVED) {
-                    approvedSongList.add(currentSong)
-                }
-            }
-
-            if (approvalStatus == ApprovalStatus.APPROVED) {
-                roomManager.setSongHostOrder(roomCode, song, approvedSongList.size)
-            }
-            else {
-                val songHostOrder = song.hostOrder
-
-                for (currentSong in approvedSongList) {
-                    if (currentSong.hostOrder > songHostOrder) {
-                        roomManager.setSongHostOrder(roomCode, currentSong, currentSong.hostOrder - 1)
-                    }
-                }
-
-                if (approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
-                    roomManager.setPendingSongHostOrder(roomCode, song)
-                }
-                else {
-                    roomManager.setDeniedSongHostOrder(roomCode, song)
-                }
-            }
+//            val approvedSongList = mutableListOf<Song>()
+//            songQueue.forEach { currentSong ->
+//                if (currentSong.approvalStatus == ApprovalStatus.APPROVED) {
+//                    approvedSongList.add(currentSong)
+//                }
+//            }
+//
+//            if (approvalStatus == ApprovalStatus.APPROVED) {
+//                roomManager.setSongHostOrder(roomCode, song, approvedSongList.size)
+//            }
+//            else {
+//                val songHostOrder = song.hostOrder
+//
+//                for (currentSong in approvedSongList) {
+//                    if (currentSong.hostOrder > songHostOrder) {
+//                        roomManager.setSongHostOrder(roomCode, currentSong, currentSong.hostOrder - 1)
+//                    }
+//                }
+//
+//                if (approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
+//                    roomManager.setPendingSongHostOrder(roomCode, song)
+//                }
+//                else {
+//                    roomManager.setDeniedSongHostOrder(roomCode, song)
+//                }
+//            }
         }
     }
 
