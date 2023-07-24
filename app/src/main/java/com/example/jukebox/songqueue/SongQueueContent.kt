@@ -472,18 +472,10 @@ fun SongActions(
 ) {
 	val expanded = remember { mutableStateOf(false) }
 	val context = LocalContext.current
-	Image(
-		modifier = Modifier
-			.clickable {
-				if (isHost) { /*Hosts get unlimited voting*/
-					/*If the user hasn't upvoted, increment upvotes by one*/
-					if (!isUpvoted) {
-						roomManager?.upvoteSong(roomCode, song.context_uri)
-					} else { /*If user has upvoted: undo the upvote*/
-						roomManager?.downvoteSong(roomCode, song.context_uri)
-					}
-					onVoteClick()
-				} else { /*Guest voting is rate limited*/
+	if (!isHost) {
+		Image(
+			modifier = Modifier
+				.clickable {
 					val currentUpvotes = MutableStateFlow(0)
 					getCurrentUpvotes(roomCode, SpotifyUserToken.getToken(), currentUpvotes)
 					if (!isUpvoted) {
@@ -516,11 +508,11 @@ fun SongActions(
 						remainingUpvotes.value++
 					}
 				}
-			}
-			.alpha(if (isUpvoted) 0.5f else 1.0f),
-		painter = painterResource(id = R.drawable.upvote_arrow),
-		contentDescription = null
-	)
+				.alpha(if (isUpvoted) 0.5f else 1.0f),
+			painter = painterResource(id = R.drawable.upvote_arrow),
+			contentDescription = null
+		)
+	}
 	Box(modifier = Modifier.padding(start = 10.dp)) {
 		Image(
 			modifier = Modifier
