@@ -3,6 +3,7 @@ package com.example.jukebox.songqueue
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
@@ -62,6 +63,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 private lateinit var roomCode : String
+private var autoRemove = MutableStateFlow(false)
 
 class HostSongQueueActivity : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +89,8 @@ class HostSongQueueActivity : ComponentActivity(){
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
         QueueListener.setQueueFlow(approvedSongQueue)
         CurrentSong.setInitialVars(roomCode, userTokens)
+
+        getAutoRemove(roomCode, autoRemove)
 
         val myScope = CoroutineScope(Dispatchers.Main)
         myScope.launch {
@@ -183,9 +187,20 @@ class HostSongQueueActivity : ComponentActivity(){
         }
     }
 
-    private fun setApprovalStatus(song: Song, approvalStatus: ApprovalStatus) {
+    private fun getAutoRemove(roomCode: String, autoRemove: MutableStateFlow<Boolean>) {
         val roomManager = RoomManager()
-        roomManager.setSongApprovalStatus(roomCode, song, approvalStatus)
+        roomManager.getAutoRemove(roomCode) {
+            autoRemove.value = it
+        }
+    }
+
+    private fun setApprovalStatus(song: Song, approvalStatus: ApprovalStatus) {
+        if (autoRemove.value && approvalStatus == ApprovalStatus.DENIED) {
+            removeSong(song)
+        } else {
+            val roomManager = RoomManager()
+            roomManager.setSongApprovalStatus(roomCode, song, approvalStatus)
+        }
     }
 
     private fun getHostToken(

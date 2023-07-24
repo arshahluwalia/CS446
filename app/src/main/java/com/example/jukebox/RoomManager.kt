@@ -1,5 +1,6 @@
 package com.example.jukebox
 
+import android.util.Log
 import com.example.jukebox.spotify.SpotifyUserToken
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -370,6 +371,28 @@ class RoomManager {
             }
         })
     }
+
+    fun setAutoRemove(roomCode: String, autoRemove: Boolean) {
+        val autoRemoveRef = database.child("$roomCode/autoRemove")
+        autoRemoveRef.setValue(autoRemove)
+    }
+
+    fun getAutoRemove(roomCode: String, callback: (Boolean) -> Unit) {
+        val autoRemoveRef = database.child("$roomCode/autoRemove")
+
+        autoRemoveRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val autoRemove = dataSnapshot.getValue(Boolean::class.java)
+                callback(autoRemove ?: false)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(false)
+            }
+        })
+    }
+
 
     fun suggestSong(roomCode: String, userToken: String) {
         val userRef = database.child("$roomCode/users/$userToken/numSuggestions")

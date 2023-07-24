@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +33,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -48,11 +50,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
@@ -71,6 +75,9 @@ class SettingsActivity : ComponentActivity() {
         val maxSuggestions = MutableStateFlow(1)
         getMaxUpvotes(roomCode, maxUpvotes)
         getMaxSuggestions(roomCode, maxSuggestions)
+
+        val autoRemove = MutableStateFlow(false)
+        getAutoRemove(roomCode, autoRemove)
         setContent {
             JukeboxTheme {
                 ScreenContent(
@@ -80,6 +87,7 @@ class SettingsActivity : ComponentActivity() {
                     hostName = hostName,
                     maxUpvotes = maxUpvotes,
                     maxSuggestions = maxSuggestions,
+                    autoRemove = autoRemove,
                     activity = this
                 )
             }
@@ -106,6 +114,13 @@ class SettingsActivity : ComponentActivity() {
             maxSuggestions.value = max
         }
     }
+
+    private fun getAutoRemove(roomCode: String, autoRemove: MutableStateFlow<Boolean>) {
+        val roomManager = RoomManager()
+        roomManager.getAutoRemove(roomCode) {
+            autoRemove.value = it
+        }
+    }
 }
 
 @Composable
@@ -116,12 +131,19 @@ private fun ScreenContent(
     hostName: MutableStateFlow<String>,
     maxUpvotes: MutableStateFlow<Int>,
     maxSuggestions: MutableStateFlow<Int>,
+    autoRemove: MutableStateFlow<Boolean>,
     activity: Activity?
 ) {
     Box {
         SecondaryBackground()
-        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
                 BackToQueueButton(dispatcher)
             }
             SettingsTitle()
@@ -142,6 +164,11 @@ private fun ScreenContent(
                 roomManager = roomManager,
                 maxUpvotes = maxUpvotes,
                 activity = activity
+            )
+            ToggleAutoRemove(
+                roomCode = roomCode,
+                roomManager = roomManager,
+                autoRemove = autoRemove
             )
         }
     }
@@ -198,7 +225,10 @@ private fun ChangeNameField(
     var hostName by remember { mutableStateOf("") }
 
     Text(
-        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth().padding(start = 60.dp),
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 60.dp),
         text = "Change Name:",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White,
@@ -280,7 +310,9 @@ private fun ChangeMaxUpvotes(
 
     LazyColumn(
         state = lazyListState,
-        modifier = Modifier.padding(bottom = 10.dp).height(70.dp),
+        modifier = Modifier
+            .padding(bottom = 10.dp)
+            .height(70.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(101) { page ->
@@ -351,7 +383,9 @@ private fun ChangeMaxSuggestions(
 
     LazyColumn(
         state = lazyListState,
-        modifier = Modifier.padding(bottom = 10.dp).height(70.dp),
+        modifier = Modifier
+            .padding(bottom = 10.dp)
+            .height(70.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(101) { page ->
@@ -389,6 +423,47 @@ private fun ChangeMaxSuggestions(
 }
 
 @Composable
+private fun ToggleAutoRemove(
+    roomCode: String,
+    roomManager: RoomManager?,
+    autoRemove: MutableStateFlow<Boolean>
+) {
+    val autoRemoveValue = autoRemove.collectAsState().value
+    var autoRemoveEnabled by remember { mutableStateOf(autoRemoveValue) }
+
+    Text(
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .fillMaxWidth()
+            .padding(start = 60.dp),
+        text = "Auto remove a song when denied:",
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White,
+        textAlign = TextAlign.Start
+    )
+
+    Switch(
+        checked = autoRemoveEnabled,
+        onCheckedChange = {
+            autoRemoveEnabled = it
+        }
+    )
+
+    Button(
+        onClick = {
+            roomManager?.setAutoRemove(roomCode, autoRemoveEnabled)
+        },
+        enabled = autoRemoveEnabled != autoRemoveValue
+    ) {
+        Text(text = "Save")
+    }
+
+    LaunchedEffect(autoRemoveValue) {
+        autoRemoveEnabled = autoRemoveValue
+    }
+}
+
+@Composable
 @Preview
 private fun PreviewScreenContent() {
     JukeboxTheme {
@@ -399,6 +474,7 @@ private fun PreviewScreenContent() {
             roomManager = null,
             maxUpvotes = MutableStateFlow(1),
             maxSuggestions = MutableStateFlow(1),
+            autoRemove = MutableStateFlow(false),
             activity = null
         )
     }
