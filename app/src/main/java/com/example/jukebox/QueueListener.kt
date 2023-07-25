@@ -35,6 +35,11 @@ class QueueListener {
 							CurrentSong.setDuration(currentSong.duration)
 						}
 					}
+				} else if(it[0] != previousQueue[0]) {
+					val currentSong = runBlocking { roomManager.getCurrentSong(roomCode) }
+					if (currentSong != null) {
+						CurrentSong.setDuration(currentSong.duration)
+					}
 				}
 				previousQueue = queue.value
 			}

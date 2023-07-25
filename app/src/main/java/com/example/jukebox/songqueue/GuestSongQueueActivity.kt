@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.jukebox.ApprovalStatus
+import com.example.jukebox.CurrentSong
+import com.example.jukebox.QueueListener
 import com.example.jukebox.RoomManager
 import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
@@ -38,6 +40,12 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getMaxUpvotesAllowed(roomCode, roomManager, maxSongUpvotes)
         val appContext = applicationContext
         val dispatcher = onBackPressedDispatcher
+        val hostToken = MutableStateFlow("")
+        val userTokens = MutableStateFlow<MutableList<String>>(ArrayList())
+        getHostToken(roomCode, hostToken, roomManager)
+        getUserTokens(roomCode, userTokens, roomManager, hostToken)
+        QueueListener.setQueueFlow(approvedSongQueue)
+        CurrentSong.setInitialVars(roomCode, userTokens)
 
         setContent {
             // TODO: need to retrieve current song instead of hardcoding
@@ -141,6 +149,30 @@ class GuestSongQueueActivity  : ComponentActivity(){
                     maxUpvotesAllowed.value = maxUpvotes - currentUpvotes
                 }
             }
+        }
+    }
+
+    private fun getHostToken(
+        roomCode: String,
+        hostToken: MutableStateFlow<String>,
+        roomManager: RoomManager?
+    ) {
+        roomManager?.getHostToken(roomCode) { token ->
+            hostToken.value = token
+        }
+    }
+
+    private fun getUserTokens(
+        roomCode: String,
+        userTokens: MutableStateFlow<MutableList<String>>,
+        roomManager: RoomManager?,
+        hostToken: MutableStateFlow<String>
+    ) {
+        roomManager?.getUsers(roomCode) { users ->
+            val tokens = mutableListOf<String>()
+            users.forEach { tokens.add(it.userToken) }
+            userTokens.value = tokens
+            userTokens.value.add(hostToken.value)
         }
     }
 }
