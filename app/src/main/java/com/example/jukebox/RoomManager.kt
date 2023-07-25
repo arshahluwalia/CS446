@@ -440,12 +440,12 @@ class RoomManager {
         autoRemoveRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val autoRemove = dataSnapshot.getValue(Boolean::class.java)
-                callback(autoRemove ?: false)
+                callback(autoRemove ?: true)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle the error
-                callback(false)
+                callback(true)
             }
         })
     }
