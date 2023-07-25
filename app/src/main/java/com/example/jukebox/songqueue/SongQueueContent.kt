@@ -480,7 +480,7 @@ fun SongActions(
 ) {
 	val expanded = remember { mutableStateOf(false) }
 	val context = LocalContext.current
-	if (!isHost) {
+	if (!isHost && song.approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
 		Image(
 			modifier = Modifier
 				.clickable {
