@@ -97,6 +97,11 @@ class RoomManager {
         queueRef.setValue(hostOrderValue)
     }
 
+    fun setPreviousSongHostOrder(roomCode: String, song: Song, hostOrderValue: Int) {
+        val queueRef = database.child("$roomCode/previousQueue/${song.context_uri}/hostOrder")
+        queueRef.setValue(hostOrderValue)
+    }
+
     fun setPendingSongHostOrder(roomCode:String, song: Song) {
         val queueRef = database.child("$roomCode/pendingQueue/${song.context_uri}/hostOrder")
         queueRef.setValue(-1)
@@ -107,13 +112,39 @@ class RoomManager {
         queueRef.setValue(-1)
     }
 
-    fun addSongToPreviousQueue(roomCode: String, song: Song?) {
+    suspend fun addSongToPreviousQueue(roomCode: String, song: Song?) {
         val queueRef = database.child("$roomCode/previousQueue/${song?.context_uri}")
+
+        val previousSongsList = getPreviousQueue(roomCode)
+        if (previousSongsList != null) {
+            for (previousSong in previousSongsList) {
+                setPreviousSongHostOrder(roomCode, previousSong, previousSong.hostOrder + 1)
+            }
+        }
+
+        queueRef.setValue(song)
+    }
+
+    suspend fun addSongToApprovedQueueHead(roomCode: String, song: Song?) {
+        val queueRef = database.child("$roomCode/approvedQueue/${song?.context_uri}")
+
+        val approvedSongsList = getApprovedQueueAsList(roomCode)
+        if (approvedSongsList != null) {
+            for (approvedSong in approvedSongsList) {
+                setSongHostOrder(roomCode, approvedSong, approvedSong.hostOrder + 1)
+            }
+        }
+
         queueRef.setValue(song)
     }
 
     fun removeSongFromApprovedQueue(roomCode: String, song: Song?) {
         val queueRef = database.child("$roomCode/approvedQueue/${song?.context_uri}")
+        queueRef.removeValue()
+    }
+
+    fun removeSongFromPreviousQueue(roomCode: String, song: Song?) {
+        val queueRef = database.child("$roomCode/previousQueue/${song?.context_uri}")
         queueRef.removeValue()
     }
 
@@ -622,6 +653,38 @@ class RoomManager {
         }
     }
 
+    suspend fun getApprovedQueueAsList(roomCode: String): List<Song>? {
+        val queueRef = database.child("$roomCode/approvedQueue")
+        return try {
+            val dataSnapshot = queueRef.get().await()
+            val songs = mutableListOf<Song>()
+            for (snapshot in dataSnapshot.children) {
+                val song = snapshot.getValue(Song::class.java)
+                song?.let { songs.add(it) }
+            }
+            songs
+        } catch (e: Exception) {
+            // Handle the error
+            null
+        }
+    }
+
+    suspend fun getPreviousQueue(roomCode: String): List<Song>? {
+        val queueRef = database.child("$roomCode/previousQueue")
+        return try {
+            val dataSnapshot = queueRef.get().await()
+            val songs = mutableListOf<Song>()
+            for (snapshot in dataSnapshot.children) {
+                val song = snapshot.getValue(Song::class.java)
+                song?.let { songs.add(it) }
+            }
+            songs
+        } catch (e: Exception) {
+            // Handle the error
+            null
+        }
+    }
+
 
     fun getDeniedQueue(roomCode: String, callback: (SongQueue) -> Unit) {
         val queueRef = database.child("$roomCode/deniedQueue")
@@ -695,7 +758,7 @@ class RoomManager {
         }
     }
     suspend fun getPrevSong(roomCode: String): Song? {
-        val queueRef = database.child("$roomCode/approvedQueue")
+        val queueRef = database.child("$roomCode/previousQueue")
         return try {
             val dataSnapshot = queueRef.get().await()
             val songs = mutableListOf<Song>()
@@ -703,7 +766,7 @@ class RoomManager {
                 val song = snapshot.getValue(Song::class.java)
                 song?.let { songs.add(it) }
             }
-            songs.lastOrNull()
+            songs.firstOrNull{ it.hostOrder == 0 }
         } catch (e: Exception) {
             // Handle the error
             null
@@ -729,13 +792,12 @@ class RoomManager {
                 }
                 addSongToPreviousQueue(roomCode, firstSong)
             }
-            //queueRef.setValue(songs)
         } catch (e: Exception) {
 
         }
     }
     suspend fun moveBackSong(roomCode: String) {
-        val queueRef = database.child("$roomCode/approvedQueue")
+        val queueRef = database.child("$roomCode/previousQueue")
         try {
             val dataSnapshot = queueRef.get().await()
             val songs = mutableListOf<Song>()
@@ -744,10 +806,16 @@ class RoomManager {
                 song?.let { songs.add(it) }
             }
             if (songs.isNotEmpty()) {
-                val lastSong = songs.removeAt(songs.size - 1)
-                songs.add(0, lastSong)
+                val lastSong = songs.firstOrNull{ it.hostOrder == 0 }
+                removeSongFromPreviousQueue(roomCode, lastSong)
+
+                for (song in songs) {
+                    if (song.hostOrder != 0) {
+                        setPreviousSongHostOrder(roomCode, song, song.hostOrder - 1)
+                    }
+                }
+                addSongToApprovedQueueHead(roomCode, lastSong)
             }
-            queueRef.setValue(songs)
         } catch (e: Exception) {
 
         }
