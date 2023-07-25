@@ -781,7 +781,7 @@ class RoomManager {
                 val song = snapshot.getValue(Song::class.java)
                 song?.let { songs.add(it) }
             }
-            if (songs.isNotEmpty()) {
+            if (songs.size > 1) {
                 val firstSong = songs.firstOrNull{ it.hostOrder == 0 }
                 removeSongFromApprovedQueue(roomCode, firstSong)
 
