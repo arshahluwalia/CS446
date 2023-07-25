@@ -392,30 +392,32 @@ fun QueuedSongs(
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
 			}
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.Start
-			) {
-//				if (song.approvalStatus == ApprovalStatus.APPROVED) {
-//					RearrangeSongButtons(
-//						song = song,
-//						queuedSongList = queuedSongList,
-//						roomManager = roomManager,
-//						roomCode = roomCode
-//					)
-//				}
-				HostSongItem(song = song)
-				ApproveDenyButtons(
-					song = song,
-					removeSong = removeSong,
-					setApprovalStatus = setApprovalStatus,
-					queuedSongList = queuedSongList
-				)
-				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
-					isSongUpvoted = !isSongUpvoted
-				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-				remainingUpvotes = remainingUpvotes)
+			if (song.hostOrder != 0) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.Start
+				) {
+					if (song.approvalStatus == ApprovalStatus.APPROVED) {
+						RearrangeSongButtons(
+							song = song,
+							queuedSongList = queuedSongList,
+							roomManager = roomManager,
+							roomCode = roomCode
+						)
+					}
+					HostSongItem(song = song)
+					ApproveDenyButtons(
+						song = song,
+						removeSong = removeSong,
+						setApprovalStatus = setApprovalStatus,
+						queuedSongList = queuedSongList
+					)
+					SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+						isSongUpvoted = !isSongUpvoted
+					}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+						remainingUpvotes = remainingUpvotes)
+				}
 			}
 		}
 	}
@@ -424,16 +426,18 @@ fun QueuedSongs(
 			var isSongUpvoted by remember {
 				mutableStateOf(false)
 			}
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.Start
-			) {
-				GuestSongItem(song = song)
-				SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
-					isSongUpvoted = !isSongUpvoted
-				}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
-				remainingUpvotes = remainingUpvotes)
+			if (song.hostOrder != 0) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.Start
+				) {
+					GuestSongItem(song = song)
+					SongActions(song = song, isUpvoted = isSongUpvoted, onVoteClick = {
+						isSongUpvoted = !isSongUpvoted
+					}, roomManager = roomManager, roomCode = roomCode, isHost = isHost,
+						remainingUpvotes = remainingUpvotes)
+				}
 			}
 		}
 	}
@@ -667,7 +671,7 @@ fun RearrangeSongButtons(
 				.size(20.dp)
 				.padding(bottom = 5.dp)
 				.clickable {
-					if (song.hostOrder != 0) {
+					if (song.hostOrder > 1) {
 						val songOrder = song.hostOrder
 						val upperSong = approvedSongList.find { it.hostOrder == (songOrder - 1) }
 						if (upperSong != null) {
@@ -683,7 +687,7 @@ fun RearrangeSongButtons(
 				.size(20.dp)
 				.padding(top = 5.dp)
 				.clickable {
-					if (song.hostOrder != approvedSongList.size) {
+					if (song.hostOrder <= approvedSongList.size && song.hostOrder != 0) {
 						val songOrder = song.hostOrder
 						val lowerSong = approvedSongList.find { it.hostOrder == (songOrder + 1) }
 						if (lowerSong != null) {

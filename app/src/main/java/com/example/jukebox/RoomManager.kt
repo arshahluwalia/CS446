@@ -107,6 +107,16 @@ class RoomManager {
         queueRef.setValue(-1)
     }
 
+    fun addSongToPreviousQueue(roomCode: String, song: Song?) {
+        val queueRef = database.child("$roomCode/previousQueue/${song?.context_uri}")
+        queueRef.setValue(song)
+    }
+
+    fun removeSongFromApprovedQueue(roomCode: String, song: Song?) {
+        val queueRef = database.child("$roomCode/approvedQueue/${song?.context_uri}")
+        queueRef.removeValue()
+    }
+
     fun setSongApprovalStatus(roomCode: String, song: Song, approvalStatus: ApprovalStatus) {
         val context_uri = song.context_uri
         var approvalRef = when(approvalStatus) {
@@ -678,7 +688,7 @@ class RoomManager {
                 val song = snapshot.getValue(Song::class.java)
                 song?.let { songs.add(it) }
             }
-            songs.elementAtOrNull(1)
+            songs.firstOrNull{ it.hostOrder == 1}
         } catch (e: Exception) {
             // Handle the error
             null
@@ -709,10 +719,17 @@ class RoomManager {
                 song?.let { songs.add(it) }
             }
             if (songs.isNotEmpty()) {
-                val firstSong = songs.removeAt(0)
-                songs.add(firstSong)
+                val firstSong = songs.firstOrNull{ it.hostOrder == 0 }
+                removeSongFromApprovedQueue(roomCode, firstSong)
+
+                for (song in songs) {
+                    if (song.hostOrder != 0) {
+                        setSongHostOrder(roomCode, song, song.hostOrder - 1)
+                    }
+                }
+                addSongToPreviousQueue(roomCode, firstSong)
             }
-            queueRef.setValue(songs)
+            //queueRef.setValue(songs)
         } catch (e: Exception) {
 
         }
