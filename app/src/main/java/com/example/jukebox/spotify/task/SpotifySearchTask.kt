@@ -28,7 +28,11 @@ object SpotifySearchTask : CoroutineScope by MainScope() {
                 if (result.body() != null) {
                     Log.d("spotify logging: ", "received response ${result.body()!!.tracks}")
                     for (item in result.body()!!.tracks.items) {
-                        val songArtist = item.artists[0].name
+                        var songArtist = ""
+                        for (artist in item.artists) {
+                            if (songArtist != "") songArtist += ", "
+                            songArtist += artist.name
+                        }
                         val songTitle = item.name
                         val songUri = item.uri
                         val duration = item.duration_ms
