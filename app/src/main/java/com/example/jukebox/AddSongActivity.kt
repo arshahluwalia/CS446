@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -351,9 +352,15 @@ private fun SearchSongQueue(
 ) {
     val context = LocalContext.current
 
+    val lazyListState = rememberLazyListState()
+    LaunchedEffect(searchSongList) {
+        lazyListState.scrollToItem(0)
+    }
+
     Log.d("Display: ", "Songs to add: $searchSongList")
 
     LazyColumn(
+        state = lazyListState,
         modifier = Modifier
             .padding(vertical = 10.dp)
             .height(430.dp),
