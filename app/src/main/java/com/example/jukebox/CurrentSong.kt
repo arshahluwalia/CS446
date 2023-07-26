@@ -28,6 +28,9 @@ class CurrentSong {
 			roomCode = ""
 			currentTime.value = -1
 			duration.value = -1
+			uTokens.value = ArrayList()
+			currentSong.value = ""
+			pausedTime = 0
 		}
 
 		fun setDuration(duration: Int, currentTime: Int = -1, songUri: String = "") {
