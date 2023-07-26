@@ -43,6 +43,7 @@ class QueueListener {
 								songUri = currentSong.context_uri
 							)
 							roomManager.setNewDuration(roomCode, currentSong.duration)
+							roomManager.setNewSong(roomCode, currentSong.context_uri)
 						}
 					}
 				} else if(it[0].context_uri != previousQueue[0].context_uri) {
