@@ -47,7 +47,7 @@ class CurrentSong {
 							0,
 							uTokens.value
 						)
-						setDuration(duration = 0, songUri = "")
+						resetTimer()
 						setDuration(duration = currentSong.duration, songUri = currentSong.context_uri)
 					}
 				}
