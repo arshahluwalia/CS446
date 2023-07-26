@@ -9,13 +9,18 @@ import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -254,7 +259,7 @@ private fun AddSongBox(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 70.dp)
+                .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 30.dp)
                 .clip(shape = RoundedCornerShape(20.dp))
                 .background(color = Color.Black.copy(alpha = 0.4f))
         ){
@@ -313,7 +318,7 @@ private fun SearchBox(
         value= songName.collectAsState().value,
         shape = RoundedCornerShape(20),
         singleLine = true,
-        label = { Text(text = "Enter song name") },
+        label = { Text(text = "Enter song or artist name") },
         onValueChange = { songName.value = it },
         keyboardActions = KeyboardActions(
             onDone = {
@@ -347,37 +352,48 @@ private fun SearchSongQueue(
     val context = LocalContext.current
 
     Log.d("Display: ", "Songs to add: $searchSongList")
-    searchSongList.forEach { song ->
-        queuedSongList.forEach{ if (it.context_uri == song.context_uri) clickedStateMap[song.context_uri] = true }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            SearchSongItem(song = song)
-            IconButton(
-                onClick = {
-                    if (remainingRequests > 0) {
-                        roomManager?.addSongToPendingQueue(roomCode, song)
-                        clickedStateMap[song.context_uri] = true
-                        if (!isHost) roomManager?.suggestSong(roomCode, SpotifyUserToken.getToken())
-                    } else {
-                        AlertDialog.Builder(context)
-                            .setTitle("You have exceeded the max amount of song requests")
-                            .setMessage("Please try again later")
-                            .setPositiveButton("OK", null)
-                            .show()
+
+    LazyColumn(
+        modifier = Modifier
+            .padding(vertical = 10.dp)
+            .height(430.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items(1) { _ ->
+            searchSongList.forEach { song ->
+                queuedSongList.forEach{ if (it.context_uri == song.context_uri) clickedStateMap[song.context_uri] = true }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    SearchSongItem(song = song)
+                    IconButton(
+                        onClick = {
+                            if (remainingRequests > 0) {
+                                roomManager?.addSongToPendingQueue(roomCode, song)
+                                clickedStateMap[song.context_uri] = true
+                                if (!isHost) roomManager?.suggestSong(roomCode, SpotifyUserToken.getToken())
+                            } else {
+                                AlertDialog.Builder(context)
+                                    .setTitle("You have exceeded the max amount of song requests")
+                                    .setMessage("Please try again later")
+                                    .setPositiveButton("OK", null)
+                                    .show()
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (clickedStateMap[song.context_uri] == true) Icons.Filled.Check else Icons.Filled.Add,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
                     }
                 }
-            ) {
-                Icon(
-                    imageVector = if (clickedStateMap[song.context_uri] == true) Icons.Filled.Check else Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = Color.White
-                )
             }
         }
     }
+
 }
 
 
@@ -386,7 +402,7 @@ private fun SearchSongItem(song: Song) {
     Row(
         modifier = Modifier
             .fillMaxWidth(0.85f)
-            .padding(start = 30.dp),
+            .padding(start = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier
