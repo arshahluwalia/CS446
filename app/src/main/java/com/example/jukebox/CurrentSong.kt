@@ -22,6 +22,14 @@ class CurrentSong {
 
 		private var timer : SongTimer? = null
 
+		fun resetData() {
+			timer?.cancel()
+			isHost = false
+			roomCode = ""
+			currentTime.value = -1
+			duration.value = -1
+		}
+
 		fun setDuration(duration: Int, currentTime: Int = -1, songUri: String = "") {
 			this.duration.value = duration
 			this.currentTime.value = currentTime

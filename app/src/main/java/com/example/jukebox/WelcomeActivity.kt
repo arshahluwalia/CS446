@@ -159,6 +159,8 @@ private fun RoomCodeTextField(
                 if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
                     roomManager?.checkRoomExists(roomCode) { exists ->
                         if (exists) {
+                            QueueListener.resetData()
+                            CurrentSong.resetData()
                             Log.d("Welcome Activity", "User joining room $roomCode")
                             val intent = Intent(context, AuthorizeActivity::class.java)
                             intent.putExtra("roomCode", roomCode)
@@ -179,6 +181,8 @@ private fun RoomCodeTextField(
                 onDone = {
                     roomManager?.checkRoomExists(roomCode) { exists ->
                         if (exists) {
+                            QueueListener.resetData()
+                            CurrentSong.resetData()
                             Log.d("Welcome Activity", "User joining room $roomCode")
                             requestAccessToken()
                             val intent = Intent(context, AuthorizeActivity::class.java)
@@ -212,6 +216,7 @@ private fun StartARoomButton() {
         shape = RoundedCornerShape(20),
         onClick = {
             QueueListener.resetData()
+            CurrentSong.resetData()
             val intent = Intent(context, AuthorizeActivity::class.java)
             intent.putExtra("isHost", true)
             context.startActivity(intent)
