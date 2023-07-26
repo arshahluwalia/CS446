@@ -49,7 +49,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
         getCurrentSongInfo(roomCode, roomManager)
         QueueListener.setQueueFlow(approvedSongQueue)
-        CurrentSong.setInitialVars(roomCode, userTokens)
+        CurrentSong.setInitialVars(roomCode, userTokens, false)
 
         val myScope = CoroutineScope(Dispatchers.Main)
         myScope.launch {

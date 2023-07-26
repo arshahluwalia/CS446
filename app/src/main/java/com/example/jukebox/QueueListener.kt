@@ -30,11 +30,13 @@ class QueueListener {
 						// play song
 						val currentSong = runBlocking { roomManager.getCurrentSong(roomCode) }
 						if (currentSong != null) {
-							SpotifySongControlTask.playSong(
-								currentSong.context_uri,
-								0,
-								uTokens.value
-							)
+							if (CurrentSong.isHost) {
+								SpotifySongControlTask.playSong(
+									currentSong.context_uri,
+									0,
+									uTokens.value
+								)
+							}
 							if (Looper.myLooper() == null) {
 								Looper.prepare()
 							}
@@ -42,8 +44,10 @@ class QueueListener {
 								duration = currentSong.duration,
 								songUri = currentSong.context_uri
 							)
-							roomManager.setNewDuration(roomCode, currentSong.duration)
-							roomManager.setNewSong(roomCode, currentSong.context_uri)
+							if (CurrentSong.isHost) {
+								roomManager.setNewDuration(roomCode, currentSong.duration)
+								roomManager.setNewSong(roomCode, currentSong.context_uri)
+							}
 						}
 					}
 				} else if(it[0].context_uri != previousQueue[0].context_uri) {
@@ -53,7 +57,9 @@ class QueueListener {
 							duration = currentSong.duration,
 							songUri = currentSong.context_uri
 						)
-						roomManager.setNewDuration(CurrentSong.roomCode, currentSong.duration)
+						if (CurrentSong.isHost) {
+							roomManager.setNewDuration(CurrentSong.roomCode, currentSong.duration)
+						}
 					}
 				}
 				previousQueue = queue.value

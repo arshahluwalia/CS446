@@ -65,13 +65,21 @@ fun SongProgressBar(
                 scope.launch {
                     if (currentSong.songTitle != "" && isHost) {
                         Log.d("play seek: ", formatDuration(userSliderValue.value.toInt()))
-                        playSong(currentSong.context_uri, userSliderValue.value.toInt(), uTokens)
+                        if (CurrentSong.isHost) {
+                            playSong(
+                                currentSong.context_uri,
+                                userSliderValue.value.toInt(),
+                                uTokens
+                            )
+                        }
                         CurrentSong.setDuration(
                             duration - userSliderValue.value.toInt(),
                             sliderValue.toInt(),
                             currentSong.context_uri
                         )
-                        roomManager?.setNewDuration(CurrentSong.roomCode, currentSong.duration)
+                        if (CurrentSong.isHost) {
+                            roomManager?.setNewDuration(CurrentSong.roomCode, currentSong.duration)
+                        }
                         Log.d("play seek: slider value", formatDuration(sliderValue.toInt()))
                     }
                 }

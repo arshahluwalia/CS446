@@ -87,7 +87,7 @@ class HostSongQueueActivity : ComponentActivity(){
         getHostToken(roomCode, hostToken, roomManager)
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
         QueueListener.setQueueFlow(approvedSongQueue)
-        CurrentSong.setInitialVars(roomCode, userTokens)
+        CurrentSong.setInitialVars(roomCode, userTokens, true)
 
         getAutoRemove(roomCode, autoRemove)
 

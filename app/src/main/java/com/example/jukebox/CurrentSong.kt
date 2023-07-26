@@ -17,6 +17,7 @@ class CurrentSong {
 		var roomCode: String = ""
 		var uTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList())
 		var pausedTime = 0
+		var isHost = false
 		private var currentSong: MutableStateFlow<String> = MutableStateFlow("")
 
 		private var timer : SongTimer? = null
@@ -31,12 +32,13 @@ class CurrentSong {
 			this.currentSong.value = songUri
 		}
 
-		fun setInitialVars(roomCode: String, uTokens: MutableStateFlow<MutableList<String>>) {
+		fun setInitialVars(roomCode: String, uTokens: MutableStateFlow<MutableList<String>>, isHost: Boolean) {
 			if (Looper.myLooper() == null) {
 				Looper.prepare()
 			}
 			this.roomCode = roomCode
 			this.uTokens = uTokens
+			this.isHost = isHost
 		}
 
 		suspend fun onTimerFinishes() {
@@ -46,14 +48,18 @@ class CurrentSong {
 					roomManager.advanceSong(roomCode)
 					val currentSong = runBlocking { roomManager.getCurrentSong(roomCode) }
 					if (currentSong != null) {
-						SpotifySongControlTask.playSong(
-							currentSong.context_uri,
-							0,
-							uTokens.value
-						)
+						if (isHost) {
+							SpotifySongControlTask.playSong(
+								currentSong.context_uri,
+								0,
+								uTokens.value
+							)
+						}
 						resetTimer()
 						setDuration(duration = currentSong.duration, songUri = currentSong.context_uri)
-						roomManager.setNewDuration(roomCode, currentSong.duration)
+						if (isHost) {
+							roomManager.setNewDuration(roomCode, currentSong.duration)
+						}
 					}
 				}
 			}
@@ -61,7 +67,9 @@ class CurrentSong {
 
 		suspend fun onSongChanged() {
 			currentSong.collectLatest {
-				roomManager.setNewSong(roomCode, it)
+				if (isHost) {
+					roomManager.setNewSong(roomCode, it)
+				}
 				Log.d("duration changed", (duration.value/1000).toString())
 				if (Looper.myLooper() == null) {
 					Looper.prepare()
