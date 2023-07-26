@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.jukebox.ui.theme.OffBlack
 import com.example.jukebox.ui.theme.PurpleNeon
 
@@ -38,7 +39,7 @@ fun Modifier.reusableBackground() = composed {
 @Composable
 fun PrimaryBackground() {
     Image(
-        modifier = Modifier.scale(1.3f).background(color = Color.Black).fillMaxSize(),
+        modifier = Modifier.scale(1.2f).background(color = Color.Black).fillMaxSize(),
         painter = painterResource(id = R.drawable.primary_background),
         contentDescription = null
     )

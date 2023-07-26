@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.text.isDigitsOnly
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.util.HideSoftKeyboard
@@ -143,24 +145,6 @@ private fun ScreenContent(
     limitUpvotes: MutableStateFlow<Boolean>,
     activity: Activity?
 ) {
-    var isNameChanged by remember { mutableStateOf(false) }
-    var updatedName by remember { mutableStateOf("") }
-
-    var isSuggestionsToggleChanged by remember { mutableStateOf(false) }
-    var limitSuggestionsEnabled by remember { mutableStateOf(true) }
-
-    var isSuggestionsChanged by remember { mutableStateOf(false) }
-    var updatedSuggestions by remember { mutableStateOf(5) }
-
-    var isUpvotesToggleChanged by remember { mutableStateOf(false) }
-    var limitUpvotesEnabled by remember { mutableStateOf(true) }
-
-    var isUpvotesChanged by remember { mutableStateOf(false) }
-    var updatedUpvotes by remember { mutableStateOf(5) }
-
-    var isAutoRemoveToggleChanged by remember { mutableStateOf(false) }
-    var autoRemoveEnabled by remember { mutableStateOf(true) }
-
     Box {
         SecondaryBackground()
 
@@ -184,116 +168,34 @@ private fun ScreenContent(
             modifier = Modifier
                 .padding(top = 100.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             ChangeNameField(
+                roomCode = roomCode,
+                roomManager = roomManager,
                 currentHostName = hostName,
-                onValueChanged = {
-                    isNameChanged = true
-                    updatedName = it
-                },
                 activity = activity
             )
 
-            ToggleChangeSuggestions(
+            ChangeMaxSuggestions(
                 roomCode = roomCode,
                 roomManager = roomManager,
                 limitSuggestions = limitSuggestions,
-                onValueChanged = {
-                    isSuggestionsToggleChanged = true
-                    limitSuggestionsEnabled = it
-                }
+                maxSuggestions = maxSuggestions
             )
 
-            if (limitSuggestions.collectAsState().value) {
-                ChangeMaxSuggestions(
-                    limitSuggestions = limitSuggestions,
-                    maxSuggestions = maxSuggestions,
-                    onValueChanged = {
-                        isSuggestionsChanged = true
-                        updatedSuggestions = it.toInt()
-                    }
-                )
-            }
-
-            ToggleChangeUpvotes(
+            ChangeMaxUpvotes(
                 roomCode = roomCode,
                 roomManager = roomManager,
                 limitUpvotes = limitUpvotes,
-                onValueChanged = {
-                    isUpvotesToggleChanged = true
-                    limitUpvotesEnabled = it
-                }
+                maxUpvotes = maxUpvotes
             )
-
-            if (limitUpvotes.collectAsState().value) {
-                ChangeMaxUpvotes(
-                    limitUpvotes = limitUpvotes,
-                    maxUpvotes = maxUpvotes,
-                    onValueChanged = {
-                        isUpvotesChanged = true
-                        updatedUpvotes = it.toInt()
-                    }
-                )
-            }
 
             ToggleAutoRemove(
-                autoRemove = autoRemove,
-                onValueChanged = {
-                    isAutoRemoveToggleChanged = true
-                    autoRemoveEnabled = it
-                }
+                roomCode = roomCode,
+                roomManager = roomManager,
+                autoRemove = autoRemove
             )
-
-            Button(
-                modifier = Modifier.padding(top = 10.dp),
-                onClick = {
-                    if (isNameChanged) {
-                        roomManager?.setHostName(roomCode, updatedName)
-                        isNameChanged = false
-                    }
-
-                    if (isSuggestionsToggleChanged) {
-                        roomManager?.setLimitSuggestions(roomCode, limitSuggestionsEnabled)
-                        if (!limitSuggestionsEnabled) {
-                            roomManager?.setMaxSuggestions(roomCode, 99999)
-                            isSuggestionsChanged = false
-                        }
-                        isSuggestionsToggleChanged = false
-                    }
-
-                    if (isSuggestionsChanged) {
-                        if (updatedSuggestions.toString().isDigitsOnly() && updatedSuggestions.toString() != "") {
-                            roomManager?.setMaxSuggestions(roomCode, updatedSuggestions)
-                        }
-                        isSuggestionsChanged = false
-                    }
-
-                    if (isUpvotesToggleChanged) {
-                        roomManager?.setLimitUpvotes(roomCode, limitUpvotesEnabled)
-                        if (!limitUpvotesEnabled) {
-                            roomManager?.setMaxUpvotes(roomCode, 99999)
-                            isUpvotesChanged = false
-                        }
-                        isUpvotesToggleChanged = false
-                    }
-
-                    if (isUpvotesChanged) {
-                        if (updatedUpvotes.toString().isDigitsOnly() && updatedUpvotes.toString() != "") {
-                            roomManager?.setMaxUpvotes(roomCode, updatedUpvotes)
-                        }
-                        isUpvotesChanged = false
-                    }
-
-                    if (isAutoRemoveToggleChanged) {
-                        roomManager?.setAutoRemove(roomCode, autoRemoveEnabled)
-                        isAutoRemoveToggleChanged = false
-                    }
-                },
-                enabled = isNameChanged || isSuggestionsToggleChanged || isSuggestionsChanged || isUpvotesToggleChanged || isUpvotesChanged || isAutoRemoveToggleChanged
-            ) {
-                Text(text = "Save")
-            }
         }
     }
 }
@@ -341,8 +243,9 @@ private fun SettingsTitle() {
 
 @Composable
 private fun ChangeNameField(
+    roomCode: String,
+    roomManager: RoomManager?,
     currentHostName: MutableStateFlow<String>,
-    onValueChanged: (String) -> Unit,
     activity: Activity?
 ) {
     var hostName by remember { mutableStateOf("") }
@@ -359,7 +262,7 @@ private fun ChangeNameField(
     )
 
     TextField(
-        modifier = Modifier.padding(vertical = 0.dp),
+        modifier = Modifier.padding(bottom = 20.dp),
         value = hostName,
         onValueChange = {
             hostName = it
@@ -377,13 +280,16 @@ private fun ChangeNameField(
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent,
+            unfocusedContainerColor = Color.White,
+            focusedContainerColor = Color.White
         ),
         keyboardActions = KeyboardActions(
             onDone = {
                 if (activity != null) {
                     HideSoftKeyboard.hideSoftKeyboard(activity = activity)
                 }
-                onValueChanged(hostName)
+
+                roomManager?.setHostName(roomCode, hostName)
             }
         )
     )
@@ -391,195 +297,16 @@ private fun ChangeNameField(
 
 @Composable
 private fun ChangeMaxUpvotes(
-    limitUpvotes: MutableStateFlow<Boolean>,
-    maxUpvotes: MutableStateFlow<Int>,
-    onValueChanged: (String) -> Unit
-) {
-    val limitUpvotesFlag = limitUpvotes.collectAsState().value
-    val maxUpvotesInt = maxUpvotes.collectAsState().value
-    var maxUpvotesString by remember { mutableStateOf(maxUpvotesInt.toString()) }
-
-    val lazyListState = rememberLazyListState()
-
-    LaunchedEffect(maxUpvotesInt) {
-        if (limitUpvotesFlag && maxUpvotesInt > 0 && maxUpvotesInt < 101) {
-            lazyListState.scrollToItem(maxUpvotesInt - 1)
-        } else {
-            lazyListState.scrollToItem(0)
-        }
-    }
-
-    LazyColumn(
-        state = lazyListState,
-        modifier = Modifier
-            .padding(bottom = 10.dp)
-            .height(70.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        userScrollEnabled = limitUpvotesFlag
-    ) {
-        items(101) { page ->
-            val textColor = if (limitUpvotesFlag && page.toString() == maxUpvotesString) Color.White else Color.Gray
-
-            Text(
-                modifier = Modifier.clickable {
-                    if (limitUpvotesFlag) {
-                        maxUpvotesString = page.toString()
-                        onValueChanged(maxUpvotesString)
-                    }
-                },
-                text = page.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = textColor,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-
-    LaunchedEffect(maxUpvotesInt) {
-        maxUpvotesString = maxUpvotesInt.toString()
-    }
-}
-
-@Composable
-private fun ChangeMaxSuggestions(
-    limitSuggestions: MutableStateFlow<Boolean>,
-    maxSuggestions: MutableStateFlow<Int>,
-    onValueChanged: (String) -> Unit
-) {
-    val limitSuggestionsFlag = limitSuggestions.collectAsState().value
-    val maxSuggestionsInt = maxSuggestions.collectAsState().value
-    var maxSuggestionsString by remember { mutableStateOf(maxSuggestionsInt.toString()) }
-
-    val lazyListState = rememberLazyListState()
-
-    LaunchedEffect(maxSuggestionsInt) {
-        if (limitSuggestionsFlag && maxSuggestionsInt > 0 && maxSuggestionsInt < 101) {
-            lazyListState.scrollToItem(maxSuggestionsInt - 1)
-        } else {
-            lazyListState.scrollToItem(0)
-        }
-    }
-
-    LazyColumn(
-        state = lazyListState,
-        modifier = Modifier
-            .padding(bottom = 10.dp)
-            .height(70.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        userScrollEnabled = limitSuggestionsFlag
-    ) {
-        items(101) { page ->
-            val textColor = if (limitSuggestionsFlag && page.toString() == maxSuggestionsString) Color.White else Color.Gray
-
-            Text(
-                modifier = Modifier.clickable {
-                    if (limitSuggestionsFlag) {
-                        maxSuggestionsString = page.toString()
-                        onValueChanged(maxSuggestionsString)
-                    }
-                },
-                text = page.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = textColor,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-
-    LaunchedEffect(maxSuggestionsInt) {
-        maxSuggestionsString = maxSuggestionsInt.toString()
-    }
-}
-
-@Composable
-private fun ToggleAutoRemove(
-    autoRemove: MutableStateFlow<Boolean>,
-    onValueChanged: (Boolean) -> Unit
-) {
-    val autoRemoveValue = autoRemove.collectAsState().value
-    var autoRemoveEnabled by remember { mutableStateOf(autoRemoveValue) }
-
-    Text(
-        modifier = Modifier
-            .padding(vertical = 20.dp)
-            .fillMaxWidth()
-            .padding(start = 60.dp),
-        text = "Auto remove a song when denied:",
-        style = MaterialTheme.typography.bodyLarge,
-        color = Color.White,
-        textAlign = TextAlign.Start
-    )
-
-    Switch(
-        checked = autoRemoveEnabled,
-        onCheckedChange = {
-            autoRemoveEnabled = it
-            onValueChanged(it)
-        }
-    )
-
-    LaunchedEffect(autoRemoveValue) {
-        autoRemoveEnabled = autoRemoveValue
-    }
-}
-
-@Composable
-private fun ToggleChangeSuggestions(
-    roomCode: String,
-    roomManager: RoomManager?,
-    limitSuggestions: MutableStateFlow<Boolean>,
-    onValueChanged: (Boolean) -> Unit
-) {
-    val toggleValue = limitSuggestions.collectAsState().value
-    var toggleEnabled by remember { mutableStateOf(toggleValue) }
-
-    Row(
-        modifier = Modifier.padding(end = 120.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            modifier = Modifier
-                .padding(vertical = 20.dp)
-                .fillMaxWidth()
-                .padding(start = 60.dp),
-            text = "Limit Suggestions:",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
-            textAlign = TextAlign.Start
-        )
-
-        Switch(
-            checked = toggleEnabled,
-            onCheckedChange = {
-                toggleEnabled = it
-                onValueChanged(it)
-
-                roomManager?.setLimitSuggestions(roomCode, it)
-                if (!it) {
-                    roomManager?.setMaxSuggestions(roomCode, 99999)
-                }
-            }
-        )
-    }
-
-    LaunchedEffect(toggleValue) {
-        toggleEnabled = toggleValue
-    }
-}
-
-@Composable
-private fun ToggleChangeUpvotes(
     roomCode: String,
     roomManager: RoomManager?,
     limitUpvotes: MutableStateFlow<Boolean>,
-    onValueChanged: (Boolean) -> Unit
+    maxUpvotes: MutableStateFlow<Int>
 ) {
     val toggleValue = limitUpvotes.collectAsState().value
     var toggleEnabled by remember { mutableStateOf(toggleValue) }
 
     Row(
-        modifier = Modifier.padding(end = 120.dp),
+        modifier = Modifier.padding(end = 85.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -598,11 +325,13 @@ private fun ToggleChangeUpvotes(
             checked = toggleEnabled,
             onCheckedChange = {
                 toggleEnabled = it
-                onValueChanged(it)
 
                 roomManager?.setLimitUpvotes(roomCode, it)
-                if (!it) {
+                if (it) {
+                    roomManager?.setMaxUpvotes(roomCode, 5)
+                } else {
                     roomManager?.setMaxUpvotes(roomCode, 99999)
+
                 }
             }
         )
@@ -610,6 +339,191 @@ private fun ToggleChangeUpvotes(
 
     LaunchedEffect(toggleValue) {
         toggleEnabled = toggleValue
+    }
+    
+    if (toggleEnabled) {
+        val limitUpvotesFlag = limitUpvotes.collectAsState().value
+        val maxUpvotesInt = maxUpvotes.collectAsState().value
+        var maxUpvotesString by remember { mutableStateOf(maxUpvotesInt.toString()) }
+
+        val lazyListState = rememberLazyListState()
+
+        LaunchedEffect(maxUpvotesInt) {
+            if (limitUpvotesFlag && maxUpvotesInt > 0 && maxUpvotesInt < 101) {
+                lazyListState.scrollToItem(maxUpvotesInt - 1)
+            } else {
+                lazyListState.scrollToItem(0)
+            }
+        }
+
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .padding(bottom = 10.dp)
+                .height(70.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            userScrollEnabled = limitUpvotesFlag
+        ) {
+            items(101) { page ->
+                val textColor =
+                    if (limitUpvotesFlag && page.toString() == maxUpvotesString) Color.White else Color.Gray
+
+                Text(
+                    modifier = Modifier.clickable {
+                        if (limitUpvotesFlag) {
+                            maxUpvotesString = page.toString()
+
+                            if (maxUpvotesString.isDigitsOnly() && maxUpvotesString != "") {
+                                roomManager?.setMaxUpvotes(roomCode, maxUpvotesString.toInt())
+                            }
+                        }
+                    },
+                    text = page.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+
+        LaunchedEffect(maxUpvotesInt) {
+            maxUpvotesString = maxUpvotesInt.toString()
+        }
+    }
+}
+
+@Composable
+private fun ChangeMaxSuggestions(
+    roomCode: String,
+    roomManager: RoomManager?,
+    limitSuggestions: MutableStateFlow<Boolean>,
+    maxSuggestions: MutableStateFlow<Int>
+) {
+    val toggleValue = limitSuggestions.collectAsState().value
+    var toggleEnabled by remember { mutableStateOf(toggleValue) }
+
+    Row(
+        modifier = Modifier.padding(end = 85.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(vertical = 20.dp)
+                .fillMaxWidth()
+                .padding(start = 60.dp),
+            text = "Limit Suggestions:",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White,
+            textAlign = TextAlign.Start
+        )
+
+        Switch(
+            checked = toggleEnabled,
+            onCheckedChange = {
+                toggleEnabled = it
+                roomManager?.setLimitSuggestions(roomCode, it)
+                if (it) {
+                    roomManager?.setMaxSuggestions(roomCode, 5)
+                } else {
+                    roomManager?.setMaxSuggestions(roomCode, 99999)
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(toggleValue) {
+        toggleEnabled = toggleValue
+    }
+
+    if (toggleEnabled) {
+        val limitSuggestionsFlag = limitSuggestions.collectAsState().value
+        val maxSuggestionsInt = maxSuggestions.collectAsState().value
+        var maxSuggestionsString by remember { mutableStateOf(maxSuggestionsInt.toString()) }
+
+        val lazyListState = rememberLazyListState()
+
+        LaunchedEffect(maxSuggestionsInt) {
+            if (limitSuggestionsFlag && maxSuggestionsInt > 0 && maxSuggestionsInt < 101) {
+                lazyListState.scrollToItem(maxSuggestionsInt - 1)
+            } else {
+                lazyListState.scrollToItem(0)
+            }
+        }
+
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .padding(bottom = 10.dp)
+                .height(70.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            userScrollEnabled = limitSuggestionsFlag
+        ) {
+            items(101) { page ->
+                val textColor =
+                    if (limitSuggestionsFlag && page.toString() == maxSuggestionsString) Color.White else Color.Gray
+
+                Text(
+                    modifier = Modifier.clickable {
+                        if (limitSuggestionsFlag) {
+                            maxSuggestionsString = page.toString()
+
+                            if (maxSuggestionsString.isDigitsOnly() && maxSuggestionsString != "") {
+                                roomManager?.setMaxSuggestions(roomCode, maxSuggestionsString.toInt())
+                            }
+                        }
+                    },
+                    text = page.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+
+        LaunchedEffect(maxSuggestionsInt) {
+            maxSuggestionsString = maxSuggestionsInt.toString()
+        }
+    }
+}
+
+@Composable
+private fun ToggleAutoRemove(
+    roomCode: String,
+    roomManager: RoomManager?,
+    autoRemove: MutableStateFlow<Boolean>
+) {
+    val autoRemoveValue = autoRemove.collectAsState().value
+    var autoRemoveEnabled by remember { mutableStateOf(autoRemoveValue) }
+
+    Row(
+        modifier = Modifier.padding(end = 85.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(vertical = 20.dp)
+                .fillMaxWidth()
+                .padding(start = 60.dp),
+            text = "Auto remove denied song:",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White,
+            textAlign = TextAlign.Start
+        )
+
+        Switch(
+            checked = autoRemoveEnabled,
+            onCheckedChange = {
+                autoRemoveEnabled = it
+
+                roomManager?.setAutoRemove(roomCode, autoRemoveEnabled)
+            }
+        )
+    }
+
+    LaunchedEffect(autoRemoveValue) {
+        autoRemoveEnabled = autoRemoveValue
     }
 }
 
