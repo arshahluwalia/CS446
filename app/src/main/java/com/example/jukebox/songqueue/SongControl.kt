@@ -53,19 +53,24 @@ fun SongControl(
                 Log.d("spotify control: token list", uTokens.toString())
                 scope.launch {
                     val prevSong = runBlocking { roomManager?.getPrevSong(roomCode) }
-                    if (prevSong != null) {
-                        Log.d("SongControl", "prev Song: ${prevSong.context_uri}")
+                    if (prevSong == null) {
+                        // set current song to beginning
+                        val currentSong = runBlocking { roomManager?.getCurrentSong(roomCode) }
+                        if (currentSong != null) {
+                            playSong(
+                                currentSong.context_uri,
+                                0,
+                                uTokens
+                            )
+                            CurrentSong.resetTimer()
+                        }
                     } else {
-                        Log.d("SongControl", "prev Song is null")
-                    }
-                    runBlocking { roomManager?.moveBackSong(roomCode) }
-                    if (prevSong != null) {
+                        runBlocking { roomManager?.moveBackSong(roomCode) }
                         playSong(
                             prevSong.context_uri,
                             0,
                             uTokens
                         )
-                        CurrentSong.setDuration(prevSong.duration)
                     }
                 }
             }
@@ -115,7 +120,7 @@ fun SongControl(
                             0,
                             uTokens
                         )
-                        CurrentSong.setDuration(nextSong.duration)
+                        //CurrentSong.setDuration(nextSong.duration)
                     }
                 }
             }

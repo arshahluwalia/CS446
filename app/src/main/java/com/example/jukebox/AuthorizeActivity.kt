@@ -37,11 +37,14 @@ import androidx.compose.ui.unit.dp
 import com.example.jukebox.songqueue.GuestSongQueueActivity
 import com.example.jukebox.songqueue.HostSongQueueActivity
 import com.example.jukebox.spotify.SpotifyUserToken
+import com.example.jukebox.spotify.task.SpotifyAccessTokenTask
 import com.example.jukebox.ui.theme.JukeboxTheme
 import com.example.jukebox.ui.theme.PurpleNeon
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.random.Random
 
 class AuthorizeActivity : ComponentActivity() {
 
@@ -52,7 +55,7 @@ class AuthorizeActivity : ComponentActivity() {
     private var userAccessToken = ""
 
     private var showSpotifyButton by mutableStateOf(true)
-    private lateinit var roomCode : String
+    private var roomCode = MutableStateFlow("")
     private var isHost = false
     private val roomManager = RoomManager()
 
@@ -62,16 +65,14 @@ class AuthorizeActivity : ComponentActivity() {
         val roomManager = RoomManager()
         setContent {
             JukeboxTheme {
-                roomCode = intent.getStringExtra("roomCode").toString()
                 isHost = intent.getBooleanExtra("isHost", false) //defaults to false if not passed
-                Log.d("Authorization", "roomCode: $roomCode")
                 ScreenContent(
                     dispatcher = dispatcher,
                     showSpotifyButton = showSpotifyButton,
-                    roomCode = roomCode,
                     onRequestTokenClicked = { onRequestTokenClicked() },
                     isHost = isHost,
-                    roomManager = roomManager
+                    roomManager = roomManager,
+                    roomCode = roomCode
                 )
             }
         }
@@ -112,9 +113,9 @@ class AuthorizeActivity : ComponentActivity() {
                     userAccessToken = response.accessToken
                     SpotifyUserToken.setToken(userAccessToken)
                     if(isHost) {
-                        roomManager.setHostToken(roomCode, userAccessToken)
+                        roomManager.setHostToken(roomCode.value, userAccessToken)
                     } else{
-                        roomManager.addUserToRoom(roomCode, User(userAccessToken))
+                        roomManager.addUserToRoom(roomCode.value, User(userAccessToken))
                     }
                     // TODO: open song queue screen
                 }
@@ -129,10 +130,10 @@ class AuthorizeActivity : ComponentActivity() {
 private fun ScreenContent(
     dispatcher: OnBackPressedDispatcher? = null,
     showSpotifyButton: Boolean,
-    roomCode: String,
     onRequestTokenClicked: () -> Unit,
     isHost: Boolean,
-    roomManager: RoomManager?
+    roomManager: RoomManager?,
+    roomCode: MutableStateFlow<String>
 ) {
     Box {
         SecondaryBackground()
@@ -149,7 +150,7 @@ private fun ScreenContent(
             }
             AuthorizeTitle()
             RoleText(isHost)
-            ContinueButton(roomCode, isHost, roomManager)
+            ContinueButton(isHost, roomManager, roomCode)
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton(onRequestTokenClicked)
             }
@@ -222,20 +223,28 @@ private fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
     }
 }
 @Composable
-private fun ContinueButton(roomCode: String, isHost: Boolean, roomManager: RoomManager?) {
+private fun ContinueButton(
+    isHost: Boolean,
+    roomManager: RoomManager?,
+    roomCode: MutableStateFlow<String>
+) {
     val context = LocalContext.current
     Button(
         modifier = Modifier.padding(vertical = 30.dp),
         onClick = {
+            val generatedRoomCode = generateRoomCode()
+            roomCode.value = generatedRoomCode
+            roomManager?.createRoom(generatedRoomCode)
+            SpotifyAccessTokenTask.requestAccessToken()
             if(isHost){
-                roomManager?.setHostToken(roomCode, SpotifyUserToken.getToken())
+                roomManager?.setHostToken(generatedRoomCode, SpotifyUserToken.getToken())
                 val intent = Intent(context, HostSongQueueActivity::class.java)
-                intent.putExtra("roomCode", roomCode)
+                intent.putExtra("roomCode", generatedRoomCode)
                 context.startActivity(intent)
             } else {
-                roomManager?.addUserToRoom(roomCode, User(SpotifyUserToken.getToken()))
+                roomManager?.addUserToRoom(generatedRoomCode, User(SpotifyUserToken.getToken()))
                 val intent = Intent(context, GuestSongQueueActivity::class.java)
-                intent.putExtra("roomCode", roomCode)
+                intent.putExtra("roomCode", generatedRoomCode)
                 context.startActivity(intent)
             }
 
@@ -243,10 +252,28 @@ private fun ContinueButton(roomCode: String, isHost: Boolean, roomManager: RoomM
         colors = ButtonDefaults.buttonColors(containerColor = PurpleNeon)
     ) {
         Text(
-            text = AnnotatedString("Go to queue"),
+            text = AnnotatedString("Next"),
             style = MaterialTheme.typography.headlineSmall
         )
     }
+}
+
+private fun generateRoomCode(): String {
+    val roomManager = RoomManager()
+    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // Define the allowed characters
+    var newRoomCode = (1..5)
+        .map { allowedChars[Random.nextInt(allowedChars.size)] }
+        .joinToString("")
+
+    roomManager.checkRoomExists(newRoomCode) { exists ->
+        if (exists) {
+            // Unique room code generated
+            Log.d("Room Manager", "Room Code Collision: $newRoomCode")
+            newRoomCode = generateRoomCode()
+        }
+    }
+
+    return newRoomCode
 }
 
 /*

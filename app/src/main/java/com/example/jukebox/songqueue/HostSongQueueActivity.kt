@@ -99,6 +99,9 @@ class HostSongQueueActivity : ComponentActivity(){
             CurrentSong.onDurationChanged()
         }
         myScope.launch {
+            CurrentSong.onSongChanged()
+        }
+        myScope.launch {
             CurrentSong.onTimerFinishes()
         }
         setContent {

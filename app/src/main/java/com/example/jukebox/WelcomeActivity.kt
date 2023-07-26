@@ -106,7 +106,7 @@ private fun RoomManagement(roomManager: RoomManager?) {
         verticalArrangement = Arrangement.Bottom
     ) {
         RoomCodeTextField(roomManager)
-        StartARoomButton(roomManager)
+        StartARoomButton()
         if (RoomStore.hasRecentRoom().collectAsState().value) {
             RoomStore.getMostRecentRoom()?.roomCode?.let { ReturnToRoomButton(it) }
         }
@@ -206,21 +206,14 @@ private fun RoomCodeTextField(
 }
 
 @Composable
-private fun StartARoomButton(
-    roomManager: RoomManager?
-) {
+private fun StartARoomButton() {
     val context = LocalContext.current
     Button(
         shape = RoundedCornerShape(20),
         onClick = {
-            val roomCode = generateRoomCode()
-            roomManager?.createRoom(roomCode)
-            requestAccessToken()
             val intent = Intent(context, AuthorizeActivity::class.java)
-            intent.putExtra("roomCode", roomCode)
             intent.putExtra("isHost", true)
             context.startActivity(intent)
-//                  testRoomManager()
         },
         colors = ButtonDefaults.buttonColors(containerColor = LightPurple)
     ) {
@@ -264,24 +257,7 @@ private fun PreviewScreenContent() {
     }
 }
 
-private fun generateRoomCode(): String {
-    val roomManager = RoomManager()
-    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // Define the allowed characters
-    var newRoomCode = (1..5)
-        .map { allowedChars[Random.nextInt(allowedChars.size)] }
-        .joinToString("")
-
-    roomManager.checkRoomExists(newRoomCode) { exists ->
-        if (exists) {
-            // Unique room code generated
-            Log.d("Room Manager", "Room Code Collision: $newRoomCode")
-            newRoomCode = generateRoomCode()
-        }
-    }
-
-    return newRoomCode
-}
-
+/*
 private fun testRoomManager() {
     val roomManager = RoomManager()
     val roomCode = generateRoomCode()
@@ -362,3 +338,4 @@ private fun testRoomManager() {
         )
     }
 }
+*/

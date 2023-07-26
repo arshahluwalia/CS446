@@ -17,12 +17,14 @@ class CurrentSong {
 		var roomCode: String = ""
 		var uTokens: MutableStateFlow<MutableList<String>> = MutableStateFlow(ArrayList())
 		var pausedTime = 0
+		private var currentSong: MutableStateFlow<String> = MutableStateFlow("")
 
 		private var timer : SongTimer? = null
 
-		fun setDuration(duration: Int, currentTime: Int = -1) {
+		fun setDuration(duration: Int, currentTime: Int = -1, songUri: String) {
 			this.duration.value = duration
 			this.currentTime.value = currentTime
+			this.currentSong.value = songUri
 		}
 
 		fun setInitialVars(roomCode: String, uTokens: MutableStateFlow<MutableList<String>>) {
@@ -45,10 +47,25 @@ class CurrentSong {
 							0,
 							uTokens.value
 						)
-						setDuration(0)
-						setDuration(currentSong.duration)
+						setDuration(duration = 0, songUri = "")
+						setDuration(duration = currentSong.duration, songUri = currentSong.context_uri)
 					}
 				}
+			}
+		}
+
+		suspend fun onSongChanged() {
+			currentSong.collectLatest {
+				Log.d("duration changed", (duration.value/1000).toString())
+				if (Looper.myLooper() == null) {
+					Looper.prepare()
+				}
+
+				if (timer != null) {
+					timer?.cancel()
+				}
+				timer = SongTimer(duration.value.toLong(), currentTime)
+				timer?.start()
 			}
 		}
 
@@ -58,7 +75,7 @@ class CurrentSong {
 				if (Looper.myLooper() == null) {
 					Looper.prepare()
 				}
-//				currentTime.value = -1
+
 				if (timer != null) {
 					timer?.cancel()
 				}
@@ -80,6 +97,12 @@ class CurrentSong {
 
 		fun resumeTimer() {
 			timer = SongTimer(pausedTime.toLong(), currentTime)
+			timer?.start()
+		}
+
+		fun resetTimer() {
+			timer?.cancel()
+			timer = SongTimer(duration.value.toLong(), currentTime)
 			timer?.start()
 		}
 

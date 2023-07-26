@@ -1,6 +1,7 @@
 package com.example.jukebox
 
 import android.os.Looper
+import android.util.Log
 import com.example.jukebox.spotify.task.SpotifySongControlTask
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -32,13 +33,19 @@ class QueueListener {
 							if (Looper.myLooper() == null) {
 								Looper.prepare()
 							}
-							CurrentSong.setDuration(currentSong.duration)
+							CurrentSong.setDuration(
+								duration = currentSong.duration,
+								songUri = currentSong.context_uri
+							)
 						}
 					}
-				} else if(it[0] != previousQueue[0]) {
+				} else if(it[0].context_uri != previousQueue[0].context_uri) {
 					val currentSong = runBlocking { roomManager.getCurrentSong(roomCode) }
 					if (currentSong != null) {
-						CurrentSong.setDuration(currentSong.duration)
+						CurrentSong.setDuration(
+							duration = currentSong.duration,
+							songUri = currentSong.context_uri
+						)
 					}
 				}
 				previousQueue = queue.value

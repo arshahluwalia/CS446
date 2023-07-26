@@ -53,14 +53,22 @@ fun SongProgressBar(
                 .fillMaxWidth(),
             value = sliderValue,
             onValueChange = { newValue ->
-                userSliderValue.value = newValue
+                if (newValue < 0) {
+                    userSliderValue.value = 0F
+                } else {
+                    userSliderValue.value = newValue
+                }
             },
             onValueChangeFinished = {
                 scope.launch {
                     if (currentSong.songTitle != "" && isHost) {
                         Log.d("play seek: ", formatDuration(userSliderValue.value.toInt()))
                         playSong(currentSong.context_uri, userSliderValue.value.toInt(), uTokens)
-                        CurrentSong.setDuration(duration - userSliderValue.value.toInt(), sliderValue.toInt())
+                        CurrentSong.setDuration(
+                            duration - userSliderValue.value.toInt(),
+                            sliderValue.toInt(),
+                            currentSong.context_uri
+                        )
                         Log.d("play seek: slider value", formatDuration(sliderValue.toInt()))
                     }
                 }

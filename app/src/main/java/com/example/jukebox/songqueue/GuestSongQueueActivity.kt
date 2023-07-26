@@ -19,7 +19,10 @@ import com.example.jukebox.SecondaryBackground
 import com.example.jukebox.Song
 import com.example.jukebox.spotify.SpotifyUserToken
 import com.example.jukebox.ui.theme.JukeboxTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 private lateinit var roomCode : String
 
@@ -46,6 +49,20 @@ class GuestSongQueueActivity  : ComponentActivity(){
         getUserTokens(roomCode, userTokens, roomManager, hostToken)
         QueueListener.setQueueFlow(approvedSongQueue)
         CurrentSong.setInitialVars(roomCode, userTokens)
+
+        val myScope = CoroutineScope(Dispatchers.Main)
+        myScope.launch {
+            QueueListener.onQueueChanged(roomCode, userTokens)
+        }
+        myScope.launch {
+            CurrentSong.onDurationChanged()
+        }
+        myScope.launch {
+            CurrentSong.onSongChanged()
+        }
+        myScope.launch {
+            CurrentSong.onTimerFinishes()
+        }
 
         setContent {
             // TODO: need to retrieve current song instead of hardcoding

@@ -736,6 +736,7 @@ class RoomManager {
                 val song = snapshot.getValue(Song::class.java)
                 song?.let { songs.add(it) }
             }
+            songs.filter { it.hostOrder == 0 }
             songs.firstOrNull()
         } catch (e: Exception) {
             // Handle the error
