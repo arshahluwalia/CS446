@@ -365,7 +365,8 @@ fun PlayingSong(
 		SongProgressBar(
 			isHost = isHost,
 			userTokens = userTokens,
-			currentSong = playingSong
+			currentSong = playingSong,
+			roomManager = roomManager
 		)
 		if (isHost) {
 			SongControl(

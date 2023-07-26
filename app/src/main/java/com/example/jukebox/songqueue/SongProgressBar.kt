@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.jukebox.CurrentSong
+import com.example.jukebox.RoomManager
 import com.example.jukebox.Song
 import com.example.jukebox.spotify.task.SpotifySongControlTask.playSong
 import com.example.jukebox.util.SongTimer
@@ -34,7 +35,8 @@ import kotlinx.coroutines.launch
 fun SongProgressBar(
     isHost: Boolean,
     userTokens: MutableStateFlow<MutableList<String>>,
-    currentSong: Song
+    currentSong: Song,
+    roomManager: RoomManager?
 ) {
     val uTokens = userTokens.collectAsState().value
     val duration = currentSong.duration
@@ -69,6 +71,7 @@ fun SongProgressBar(
                             sliderValue.toInt(),
                             currentSong.context_uri
                         )
+                        roomManager?.setNewDuration(CurrentSong.roomCode, currentSong.duration)
                         Log.d("play seek: slider value", formatDuration(sliderValue.toInt()))
                     }
                 }

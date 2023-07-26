@@ -25,11 +25,10 @@ class CurrentSong {
 			this.duration.value = duration
 			this.currentTime.value = currentTime
 			this.currentSong.value = songUri
-			roomManager.setNewDuration(roomCode, duration)
 		}
 
 		fun setCurrentSong(songUri: String) {
-			this.currentSong.value
+			this.currentSong.value = songUri
 		}
 
 		fun setInitialVars(roomCode: String, uTokens: MutableStateFlow<MutableList<String>>) {
@@ -54,6 +53,7 @@ class CurrentSong {
 						)
 						resetTimer()
 						setDuration(duration = currentSong.duration, songUri = currentSong.context_uri)
+						roomManager.setNewDuration(roomCode, currentSong.duration)
 					}
 				}
 			}
