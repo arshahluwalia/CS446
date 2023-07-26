@@ -21,10 +21,15 @@ class CurrentSong {
 
 		private var timer : SongTimer? = null
 
-		fun setDuration(duration: Int, currentTime: Int = -1, songUri: String) {
+		fun setDuration(duration: Int, currentTime: Int = -1, songUri: String = "") {
 			this.duration.value = duration
 			this.currentTime.value = currentTime
 			this.currentSong.value = songUri
+			roomManager.setNewDuration(roomCode, duration)
+		}
+
+		fun setCurrentSong(songUri: String) {
+			this.currentSong.value
 		}
 
 		fun setInitialVars(roomCode: String, uTokens: MutableStateFlow<MutableList<String>>) {
@@ -56,6 +61,7 @@ class CurrentSong {
 
 		suspend fun onSongChanged() {
 			currentSong.collectLatest {
+				roomManager.setNewSong(roomCode, it)
 				Log.d("duration changed", (duration.value/1000).toString())
 				if (Looper.myLooper() == null) {
 					Looper.prepare()

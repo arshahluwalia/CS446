@@ -264,7 +264,9 @@ private fun ContinueButton(
 
 private fun generateRoomCode(): String {
     val roomManager = RoomManager()
-    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // Define the allowed characters
+    val allowedChars : MutableList<Char> = ArrayList(('A'..'Z') + ('a'..'z') + ('0'..'9')) // Define the allowed characters
+    allowedChars.remove('l')
+    allowedChars.remove('I')
     var newRoomCode = (1..5)
         .map { allowedChars[Random.nextInt(allowedChars.size)] }
         .joinToString("")

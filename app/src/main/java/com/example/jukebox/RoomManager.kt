@@ -783,8 +783,14 @@ class RoomManager {
                 song?.let { songs.add(it) }
             }
             if (songs.size > 1) {
+                val nextSong = songs.firstOrNull{ it.hostOrder == 1 }
+                if (nextSong != null) {
+                    setNewDuration(roomCode, nextSong.duration)
+                    setNewSong(roomCode, nextSong.context_uri)
+                }
                 val firstSong = songs.firstOrNull{ it.hostOrder == 0 }
                 removeSongFromApprovedQueue(roomCode, firstSong)
+
 
                 for (song in songs) {
                     if (song.hostOrder != 0) {
@@ -809,6 +815,10 @@ class RoomManager {
             if (songs.isNotEmpty()) {
                 val lastSong = songs.firstOrNull{ it.hostOrder == 0 }
                 removeSongFromPreviousQueue(roomCode, lastSong)
+                if (lastSong != null) {
+                    setNewDuration(roomCode, lastSong.duration)
+                    setNewSong(roomCode, lastSong.context_uri)
+                }
 
                 for (song in songs) {
                     if (song.hostOrder != 0) {
@@ -820,5 +830,57 @@ class RoomManager {
         } catch (e: Exception) {
 
         }
+    }
+
+    fun setNewDuration(roomCode: String, duration: Int) {
+        val currentSongDurationRef = database.child("$roomCode/currentSongDuration")
+        currentSongDurationRef.setValue(duration)
+    }
+
+    fun setNewSong(roomCode: String, contextUri: String) {
+        val currentSongRef = database.child("$roomCode/currentSong")
+        currentSongRef.setValue(contextUri)
+    }
+
+    fun getSongDurationCallback(roomCode: String, callback: (Int) -> Unit) {
+        val queueRef = database.child("$roomCode/currentSongDuration")
+
+        queueRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                var duration = 0
+                for (snapshot in dataSnapshot.children) {
+                    val d = snapshot.getValue(Int::class.java)
+                    if (d!= null) duration = d
+                }
+
+                callback(duration)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback(0) // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
+    }
+
+    fun getCurrentSongCallback(roomCode: String, callback: (String) -> Unit) {
+        val queueRef = database.child("$roomCode/currentSong")
+
+        queueRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                var song = ""
+                for (snapshot in dataSnapshot.children) {
+                    val s = snapshot.getValue(String::class.java)
+                    if (s != null) song = s
+                }
+
+                callback(song)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle the error
+                callback("") // Invoke the callback with an empty SongQueue to indicate an error or cancellation
+            }
+        })
     }
 }
