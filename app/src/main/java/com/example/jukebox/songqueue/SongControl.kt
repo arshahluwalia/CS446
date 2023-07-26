@@ -120,7 +120,6 @@ fun SongControl(
                             0,
                             uTokens
                         )
-                        //CurrentSong.setDuration(nextSong.duration)
                     }
                 }
             }
