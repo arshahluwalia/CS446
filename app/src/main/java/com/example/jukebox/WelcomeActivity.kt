@@ -211,6 +211,7 @@ private fun StartARoomButton() {
     Button(
         shape = RoundedCornerShape(20),
         onClick = {
+            QueueListener.resetData()
             val intent = Intent(context, AuthorizeActivity::class.java)
             intent.putExtra("isHost", true)
             context.startActivity(intent)

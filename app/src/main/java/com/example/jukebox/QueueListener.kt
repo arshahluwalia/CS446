@@ -14,6 +14,11 @@ class QueueListener {
 		private var queue: MutableStateFlow<List<Song>> = MutableStateFlow(emptyList())
 		private val roomManager = RoomManager()
 
+		fun resetData() {
+			previousQueue = emptyList()
+			queue = MutableStateFlow(emptyList())
+		}
+
 		fun setQueueFlow(newQueue: MutableStateFlow<List<Song>>) {
 			queue = newQueue
 		}
