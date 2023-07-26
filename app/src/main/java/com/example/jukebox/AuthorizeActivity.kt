@@ -153,9 +153,10 @@ private fun ScreenContent(
             }
             AuthorizeTitle()
             RoleText(isHost)
-            ContinueButton(isHost, roomManager, roomCode)
             if (showSpotifyButton) {
                 AuthorizeSpotifyButton(onRequestTokenClicked)
+            } else {
+                ContinueButton(isHost, roomManager, roomCode)
             }
         }
     }
@@ -207,13 +208,13 @@ private fun RoleText(isHost: Boolean) {
 @Composable
 private fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
     Button(
-        modifier = Modifier.padding(bottom = 20.dp),
+        modifier = Modifier.padding(vertical = 30.dp),
         shape = RoundedCornerShape(20),
         onClick = { onRequestTokenClicked() },
         colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
     ) {
         Text(
-            text = AnnotatedString("Login |"),
+            text = AnnotatedString("Login   |  "),
             style = MaterialTheme.typography.headlineSmall
         )
         Image(
@@ -235,7 +236,6 @@ private fun ContinueButton(
     Button(
         modifier = Modifier.padding(vertical = 30.dp),
         onClick = {
-
             SpotifyAccessTokenTask.requestAccessToken()
             if(isHost){
                 val generatedRoomCode = generateRoomCode()
@@ -251,7 +251,6 @@ private fun ContinueButton(
                 intent.putExtra("roomCode", roomCode.value)
                 context.startActivity(intent)
             }
-
         },
         colors = ButtonDefaults.buttonColors(containerColor = PurpleNeon)
     ) {
