@@ -78,7 +78,9 @@ class RoomManager {
 
     fun removeSongFromApprovedQueue(roomCode: String, songId: String) {
         val queueRef = database.child("$roomCode/approvedQueue")
-        queueRef.child(songId).removeValue()
+        if (CurrentSong.isHost) {
+            queueRef.child(songId).removeValue()
+        }
     }
 
     fun removeSongFromDeniedQueue(roomCode: String, songId: String) {
@@ -140,7 +142,9 @@ class RoomManager {
 
     fun removeSongFromApprovedQueue(roomCode: String, song: Song?) {
         val queueRef = database.child("$roomCode/approvedQueue/${song?.context_uri}")
-        queueRef.removeValue()
+        if (CurrentSong.isHost) {
+            queueRef.removeValue()
+        }
     }
 
     fun removeSongFromPreviousQueue(roomCode: String, song: Song?) {
@@ -166,18 +170,20 @@ class RoomManager {
         if (votes != null) {
             song.votes = votes
         }
-        if (approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
-            removeSongFromApprovedQueue(roomCode, context_uri)
-            removeSongFromDeniedQueue(roomCode, context_uri)
-            addSongToPendingQueue(roomCode, song)
-        } else if (approvalStatus == ApprovalStatus.APPROVED) {
-            removeSongFromDeniedQueue(roomCode, context_uri)
-            removeSongFromPendingQueue(roomCode, context_uri)
-            addSongToApprovedQueue(roomCode, song)
-        } else {
-            removeSongFromApprovedQueue(roomCode, context_uri)
-            removeSongFromPendingQueue(roomCode, context_uri)
-            addSongToDeniedQueue(roomCode, song)
+        if (CurrentSong.isHost) {
+            if (approvalStatus == ApprovalStatus.PENDING_APPROVAL) {
+                removeSongFromApprovedQueue(roomCode, context_uri)
+                removeSongFromDeniedQueue(roomCode, context_uri)
+                addSongToPendingQueue(roomCode, song)
+            } else if (approvalStatus == ApprovalStatus.APPROVED) {
+                removeSongFromDeniedQueue(roomCode, context_uri)
+                removeSongFromPendingQueue(roomCode, context_uri)
+                addSongToApprovedQueue(roomCode, song)
+            } else {
+                removeSongFromApprovedQueue(roomCode, context_uri)
+                removeSongFromPendingQueue(roomCode, context_uri)
+                addSongToDeniedQueue(roomCode, song)
+            }
         }
 
         approvalRef.runTransaction(

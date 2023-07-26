@@ -199,7 +199,7 @@ class GuestSongQueueActivity  : ComponentActivity(){
         roomManager: RoomManager?
     ) {
         roomManager?.getSongDurationCallback(roomCode) {
-            CurrentSong.setDuration(it)
+            if (it != 0) CurrentSong.setDuration(it)
         }
         roomManager?.getCurrentSongCallback(roomCode) {
             CurrentSong.setCurrentSong(it)
