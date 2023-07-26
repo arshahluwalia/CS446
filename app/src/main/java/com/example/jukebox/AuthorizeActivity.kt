@@ -214,7 +214,7 @@ private fun AuthorizeSpotifyButton(onRequestTokenClicked: () -> Unit){
         colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
     ) {
         Text(
-            text = AnnotatedString("Login |"),
+            text = AnnotatedString("Login   |  "),
             style = MaterialTheme.typography.headlineSmall
         )
         Image(
