@@ -9,8 +9,7 @@
 ##### Kenneth Yang
 
 ## Home Screen
-
-![Screenshot_1718948129](https://github.com/arshahluwalia/CS446/assets/91099321/615ea811-f91e-4903-a9ba-de8fae86fbc9)
+<img src="https://github.com/arshahluwalia/CS446/assets/91099321/615ea811-f91e-4903-a9ba-de8fae86fbc9" width="200" />
 
 ## Creating Room
 
