@@ -31,8 +31,8 @@ The host settings page allows hosts to change their display name, toggle on/off 
 <img src="https://github.com/arshahluwalia/CS446/assets/91099321/8e56a3af-7d93-4afe-a0c6-435cb6f4edd8" width="200" />
 
 ## Host Song Queue
-<img src="https://github.com/arshahluwalia/CS446/assets/91099321/724e1b15-65d2-4842-8668-77f26ffdf80c" width="200" />
 <img src="https://github.com/arshahluwalia/CS446/assets/91099321/6dd3452f-738d-42fa-b6a9-855cf5ef57c8" width="200" />
+<img src="https://github.com/arshahluwalia/CS446/assets/91099321/724e1b15-65d2-4842-8668-77f26ffdf80c" width="200" />
 <img src="https://github.com/arshahluwalia/CS446/assets/91099321/343004a1-5e02-4766-863e-7767f35a92c4" width="200" />
 
 ## Searching
